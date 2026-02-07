@@ -1,0 +1,133 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Загрузка документа - {{ bot.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="mb-4">
+                <a href="{% url 'knowledge_base' bot.id %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Назад к базе знаний
+                </a>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Загрузить документ</h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data" id="upload-form">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Название документа *</label>
+                            <input type="text" name="title" id="title" class="form-control" required placeholder="Например: Инструкция по настройке">
+                            <small class="text-muted">Название поможет легко найти документ</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Описание (опционально)</label>
+                            <textarea name="description" id="description" class="form-control" rows="3" placeholder="Краткое описание содержимого документа"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="file" class="form-label">Файл *</label>
+                            <input type="file" name="file" id="file" class="form-control" required accept=".pdf,.docx,.txt">
+                            <small class="text-muted">
+                                Поддерживаемые форматы: PDF, DOCX, TXT<br>
+                                Максимальный размер: 50 МБ
+                            </small>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> <strong>Что произойдет после загрузки:</strong>
+                            <ol class="mb-0 mt-2">
+                                <li>Документ будет сохранен в базе данных</li>
+                                <li>Текст будет извлечен и очищен</li>
+                                <li>Документ разобьется на смысловые фрагменты (чанки)</li>
+                                <li>Каждый фрагмент будет векторизован через OpenAI API</li>
+                                <li>Бот сможет использовать этот документ для ответов</li>
+                            </ol>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submit-btn">
+                                <i class="fas fa-upload"></i> Загрузить и проиндексировать
+                            </button>
+                        </div>
+                    </form>
+
+                    <div id="progress-section" class="mt-4" style="display: none;">
+                        <div class="alert alert-info">
+                            <div class="d-flex align-items-center">
+                                <div class="spinner-border spinner-border-sm me-2" role="status">
+                                    <span class="visually-hidden">Загрузка...</span>
+                                </div>
+                                <div>
+                                    <strong>Индексация документа...</strong><br>
+                                    <small>Это может занять несколько минут. Пожалуйста, подождите.</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Информация о RAG -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">💡 Подсказки по выбору документов</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Какие документы подходят:</h6>
+                    <ul>
+                        <li>Инструкции и руководства пользователя</li>
+                        <li>FAQ (часто задаваемые вопросы)</li>
+                        <li>Описания продуктов и услуг</li>
+                        <li>Политики и правила компании</li>
+                        <li>Технические спецификации</li>
+                    </ul>
+
+                    <h6 class="mt-3">Рекомендации:</h6>
+                    <ul>
+                        <li>Используйте четкую структуру документа</li>
+                        <li>Избегайте сканированных изображений (OCR не поддерживается)</li>
+                        <li>Разбивайте большие документы на тематические разделы</li>
+                        <li>Регулярно обновляйте документы актуальной информацией</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('upload-form').addEventListener('submit', function() {
+    document.getElementById('submit-btn').disabled = true;
+    document.getElementById('submit-btn').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Загрузка...';
+    document.getElementById('progress-section').style.display = 'block';
+});
+
+// Автозаполнение названия из имени файла
+document.getElementById('file').addEventListener('change', function(e) {
+    const titleInput = document.getElementById('title');
+    if (!titleInput.value && e.target.files.length > 0) {
+        const fileName = e.target.files[0].name;
+        // Убираем расширение
+        const nameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
+        titleInput.value = nameWithoutExt;
+    }
+});
+</script>
+{% endblock %}

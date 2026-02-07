@@ -1,0 +1,101 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Диалоги{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">💬 Диалоги</h1>
+        <p class="page-subtitle">Все беседы ваших ботов с клиентами</p>
+    </div>
+</div>
+
+<div class="glass-card">
+    <div class="card-header">
+        <h2 class="card-title">
+            <i class="fa-solid fa-filter"></i>
+            Фильтр
+        </h2>
+        <select 
+            class="form-input" 
+            style="width: auto; min-width: 200px;"
+            onchange="window.location.href='?bot=' + this.value"
+        >
+            <option value="">Все боты</option>
+            {% for bot in bots %}
+                <option value="{{ bot.id }}" {% if selected_bot == bot.id|stringformat:"s" %}selected{% endif %}>
+                    {{ bot.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Пользователь</th>
+                    <th>Бот</th>
+                    <th>Начат</th>
+                    <th>Последнее сообщение</th>
+                    <th>Статус</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for conv in conversations %}
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 36px; height: 36px; background: rgba(99, 102, 241, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--dash-primary);">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 500;">{{ conv.user_name|default:"Гость" }}</div>
+                                <div style="font-size: 12px; color: var(--dash-text-muted);">{{ conv.user_id|truncatechars:20 }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>{{ conv.bot.name }}</td>
+                    <td style="color: var(--dash-text-muted);">
+                        {{ conv.started_at|date:"d.m.Y H:i" }}
+                    </td>
+                    <td style="color: var(--dash-text-muted);">
+                        {{ conv.last_message_at|timesince }} назад
+                    </td>
+                    <td>
+                        {% if conv.is_lead %}
+                            <span class="status-badge active">
+                                <span class="status-dot"></span>
+                                Лид
+                            </span>
+                        {% else %}
+                            <span class="status-badge inactive">Диалог</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'conversation_detail' conv.id %}" class="btn-icon">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fa-solid fa-comments"></i>
+                            </div>
+                            <h3 class="empty-title">Диалогов пока нет</h3>
+                            <p class="empty-text">
+                                Как только кто-то напишет вашему боту, диалоги появятся здесь
+                            </p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

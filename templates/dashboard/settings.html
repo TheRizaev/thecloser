@@ -1,0 +1,285 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Настройки{% endblock %}
+
+{% block extra_css %}
+<style>
+.settings-container {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 32px;
+}
+
+.settings-nav {
+    background: var(--dash-surface);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--dash-border);
+    border-radius: 16px;
+    padding: 16px;
+    height: fit-content;
+    position: sticky;
+    top: 32px;
+}
+
+.settings-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    color: var(--dash-text-muted);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 10px;
+    margin-bottom: 4px;
+    transition: all 0.2s ease;
+}
+
+.settings-nav-link:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--dash-text);
+}
+
+.settings-nav-link.active {
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--dash-primary);
+    font-weight: 600;
+}
+
+.settings-section {
+    display: none;
+}
+
+.settings-section.active {
+    display: block;
+}
+
+@media (max-width: 1024px) {
+    .settings-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .settings-nav {
+        position: relative;
+        top: 0;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">⚙️ Настройки</h1>
+        <p class="page-subtitle">Управление аккаунтом и предпочтениями</p>
+    </div>
+</div>
+
+<div class="settings-container">
+    <!-- Sidebar Navigation -->
+    <div class="settings-nav">
+        <a href="#profile" class="settings-nav-link active" onclick="showSection('profile', event)">
+            <i class="fa-solid fa-user"></i>
+            Профиль
+        </a>
+        <a href="#security" class="settings-nav-link" onclick="showSection('security', event)">
+            <i class="fa-solid fa-shield-halved"></i>
+            Безопасность
+        </a>
+        <a href="#billing" class="settings-nav-link" onclick="showSection('billing', event)">
+            <i class="fa-solid fa-credit-card"></i>
+            Подписка
+        </a>
+        <a href="#notifications" class="settings-nav-link" onclick="showSection('notifications', event)">
+            <i class="fa-solid fa-bell"></i>
+            Уведомления
+        </a>
+    </div>
+
+    <!-- Content -->
+    <div class="settings-content">
+        <!-- Profile Section -->
+        <div id="profile-section" class="settings-section active">
+            <div class="glass-card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <i class="fa-solid fa-user"></i>
+                        Профиль
+                    </h2>
+                </div>
+                
+                <form method="POST">
+                    {% csrf_token %}
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
+                        <div class="form-group">
+                            <label class="form-label">Имя</label>
+                            <input 
+                                type="text" 
+                                name="first_name" 
+                                class="form-input" 
+                                value="{{ request.user.first_name }}"
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Фамилия</label>
+                            <input 
+                                type="text" 
+                                name="last_name" 
+                                class="form-input" 
+                                value="{{ request.user.last_name }}"
+                            >
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input 
+                            type="email" 
+                            class="form-input" 
+                            value="{{ request.user.email }}" 
+                            disabled
+                        >
+                        <p style="font-size: 12px; color: var(--dash-text-muted); margin-top: 6px;">
+                            Email нельзя изменить
+                        </p>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        Сохранить изменения
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Security Section -->
+        <div id="security-section" class="settings-section">
+            <div class="glass-card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        Безопасность
+                    </h2>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--dash-border); border-radius: 12px; margin-bottom: 16px;">
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 4px;">Пароль</div>
+                        <div style="font-size: 13px; color: var(--dash-text-muted);">
+                            Последнее изменение: никогда
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary">
+                        Изменить пароль
+                    </button>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--dash-border); border-radius: 12px;">
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 4px;">Двухфакторная аутентификация</div>
+                        <div style="font-size: 13px; color: var(--dash-text-muted);">
+                            Дополнительная защита вашего аккаунта
+                        </div>
+                    </div>
+                    <span class="status-badge inactive">Отключено</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Billing Section -->
+        <div id="billing-section" class="settings-section">
+            <div class="glass-card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <i class="fa-solid fa-credit-card"></i>
+                        Подписка
+                    </h2>
+                </div>
+                
+                <div style="padding: 24px; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 12px; margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <div>
+                            <h3 style="font-size: 18px; margin: 0 0 4px 0;">Free Plan</h3>
+                            <p style="font-size: 14px; color: var(--dash-text-muted); margin: 0;">
+                                1 бот · 100 сообщений/мес
+                            </p>
+                        </div>
+                        <div style="font-size: 32px; font-weight: 700;">$0</div>
+                    </div>
+                    
+                    <a href="{% url 'pricing' %}" class="btn btn-primary" style="width: 100%;">
+                        <i class="fa-solid fa-crown"></i>
+                        Обновить до Pro
+                    </a>
+                </div>
+
+                <div style="font-size: 13px; color: var(--dash-text-muted);">
+                    <p style="margin: 0;">
+                        Переходите на Pro, чтобы получить безлимитные сообщения, AI базу знаний и приоритетную поддержку.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications Section -->
+        <div id="notifications-section" class="settings-section">
+            <div class="glass-card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <i class="fa-solid fa-bell"></i>
+                        Уведомления
+                    </h2>
+                </div>
+                
+                <div style="display: grid; gap: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--dash-border); border-radius: 12px;">
+                        <div>
+                            <div style="font-weight: 500; margin-bottom: 4px;">Новые лиды</div>
+                            <div style="font-size: 12px; color: var(--dash-text-muted);">
+                                Email уведомления о новых захваченных лидах
+                            </div>
+                        </div>
+                        <label style="position: relative; display: inline-block; width: 48px; height: 24px;">
+                            <input type="checkbox" checked style="opacity: 0; width: 0; height: 0;">
+                            <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--dash-primary); border-radius: 24px; transition: 0.3s;"></span>
+                        </label>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--dash-border); border-radius: 12px;">
+                        <div>
+                            <div style="font-weight: 500; margin-bottom: 4px;">Отчеты</div>
+                            <div style="font-size: 12px; color: var(--dash-text-muted);">
+                                Еженедельные отчеты об активности ботов
+                            </div>
+                        </div>
+                        <label style="position: relative; display: inline-block; width: 48px; height: 24px;">
+                            <input type="checkbox" style="opacity: 0; width: 0; height: 0;">
+                            <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255, 255, 255, 0.1); border-radius: 24px; transition: 0.3s;"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showSection(id, e) {
+    e.preventDefault();
+    
+    // Hide all sections
+    document.querySelectorAll('.settings-section').forEach(section => {
+        section.classList.remove('active');
+    });
+    
+    // Show selected section
+    document.getElementById(id + '-section').classList.add('active');
+    
+    // Update nav active state
+    document.querySelectorAll('.settings-nav-link').forEach(link => {
+        link.classList.remove('active');
+    });
+    e.target.closest('a').classList.add('active');
+}
+</script>
+{% endblock %}

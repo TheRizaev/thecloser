@@ -1,0 +1,192 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Создать агента{% endblock %}
+
+{% block extra_css %}
+<style>
+.platform-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.platform-option {
+    position: relative;
+}
+
+.platform-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.platform-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 2px solid var(--dash-border);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.platform-card i {
+    font-size: 32px;
+}
+
+.platform-card span {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--dash-text);
+}
+
+.platform-option input:checked + .platform-card {
+    background: rgba(99, 102, 241, 0.1);
+    border-color: var(--dash-primary);
+}
+
+.platform-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(99, 102, 241, 0.3);
+}
+
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--dash-text);
+    margin-bottom: 8px;
+}
+
+.form-input,
+.form-textarea {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--dash-border);
+    border-radius: 10px;
+    color: var(--dash-text);
+    font-size: 14px;
+    font-family: inherit;
+    transition: all 0.2s ease;
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+    color: var(--dash-text-muted);
+}
+
+.form-input:focus,
+.form-textarea:focus {
+    outline: none;
+    border-color: var(--dash-primary);
+    background: rgba(15, 23, 42, 0.8);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 32px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">✨ Новый агент</h1>
+        <p class="page-subtitle">Создайте умного бота для автоматизации продаж</p>
+    </div>
+</div>
+
+<div class="glass-card" style="max-width: 800px; margin: 0 auto;">
+    <form method="POST">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label class="form-label">Название бота</label>
+            <input 
+                type="text" 
+                name="name" 
+                class="form-input" 
+                placeholder="Например: Sales Assistant" 
+                required
+                autocomplete="off"
+            >
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Выберите платформу</label>
+            <div class="platform-grid">
+                <label class="platform-option">
+                    <input type="radio" name="platform" value="telegram" checked>
+                    <div class="platform-card">
+                        <i class="fa-brands fa-telegram" style="color: #229ED9;"></i>
+                        <span>Telegram</span>
+                    </div>
+                </label>
+                
+                <label class="platform-option">
+                    <input type="radio" name="platform" value="whatsapp">
+                    <div class="platform-card">
+                        <i class="fa-brands fa-whatsapp" style="color: #25D366;"></i>
+                        <span>WhatsApp</span>
+                    </div>
+                </label>
+                
+                <label class="platform-option">
+                    <input type="radio" name="platform" value="vk">
+                    <div class="platform-card">
+                        <i class="fa-brands fa-vk" style="color: #0077FF;"></i>
+                        <span>VK</span>
+                    </div>
+                </label>
+                
+                <label class="platform-option">
+                    <input type="radio" name="platform" value="instagram">
+                    <div class="platform-card">
+                        <i class="fa-brands fa-instagram" style="color: #E4405F;"></i>
+                        <span>Instagram</span>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Описание (необязательно)</label>
+            <textarea 
+                name="description" 
+                class="form-textarea" 
+                placeholder="Расскажите, для чего будет использоваться этот бот..."
+            ></textarea>
+        </div>
+
+        <div class="form-actions">
+            <a href="{% url 'agents_list' %}" class="btn btn-secondary">
+                Отмена
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-check"></i>
+                Создать агента
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

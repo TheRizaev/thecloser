@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Тарифы — The Closer{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/pricing.css' %}">
+{% endblock %}
+
+{% block content %}
+    <section class="pricing-header">
+        <div class="bg-glow"></div>
+        <h1>Простые и честные тарифы</h1>
+        <p class="subtitle">Начните бесплатно. Переходите на PRO, когда вырастут продажи.</p>
+
+        <div class="pricing-toggle">
+            <div class="toggle-bg" id="toggleBg"></div>
+            <div class="toggle-option active" id="btn-month">Ежемесячно</div>
+            <div class="toggle-option" id="btn-year">Ежегодно</div>
+            <div class="discount-badge">-20%</div>
+        </div>
+    </section>
+
+    <div class="pricing-grid">
+        <div class="price-card">
+            <div class="plan-name">Start</div>
+            <div class="price-area"><span class="currency">$</span><span class="amount">0</span><span class="period">/мес</span></div>
+            <ul class="features-list">
+                <li><i class="fa-solid fa-check"></i> 1 Чат-бот</li>
+                <li><i class="fa-solid fa-check"></i> 100 сообщений/мес</li>
+                <li class="disabled"><i class="fa-solid fa-ban"></i> AI база знаний</li>
+            </ul>
+            <a href="{% url 'account_login' %}" class="btn-plan btn-outline">Начать бесплатно</a>
+        </div>
+
+        <div class="price-card featured">
+            <div class="best-value">Выбор клиентов</div>
+            <div class="plan-name">Pro Business</div>
+            <div class="price-area"><span class="currency">$</span><span class="amount" id="price-pro">29</span><span class="period">/мес</span></div>
+            <ul class="features-list">
+                <li><i class="fa-solid fa-check"></i> 5 Чат-ботов</li>
+                <li><i class="fa-solid fa-check"></i> <strong>Безлимит</strong></li>
+                <li><i class="fa-solid fa-check"></i> AI RAG (Загрузка PDF)</li>
+                <li><i class="fa-solid fa-check"></i> CRM Интеграция</li>
+            </ul>
+            <a href="{% url 'account_login' %}" class="btn-plan btn-filled">Попробовать PRO</a>
+        </div>
+
+        <div class="price-card">
+            <div class="plan-name">Enterprise</div>
+            <div class="price-area"><span class="currency">$</span><span class="amount" id="price-ent">99</span><span class="period">/мес</span></div>
+            <ul class="features-list">
+                <li><i class="fa-solid fa-check"></i> Безлимит ботов</li>
+                <li><i class="fa-solid fa-check"></i> Доступ к API</li>
+                <li><i class="fa-solid fa-check"></i> Приоритетная поддержка</li>
+            </ul>
+            <a href="#" class="btn-plan btn-outline">Связаться с нами</a>
+        </div>
+    </div>
+
+    <section class="comparison-section">
+        <h2 class="table-title">Сравнение возможностей</h2>
+        <div class="table-wrapper">
+            <table class="compare-table">
+                <thead><tr><th>Функция</th><th>Start</th><th style="color:var(--accent-primary)">Pro</th><th>Enterprise</th></tr></thead>
+                <tbody>
+                    <tr><td>Визуальный конструктор</td><td><i class="fa-solid fa-check"></i></td><td><i class="fa-solid fa-check"></i></td><td><i class="fa-solid fa-check"></i></td></tr>
+                    <tr><td>Умные AI ответы (GPT-4)</td><td><i class="fa-solid fa-minus"></i></td><td><i class="fa-solid fa-check"></i></td><td><i class="fa-solid fa-check"></i></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="faq-section">
+        <h2 class="table-title" style="font-size: 1.8rem;">Частые вопросы</h2>
+        <div class="faq-item">
+            <div class="faq-question">Есть ли пробный период? <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="faq-answer"><p>Да, на тарифе PRO доступен бесплатный период 14 дней.</p></div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/pricing.js' %}"></script>
+{% endblock %}

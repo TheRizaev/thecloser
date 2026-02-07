@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Документация — The Closer{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/docs.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="docs-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-group">
+                <div class="sidebar-title">Начало работы</div>
+                <a href="#" class="sidebar-link active"><i class="fa-solid fa-rocket"></i> Быстрый старт</a>
+                <a href="#" class="sidebar-link"><i class="fa-solid fa-key"></i> Получение API ключа</a>
+            </div>
+            <div class="sidebar-group">
+                <div class="sidebar-title">Каналы</div>
+                <a href="#" class="sidebar-link"><i class="fa-brands fa-telegram"></i> Telegram</a>
+                <a href="#" class="sidebar-link"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
+            </div>
+        </aside>
+
+        <main class="content">
+            <button class="menu-toggle" onclick="toggleSidebar()" style="margin-bottom: 20px; display: none;">
+                <i class="fa-solid fa-bars"></i> Меню
+            </button>
+
+            <div class="breadcrumb">Docs <i class="fa-solid fa-chevron-right"></i> Начало работы <i class="fa-solid fa-chevron-right"></i> Быстрый старт</div>
+
+            <h1>Быстрый старт с The Closer</h1>
+            <p>Руководство по запуску бота.</p>
+
+            <div class="callout">
+                <span class="callout-title"><i class="fa-solid fa-info-circle"></i> Перед началом</span>
+                Убедитесь, что у вас есть токен от @BotFather.
+            </div>
+
+            <h2 id="step1">Шаг 1: Установка</h2>
+            <div class="code-block">
+                <div class="code-header"><span>Terminal</span><button class="copy-btn" onclick="copyCode(this)"><i class="fa-regular fa-copy"></i> Copy</button></div>
+                <pre><code>pip install thecloser-bot</code></pre>
+            </div>
+        </main>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/docs.js' %}"></script>
+    <script>
+        if (window.innerWidth <= 900) {
+            document.querySelector('.menu-toggle').style.display = 'block';
+        }
+    </script>
+{% endblock %}

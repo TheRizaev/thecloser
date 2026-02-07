@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Шаблоны — The Closer{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/templates.css' %}">
+{% endblock %}
+
+{% block content %}
+    <header class="templates-header">
+        <h1>Библиотека Шаблонов</h1>
+        <p class="subtitle">Выберите готовое решение и запустите бота за 2 минуты.</p>
+        
+        <div class="search-container">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" class="search-input" id="searchInput" placeholder="Найти шаблон...">
+        </div>
+    </header>
+
+    <div class="filters-bar" id="filters">
+        <button class="filter-btn active" data-filter="all">Все</button>
+        <button class="filter-btn" data-filter="sales">Продажи</button>
+        <button class="filter-btn" data-filter="support">Поддержка</button>
+        <button class="filter-btn" data-filter="services">Услуги</button>
+        <button class="filter-btn" data-filter="hr">HR</button>
+    </div>
+
+    <div class="templates-grid" id="grid">
+        <div class="template-card" data-category="services">
+            <div class="card-preview">
+                <div class="level-badge level-easy">Easy</div>
+                <div class="card-icon-wrapper"><i class="fa-solid fa-scissors"></i></div>
+            </div>
+            <div class="card-content">
+                <div class="card-tags"><span class="tag">Услуги</span><span class="tag">Запись</span></div>
+                <h3 class="card-title">Салон красоты</h3>
+                <p class="card-desc">Автоматическая запись клиентов и сбор отзывов.</p>
+                <div class="card-actions">
+                    <a href="{% url 'account_login' %}" class="btn-use">Выбрать</a>
+                    <button class="btn-preview"><i class="fa-solid fa-eye"></i></button>
+                </div>
+            </div>
+        </div>
+        <div class="no-results"><h3>Ничего не найдено 😔</h3></div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/templates.js' %}"></script>
+{% endblock %}

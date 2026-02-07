@@ -1,0 +1,96 @@
+{% extends 'account/base.html' %}
+{% load static %}
+{% load socialaccount %}
+
+{% block head_title %}Вход в систему — The Closer{% endblock %}
+
+{% block content %}
+<div class="auth-form-wrapper">
+    <div class="auth-header">
+        <h1 class="auth-title">С возвращением</h1>
+        <p class="auth-subtitle">Войдите, чтобы продолжить работу</p>
+    </div>
+
+    {% if form.errors %}
+        <div class="auth-alert auth-alert-error">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span>Неверный email или пароль</span>
+        </div>
+    {% endif %}
+
+    <form method="POST" class="auth-form">
+        {% csrf_token %}
+        
+        <div class="auth-input-group">
+            <label class="auth-label">Email адрес</label>
+            <div class="auth-input-wrapper">
+                <i class="fa-regular fa-envelope auth-input-icon"></i>
+                <input 
+                    type="email" 
+                    name="login" 
+                    class="auth-input" 
+                    placeholder="you@company.com"
+                    value="{{ form.login.value|default:'' }}" 
+                    required
+                    autocomplete="email"
+                >
+            </div>
+        </div>
+
+        <div class="auth-input-group">
+            <div class="auth-label-row">
+                <label class="auth-label">Пароль</label>
+                <a href="{% url 'account_reset_password' %}" class="auth-link-subtle">
+                    Забыли пароль?
+                </a>
+            </div>
+            <div class="auth-input-wrapper">
+                <i class="fa-solid fa-lock auth-input-icon"></i>
+                <input 
+                    type="password" 
+                    name="password" 
+                    class="auth-input" 
+                    placeholder="••••••••"
+                    required
+                    autocomplete="current-password"
+                >
+            </div>
+        </div>
+
+        <div class="auth-checkbox-group">
+            <label class="auth-checkbox-label">
+                <input type="checkbox" name="remember" class="auth-checkbox">
+                <span class="auth-checkbox-custom"></span>
+                <span class="auth-checkbox-text">Запомнить меня на 30 дней</span>
+            </label>
+        </div>
+
+        <button type="submit" class="auth-btn auth-btn-primary">
+            <span>Войти в систему</span>
+            <i class="fa-solid fa-arrow-right"></i>
+        </button>
+    </form>
+
+    <div class="auth-divider">
+        <span class="auth-divider-text">или продолжить с</span>
+    </div>
+
+    <div class="auth-social-grid">
+        <a href="{% provider_login_url 'google' %}" class="auth-social-btn">
+            <i class="fa-brands fa-google"></i>
+            <span>Google</span>
+        </a>
+        <a href="{% provider_login_url 'apple' %}" class="auth-social-btn">
+            <i class="fa-brands fa-apple"></i>
+            <span>Apple</span>
+        </a>
+    </div>
+
+    <div class="auth-footer-text">
+        Нет аккаунта? 
+        <a href="{% url 'account_signup' %}" class="auth-link-primary">
+            Создать бесплатно
+        </a>
+    </div>
+</div>
+{% endblock %}

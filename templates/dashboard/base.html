@@ -1,0 +1,145 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %} — The Closer</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- Background -->
+    <div class="dashboard-bg">
+        <div class="grid-overlay"></div>
+    </div>
+
+    <!-- Layout -->
+    <div class="dashboard-layout">
+        
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <!-- Logo -->
+            <a href="{% url 'home' %}" class="sidebar-logo">
+                <div class="sidebar-logo-icon">
+                    <i class="fa-solid fa-brain"></i>
+                </div>
+                <span class="sidebar-logo-text">The Closer</span>
+            </a>
+
+            <!-- User Profile -->
+            <div class="sidebar-header">
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        {{ request.user.first_name|first|default:"U"|upper }}
+                    </div>
+                    <div class="user-info">
+                        <h4>{{ request.user.first_name|default:request.user.username }}</h4>
+                        <p class="user-badge">Free Plan</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="sidebar-menu">
+                <div class="menu-section">
+                    <div class="menu-section-title">Overview</div>
+                    <a href="{% url 'dashboard' %}" class="menu-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <i class="fa-solid fa-house"></i>
+                        <span>Главная</span>
+                    </a>
+                    <a href="{% url 'agents_list' %}" class="menu-link {% if 'agents' in request.path %}active{% endif %}">
+                        <i class="fa-solid fa-robot"></i>
+                        <span>Агенты</span>
+                    </a>
+                    <a href="{% url 'conversations_list' %}" class="menu-link {% if 'conversations' in request.path %}active{% endif %}">
+                        <i class="fa-solid fa-comments"></i>
+                        <span>Диалоги</span>
+                    </a>
+                    {% if bot %}
+                        <a href="{% url 'knowledge_base' bot.id %}" class="menu-link {% if 'knowledge' in request.path %}active{% endif %}">
+                            <i class="fa-solid fa-brain"></i>
+                            <span>База знаний</span>
+                        </a>
+                    {% else %}
+                        <a href="{% url 'agents_list' %}" class="menu-link {% if 'knowledge' in request.path %}active{% endif %}">
+                            <i class="fa-solid fa-brain"></i>
+                            <span>База знаний</span>
+                        </a>
+                    {% endif %}
+                </div>
+                
+                <div class="menu-section">
+                    <div class="menu-section-title">Analytics</div>
+                    <a href="{% url 'analytics' %}" class="menu-link {% if 'analytics' in request.path %}active{% endif %}">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <span>Аналитика</span>
+                    </a>
+                    <a href="{% url 'integrations' %}" class="menu-link {% if 'integrations' in request.path %}active{% endif %}">
+                        <i class="fa-solid fa-plug"></i>
+                        <span>Интеграции</span>
+                    </a>
+                </div>
+
+                <div class="menu-section">
+                    <div class="menu-section-title">Settings</div>
+                    <a href="{% url 'settings' %}" class="menu-link {% if 'settings' in request.path %}active{% endif %}">
+                        <i class="fa-solid fa-gear"></i>
+                        <span>Настройки</span>
+                    </a>
+                    <a href="{% url 'pricing' %}" class="menu-link">
+                        <i class="fa-solid fa-crown"></i>
+                        <span>Upgrade</span>
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Footer -->
+            <div class="sidebar-footer">
+                <a href="{% url 'account_logout' %}" class="menu-link" style="color: var(--dash-error);">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    <span>Выйти</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            {% block content %}{% endblock %}
+        </main>
+
+    </div>
+
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleSidebar()">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 1024) {
+                const sidebar = document.getElementById('sidebar');
+                const menuBtn = document.getElementById('mobileMenuBtn');
+                
+                if (!sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+                    sidebar.classList.remove('open');
+                }
+            }
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

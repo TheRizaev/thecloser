@@ -1,0 +1,104 @@
+{% extends 'account/base.html' %}
+{% load static %}
+
+{% block head_title %}Регистрация — SalesAI{% endblock %}
+
+{% block content %}
+<div class="auth-form-wrapper">
+    <div class="auth-header">
+        <h1 class="auth-title">Создайте аккаунт</h1>
+        <p class="auth-subtitle">Начните автоматизировать продажи бесплатно</p>
+    </div>
+
+    {% if form.errors %}
+        <div class="auth-alert auth-alert-error">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <div>
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <form method="POST" class="auth-form">
+        {% csrf_token %}
+
+        <div class="auth-input-group">
+            <label class="auth-label">Email адрес</label>
+            <div class="auth-input-wrapper">
+                <i class="fa-regular fa-envelope auth-input-icon"></i>
+                <input 
+                    type="email" 
+                    name="email" 
+                    class="auth-input" 
+                    placeholder="you@company.com"
+                    value="{{ form.email.value|default:'' }}" 
+                    required
+                    autocomplete="email"
+                >
+            </div>
+        </div>
+
+        <div class="auth-input-group">
+            <label class="auth-label">Пароль</label>
+            <div class="auth-input-wrapper">
+                <i class="fa-solid fa-lock auth-input-icon"></i>
+                <input 
+                    type="password" 
+                    name="password1" 
+                    class="auth-input" 
+                    placeholder="Минимум 8 символов"
+                    required
+                    autocomplete="new-password"
+                >
+            </div>
+            <div class="auth-input-hint">
+                Используйте минимум 8 символов с буквами и цифрами
+            </div>
+        </div>
+
+        <div class="auth-input-group">
+            <label class="auth-label">Подтвердите пароль</label>
+            <div class="auth-input-wrapper">
+                <i class="fa-solid fa-lock auth-input-icon"></i>
+                <input 
+                    type="password" 
+                    name="password2" 
+                    class="auth-input" 
+                    placeholder="Повторите пароль"
+                    required
+                    autocomplete="new-password"
+                >
+            </div>
+        </div>
+
+        <div class="auth-checkbox-group">
+            <label class="auth-checkbox-label">
+                <input type="checkbox" class="auth-checkbox" required>
+                <span class="auth-checkbox-custom"></span>
+                <span class="auth-checkbox-text">
+                    Я согласен с 
+                    <a href="#" class="auth-link-inline">Условиями использования</a> 
+                    и 
+                    <a href="#" class="auth-link-inline">Политикой конфиденциальности</a>
+                </span>
+            </label>
+        </div>
+
+        <button type="submit" class="auth-btn auth-btn-primary">
+            <span>Создать аккаунт</span>
+            <i class="fa-solid fa-arrow-right"></i>
+        </button>
+    </form>
+
+    <div class="auth-footer-text">
+        Уже есть аккаунт? 
+        <a href="{% url 'account_login' %}" class="auth-link-primary">
+            Войти
+        </a>
+    </div>
+</div>
+{% endblock %}

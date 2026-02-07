@@ -1,0 +1,221 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}База знаний - {{ bot.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2>База знаний: {{ bot.name }}</h2>
+                    <p class="text-muted">Управление документами для RAG системы</p>
+                </div>
+                <a href="{% url 'upload_kb' bot.id %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Загрузить документ
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Документы ({{ documents.count }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if documents %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Название</th>
+                                    <th>Тип</th>
+                                    <th>Статус</th>
+                                    <th>Фрагменты</th>
+                                    <th>Дата загрузки</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for doc in documents %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ doc.title }}</strong>
+                                        {% if doc.description %}
+                                        <br><small class="text-muted">{{ doc.description|truncatewords:10 }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ doc.get_file_type_display }}</span>
+                                    </td>
+                                    <td>
+                                        {% if doc.is_indexed %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check"></i> Проиндексирован
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-clock"></i> Ожидает
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ doc.chunks_count_db }} фрагментов</span>
+                                    </td>
+                                    <td>
+                                        {{ doc.created_at|date:"d.m.Y H:i" }}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'knowledge_detail' doc.id %}" class="btn btn-outline-primary" title="Просмотр">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <button class="btn btn-outline-secondary" onclick="reindexDocument({{ doc.id }})" title="Переиндексировать">
+                                                <i class="fas fa-sync"></i>
+                                            </button>
+                                            <form method="post" action="{% url 'knowledge_delete' doc.id %}" style="display:inline;" onsubmit="return confirm('Удалить этот документ?');">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-outline-danger" title="Удалить">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Документов пока нет</p>
+                        <a href="{% url 'upload_kb' bot.id %}" class="btn btn-primary">
+                            Загрузить первый документ
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Тестирование RAG -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Тестирование RAG</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Задайте вопрос:</label>
+                        <input type="text" id="test-query" class="form-control" placeholder="Например: Как настроить бота?">
+                    </div>
+                    <button onclick="testRAG()" class="btn btn-success">
+                        <i class="fas fa-search"></i> Поиск ответа
+                    </button>
+                    
+                    <div id="rag-result" class="mt-3" style="display:none;">
+                        <div class="alert alert-info">
+                            <h6>Ответ:</h6>
+                            <p id="rag-answer"></p>
+                            <hr>
+                            <small><strong>Источники:</strong> <span id="rag-sources"></span></small><br>
+                            <small><strong>Уверенность:</strong> <span id="rag-confidence"></span></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+async function reindexDocument(kbId) {
+    if (!confirm('Переиндексировать этот документ?')) return;
+    
+    try {
+        const response = await fetch(`/api/knowledge/${kbId}/reindex/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert('Ошибка: ' + data.error);
+        }
+    } catch (error) {
+        alert('Ошибка: ' + error);
+    }
+}
+
+async function testRAG() {
+    const query = document.getElementById('test-query').value.trim();
+    if (!query) {
+        alert('Введите вопрос');
+        return;
+    }
+    
+    document.getElementById('rag-result').style.display = 'none';
+    
+    try {
+        const response = await fetch(`/api/bot/{{ bot.id }}/rag/test/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ query: query })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('rag-answer').textContent = data.answer;
+            document.getElementById('rag-sources').textContent = data.sources.join(', ') || 'Нет';
+            document.getElementById('rag-confidence').textContent = (data.confidence * 100).toFixed(0) + '%';
+            document.getElementById('rag-result').style.display = 'block';
+        } else {
+            alert('Ошибка: ' + data.error);
+        }
+    } catch (error) {
+        alert('Ошибка: ' + error);
+    }
+}
+</script>
+{% endblock %}

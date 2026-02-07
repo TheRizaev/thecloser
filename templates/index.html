@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Главная — The Closer{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/index.css' %}">
+{% endblock %}
+
+{% block content %}
+    <header class="hero">
+        <div class="ambient-glow"></div>
+        <div class="grid-pattern"></div>
+
+        <div class="hero-content">
+            <div class="badge"><span></span> AI Engine v2.0</div>
+            <h1>Автоматизируй <br> <span class="gradient-text">Общение</span> и Продажи</h1>
+            <p class="subtitle">
+                Создавай умных ботов для Telegram и WhatsApp за 5 минут. Загрузи базу знаний, и AI сам ответит клиентам.
+            </p>
+            <div class="cta-group">
+                <a href="{% url 'account_login' %}" class="btn-primary">Попробовать бесплатно</a>
+                <a href="#" class="btn-secondary"><i class="fa-solid fa-play"></i> Демо</a>
+            </div>
+        </div>
+
+        <div class="hero-visual" id="tiltContainer">
+            <div class="interface-card" id="tiltCard">
+                <div class="floating-badge fb-1"><i class="fa-solid fa-check-circle"></i> Lead Captured</div>
+                <div class="card-header">
+                    <div class="dots"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
+                    <div style="font-size: 0.8rem; color: #64748b;">Live Chat Preview</div>
+                </div>
+                <div class="chat-area" id="chatArea"></div>
+                <div class="typing-indicator" id="typingIndicator">
+                    AI печатает <div class="typing-dots"><span></span><span></span><span></span></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="features-section">
+        <div class="section-header">
+            <h2>Больше, чем просто <span class="gradient-text">Чат-бот</span></h2>
+            <p>Мы решили главные проблемы старых конструкторов.</p>
+        </div>
+        <div class="bento-grid">
+            <div class="bento-card card-large">
+                <div class="card-content">
+                    <h3>Контекстный AI (RAG)</h3>
+                    <p>Бот читает ваши PDF и отвечает строго по ним.</p>
+                </div>
+                <div class="card-visual visual-rag">
+                    <div class="file-icon"><i class="fa-solid fa-file-pdf"></i></div>
+                    <div class="scan-line"></div>
+                    <div class="brain-icon"><i class="fa-solid fa-brain"></i></div>
+                </div>
+            </div>
+            <div class="bento-card card-tall">
+                <div class="card-content"><h3>Омниканальность</h3><p>Telegram, WhatsApp, VK - в одном окне.</p></div>
+                <div class="card-visual visual-omni">
+                    <div class="icon-orbit">
+                        <div class="planet telegram"><i class="fa-brands fa-telegram"></i></div>
+                        <div class="planet whatsapp"><i class="fa-brands fa-whatsapp"></i></div>
+                        <div class="planet insta"><i class="fa-brands fa-instagram"></i></div>
+                        <div class="planet vk"><i class="fa-brands fa-vk"></i></div>
+                        <div class="core-logo"><i class="fa-solid fa-robot"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="bento-card">
+                <div class="card-content"><h3>Analytics</h3><p>Воронка продаж в реальном времени.</p></div>
+                <div class="card-visual visual-chart">
+                    <div class="chart-bar" style="height: 40%"></div>
+                    <div class="chart-bar active" style="height: 85%"><span>+140%</span></div>
+                    <div class="chart-bar" style="height: 60%"></div>
+                </div>
+            </div>
+            <div class="bento-card">
+                <div class="card-content"><h3>No-Code</h3><p>Drag & Drop редактор сценариев.</p></div>
+                <div class="card-visual visual-nodes">
+                    <div class="node n1"><i class="fa-solid fa-play"></i></div>
+                    <div class="node-line"></div>
+                    <div class="node n2"><i class="fa-solid fa-envelope"></i></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="process-section">
+        <div class="section-header">
+            <div class="badge">Простой старт</div>
+            <h2>Запуск за <span class="gradient-text">3 шага</span></h2>
+        </div>
+        <div class="process-container">
+            <div class="process-tabs">
+                <div class="tab-btn active" onclick="switchTab(0)">
+                    <div class="tab-number">01</div>
+                    <div class="tab-info"><h3>Подключите каналы</h3><p>Telegram и WhatsApp в пару кликов.</p></div>
+                </div>
+                <div class="tab-btn" onclick="switchTab(1)">
+                    <div class="tab-number">02</div>
+                    <div class="tab-info"><h3>Загрузите знания</h3><p>Перетащите PDF файлы в базу.</p></div>
+                </div>
+                <div class="tab-btn" onclick="switchTab(2)">
+                    <div class="tab-number">03</div>
+                    <div class="tab-info"><h3>Продажи</h3><p>Следите за заявками в CRM.</p></div>
+                </div>
+            </div>
+            <div class="process-visual-window">
+                <div class="window-header"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
+                <div class="tab-content active" id="content-0">
+                    <div class="connect-visual">
+                        <div class="platform-card"><i class="fa-brands fa-telegram" style="color:#229ED9"></i><span>Telegram</span><div class="toggle-switch active"></div></div>
+                        <div class="platform-card"><i class="fa-brands fa-whatsapp" style="color:#25D366"></i><span>WhatsApp</span><div class="toggle-switch"></div></div>
+                    </div>
+                </div>
+                <div class="tab-content" id="content-1">
+                    <div class="upload-zone"><i class="fa-solid fa-cloud-arrow-up"></i><span>Price.pdf</span><div class="progress-bar"><div class="fill"></div></div></div>
+                </div>
+                <div class="tab-content" id="content-2">
+                    <div class="stats-visual"><div class="stat-box highlight"><span>Лиды</span><strong>85</strong></div></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="use-cases-section">
+        <div class="section-header"><h2>Решения для <span class="gradient-text">бизнеса</span></h2></div>
+        <div class="cases-grid">
+            <div class="case-card">
+                <div class="case-icon"><i class="fa-solid fa-headset"></i></div>
+                <h3>Техподдержка</h3>
+                <p>Автоответы на FAQ 24/7. Экономия ФОТ.</p>
+                <div class="case-metric"><div class="metric-value">-70%</div><div class="metric-label">Нагрузка</div></div>
+            </div>
+            <div class="case-card featured">
+                <div class="featured-badge">Популярное</div>
+                <div class="case-icon"><i class="fa-solid fa-sack-dollar"></i></div>
+                <h3>Продажи</h3>
+                <p>Квалификация лидов и запись в CRM.</p>
+                <div class="case-metric"><div class="metric-value">x3.5</div><div class="metric-label">Конверсия</div></div>
+            </div>
+            <div class="case-card">
+                <div class="case-icon"><i class="fa-solid fa-users-gear"></i></div>
+                <h3>HR</h3>
+                <p>Онбординг и обучение сотрудников.</p>
+                <div class="case-metric"><div class="metric-value">100%</div><div class="metric-label">Вовлеченность</div></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="integrations-section">
+        <p class="logos-title">Интегрируется с вашим стеком</p>
+        <div class="marquee-container">
+            <div class="marquee-track">
+                <div class="logo-item"><i class="fa-brands fa-google"></i> Sheets</div>
+                <div class="logo-item"><i class="fa-brands fa-stripe"></i> Stripe</div>
+                <div class="logo-item"><i class="fa-brands fa-bitbucket"></i> Bitrix24</div>
+                <div class="logo-item"><i class="fa-solid fa-a"></i> AmoCRM</div>
+                <div class="logo-item"><i class="fa-brands fa-slack"></i> Slack</div>
+                <div class="logo-item"><i class="fa-brands fa-google"></i> Sheets</div>
+                <div class="logo-item"><i class="fa-brands fa-stripe"></i> Stripe</div>
+                <div class="logo-item"><i class="fa-brands fa-bitbucket"></i> Bitrix24</div>
+                <div class="logo-item"><i class="fa-solid fa-a"></i> AmoCRM</div>
+            </div>
+            <div class="fade-overlay left"></div><div class="fade-overlay right"></div>
+        </div>
+    </section>
+
+    <section class="final-cta" style="padding: 100px 5%; display: flex; justify-content: center;">
+        <div style="width: 100%; max-width: 1000px; background: linear-gradient(180deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 1)); border: 1px solid var(--glass-border); border-radius: 30px; padding: 80px 20px; text-align: center; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: -50%; left: 50%; transform: translateX(-50%); width: 600px; height: 600px; background: radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, transparent 70%); filter: blur(80px); pointer-events: none;"></div>
+            <h2 style="font-size: 2.5rem; margin-bottom: 15px; position: relative; z-index: 2;">Готовы запустить бота?</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 40px; font-size: 1.1rem; position: relative; z-index: 2;">14 дней бесплатно. Карта не требуется.</p>
+            <a href="{% url 'account_login' %}" class="btn-primary" style="font-size: 1.1rem; padding: 16px 32px;">Начать бесплатно <i class="fa-solid fa-rocket" style="margin-left:8px"></i></a>
+        </div>
+    </section>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/index.js' %}"></script>
+{% endblock %}

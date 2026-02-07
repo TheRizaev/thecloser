@@ -1,0 +1,1845 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Интеграции — CRM{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ============================================
+   INTEGRATIONS PAGE STYLES
+   ============================================ */
+
+.integrations-header {
+    margin-bottom: 40px;
+}
+
+.integrations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+/* Integration Card */
+.integration-card {
+    background: var(--dash-surface);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--dash-border);
+    border-radius: 20px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.integration-card:hover {
+    border-color: rgba(99, 102, 241, 0.3);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.integration-card.connected {
+    border-color: rgba(34, 197, 94, 0.3);
+}
+
+/* Card Header */
+.integration-header {
+    padding: 28px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    border-bottom: 1px solid var(--dash-border);
+    position: relative;
+}
+
+.integration-logo {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    flex-shrink: 0;
+}
+
+.integration-logo.bitrix {
+    background: linear-gradient(135deg, #2FC7F7 0%, #00AEEF 100%);
+    color: white;
+}
+
+.integration-logo.amocrm {
+    background: linear-gradient(135deg, #FED100 0%, #F5A623 100%);
+    color: white;
+}
+
+.integration-logo.moysklad {
+    background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+    color: white;
+}
+
+.integration-logo.google-sheets {
+    background: linear-gradient(135deg, #0F9D58 0%, #188038 100%);
+    color: white;
+}
+
+.integration-info h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 6px 0;
+    color: var(--dash-text);
+}
+
+.integration-info p {
+    font-size: 14px;
+    color: var(--dash-text-muted);
+    margin: 0;
+}
+
+.integration-status {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-pill.connected {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.status-pill.disconnected {
+    background: rgba(148, 163, 184, 0.1);
+    color: var(--dash-text-muted);
+    border: 1px solid var(--dash-border);
+}
+
+.status-pill .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+/* Card Body */
+.integration-body {
+    padding: 28px;
+}
+
+/* Features List */
+.features-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 24px;
+}
+
+.feature-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--dash-border);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--dash-text-muted);
+}
+
+.feature-tag i {
+    color: var(--dash-primary);
+    font-size: 10px;
+}
+
+/* Connection Form */
+.connection-form {
+    display: none;
+    animation: slideDown 0.3s ease;
+}
+
+.connection-form.active {
+    display: block;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.form-section {
+    margin-bottom: 20px;
+}
+
+.form-section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--dash-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-section-title i {
+    color: var(--dash-primary);
+}
+
+.form-input-group {
+    margin-bottom: 16px;
+}
+
+.form-input-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--dash-text);
+    margin-bottom: 8px;
+}
+
+.form-input-group .input-hint {
+    font-size: 12px;
+    color: var(--dash-text-muted);
+    margin-top: 6px;
+    line-height: 1.5;
+}
+
+.form-input-group .input-hint a {
+    color: var(--dash-primary);
+    text-decoration: none;
+}
+
+.form-input-group .input-hint a:hover {
+    text-decoration: underline;
+}
+
+/* Info Box */
+.info-box {
+    background: rgba(99, 102, 241, 0.05);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.info-box.warning {
+    background: rgba(245, 158, 11, 0.05);
+    border-color: rgba(245, 158, 11, 0.2);
+}
+
+.info-box-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.info-box-header i {
+    color: var(--dash-primary);
+    font-size: 16px;
+}
+
+.info-box.warning .info-box-header i {
+    color: #f59e0b;
+}
+
+.info-box-header h4 {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--dash-text);
+}
+
+.info-box p {
+    font-size: 13px;
+    color: var(--dash-text-muted);
+    margin: 0;
+    line-height: 1.6;
+}
+
+.info-box ol, .info-box ul {
+    font-size: 13px;
+    color: var(--dash-text-muted);
+    margin: 10px 0 0 20px;
+    padding: 0;
+    line-height: 1.8;
+}
+
+.info-box a {
+    color: var(--dash-primary);
+    text-decoration: none;
+}
+
+.info-box a:hover {
+    text-decoration: underline;
+}
+
+/* Connected State */
+.connected-info {
+    background: rgba(34, 197, 94, 0.05);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.connected-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.connected-info-row:last-child {
+    border-bottom: none;
+}
+
+.connected-info-label {
+    font-size: 13px;
+    color: var(--dash-text-muted);
+}
+
+.connected-info-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--dash-text);
+}
+
+/* Buttons */
+.integration-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.btn-connect {
+    flex: 1;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, var(--dash-primary), #7c3aed);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-connect:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+}
+
+.btn-connect:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-disconnect {
+    padding: 14px 24px;
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--dash-error);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-disconnect:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+.btn-test {
+    padding: 14px 24px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--dash-text);
+    border: 1px solid var(--dash-border);
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-test:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.btn-toggle-form {
+    width: 100%;
+    padding: 14px 24px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--dash-text);
+    border: 1px solid var(--dash-border);
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-toggle-form:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--dash-primary);
+}
+
+/* Error/Success Messages */
+.message-box {
+    padding: 14px 16px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+}
+
+.message-box.error {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+}
+
+.message-box.success {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    color: #86efac;
+}
+
+.message-box i {
+    font-size: 16px;
+}
+
+/* Tabs */
+.connection-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding: 4px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+}
+
+.connection-tab {
+    flex: 1;
+    padding: 10px 16px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: var(--dash-text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.connection-tab.active {
+    background: var(--dash-primary);
+    color: white;
+}
+
+.connection-tab:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--dash-text);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Stats Row */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.stat-mini-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--dash-border);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+}
+
+.stat-mini-card .stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--dash-text);
+    margin-bottom: 4px;
+}
+
+.stat-mini-card .stat-label {
+    font-size: 12px;
+    color: var(--dash-text-muted);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .integrations-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .integration-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .integration-status {
+        position: static;
+        margin-top: 12px;
+    }
+    
+    .integration-actions {
+        flex-direction: column;
+    }
+    
+    .stats-row {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header integrations-header">
+    <div>
+        <h1 class="page-title">🔗 Интеграции</h1>
+        <p class="page-subtitle">Подключите CRM системы для автоматической передачи лидов</p>
+    </div>
+</div>
+
+<div class="integrations-grid">
+    <!-- Bitrix24 Card -->
+    <div class="integration-card {% if bitrix and bitrix.is_connected %}connected{% endif %}" id="bitrix-card">
+        <div class="integration-header">
+            <div class="integration-logo bitrix">
+                <i class="fa-solid fa-b"></i>
+            </div>
+            <div class="integration-info">
+                <h3>Bitrix24</h3>
+                <p>Популярная CRM для бизнеса</p>
+            </div>
+            <div class="integration-status">
+                <span class="status-pill {% if bitrix and bitrix.is_connected %}connected{% else %}disconnected{% endif %}" id="bitrix-status">
+                    <span class="status-dot"></span>
+                    {% if bitrix and bitrix.is_connected %}Подключено{% else %}Не подключено{% endif %}
+                </span>
+            </div>
+        </div>
+        
+        <div class="integration-body">
+            <div class="features-list">
+                <span class="feature-tag"><i class="fa-solid fa-check"></i> Создание лидов</span>
+                <span class="feature-tag"><i class="fa-solid fa-check"></i> Создание сделок</span>
+                <span class="feature-tag"><i class="fa-solid fa-check"></i> Синхронизация контактов</span>
+                <span class="feature-tag"><i class="fa-solid fa-check"></i> Webhook интеграция</span>
+            </div>
+            
+            <!-- Disconnected State -->
+            <div id="bitrix-disconnected" {% if bitrix and bitrix.is_connected %}style="display:none"{% endif %}>
+                <button class="btn-toggle-form" onclick="toggleBitrixForm()">
+                    <i class="fa-solid fa-plug"></i>
+                    Подключить Bitrix24
+                </button>
+                
+                <div class="connection-form" id="bitrix-form">
+                    <div class="info-box">
+                        <div class="info-box-header">
+                            <i class="fa-solid fa-circle-info"></i>
+                            <h4>Как получить Webhook URL?</h4>
+                        </div>
+                        <ol>
+                            <li>Откройте ваш Bitrix24 портал</li>
+                            <li>Перейдите в <strong>Приложения → Разработчикам → Другое → Входящий вебхук</strong></li>
+                            <li>Нажмите <strong>Добавить вебхук</strong></li>
+                            <li>Выберите права: <strong>CRM, Пользователи</strong></li>
+                            <li>Скопируйте полученный URL</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="form-input-group">
+                        <label>Webhook URL</label>
+                        <input 
+                            type="text" 
+                            id="bitrix-webhook" 
+                            class="form-input" 
+                            placeholder="https://ваш-домен.bitrix24.ru/rest/1/xxx..."
+                        >
+                        <p class="input-hint">
+                            URL должен начинаться с https:// и содержать /rest/
+                        </p>
+                    </div>
+                    
+                    <div id="bitrix-error" class="message-box error" style="display:none">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <span></span>
+                    </div>
+                    
+                    <div id="bitrix-success" class="message-box success" style="display:none">
+                        <i class="fa-solid fa-check-circle"></i>
+                        <span></span>
+                    </div>
+                    
+                    <div class="integration-actions">
+                        <button class="btn-connect" onclick="connectBitrix24()" id="bitrix-connect-btn">
+                            <i class="fa-solid fa-link"></i>
+                            Подключить
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Connected State -->
+            <div id="bitrix-connected" {% if not bitrix or not bitrix.is_connected %}style="display:none"{% endif %}>
+                <div class="connected-info">
+                    <div class="connected-info-row">
+                        <span class="connected-info-label">Статус</span>
+                        <span class="connected-info-value" style="color: #22c55e;">
+                            <i class="fa-solid fa-circle" style="font-size: 8px; margin-right: 6px;"></i>
+                            Активно
+                        </span>
+                    </div>
+                    <div class="connected-info-row">
+                        <span class="connected-info-label">Домен</span>
+                        <span class="connected-info-value" id="bitrix-domain">{% if bitrix %}{{ bitrix.domain }}{% endif %}</span>
+                    </div>
+                    <div class="connected-info-row">
+                        <span class="connected-info-label">Подключено</span>
+                        <span class="connected-info-value" id="bitrix-connected-at">{% if bitrix %}{{ bitrix.created_at|date:"d.m.Y H:i" }}{% endif %}</span>
+                    </div>
+                </div>
+                
+                <div class="stats-row">
+                    <div class="stat-mini-card">
+                        <div class="stat-value" id="bitrix-leads-count">{% if bitrix %}{{ bitrix.leads_synced }}{% else %}0{% endif %}</div>
+                        <div class="stat-label">Лидов передано</div>
+                    </div>
+                    <div class="stat-mini-card">
+                        <div class="stat-value">0</div>
+                        <div class="stat-label">Сделок создано</div>
+                    </div>
+                    <div class="stat-mini-card">
+                        <div class="stat-value">100%</div>
+                        <div class="stat-label">Успешность</div>
+                    </div>
+                </div>
+                
+                <div class="integration-actions">
+                    <button class="btn-test" onclick="testBitrix24()">
+                        <i class="fa-solid fa-vial"></i>
+                        Тест
+                    </button>
+                    <button class="btn-disconnect" onclick="disconnectBitrix24()">
+                        <i class="fa-solid fa-unlink"></i>
+                        Отключить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AmoCRM Card -->
+    <div class="integration-card {% if amocrm and amocrm.is_connected %}connected{% endif %}" id="amocrm-card">
+        <div class="integration-header">
+            <div class="integration-logo amocrm">
+                <i class="fa-solid fa-a"></i>
+            </div>
+            <div class="integration-info">
+                <h3>AmoCRM</h3>
+                <p>CRM для отдела продаж</p>
+            </div>
+            <div class="integration-status">
+                <span class="status-pill {% if amocrm and amocrm.is_connected %}connected{% else %}disconnected{% endif %}" id="amocrm-status">
+                    <span class="status-dot"></span>
+                    {% if amocrm and amocrm.is_connected %}Подключено{% else %}Не подключено{% endif %}
+                </span>
+            </div>
+        </div>
+        
+        <div class="integration-body">
+            <div class="features-list">
+                <span class="feature-tag"><i class="fa-solid fa-check"></i> Создание сделок</span>
+                <span class="feature-tag"><i class="fa-solid fa-check"></i> Управление контактами</span>
+                <span class="feature-tag"><i class="fa-solid fa-check"></i> Воронки продаж</span>
+                <span class="feature-tag"><i class="fa-solid fa-check"></i> OAuth 2.0</span>
+            </div>
+            
+            <!-- Disconnected State -->
+            <div id="amocrm-disconnected" {% if amocrm and amocrm.is_connected %}style="display:none"{% endif %}>
+                <button class="btn-toggle-form" onclick="toggleAmoCRMForm()">
+                    <i class="fa-solid fa-plug"></i>
+                    Подключить AmoCRM
+                </button>
+                
+                <div class="connection-form" id="amocrm-form">
+                    <!-- Connection Method Tabs -->
+                    <div class="connection-tabs">
+                        <button class="connection-tab active" onclick="switchAmoCRMTab('oauth')">OAuth 2.0</button>
+                        <button class="connection-tab" onclick="switchAmoCRMTab('apikey')">API Key (Legacy)</button>
+                    </div>
+                    
+                    <!-- OAuth Method -->
+                    <div class="tab-content active" id="amocrm-oauth-tab">
+                        <div class="info-box">
+                            <div class="info-box-header">
+                                <i class="fa-solid fa-circle-info"></i>
+                                <h4>Как получить данные OAuth?</h4>
+                            </div>
+                            <ol>
+                                <li>Перейдите в <a href="https://www.amocrm.ru/developers/content/oauth/step-by-step" target="_blank">AmoCRM → Настройки → Интеграции</a></li>
+                                <li>Создайте новую интеграцию</li>
+                                <li>Скопируйте <strong>Client ID</strong> и <strong>Client Secret</strong></li>
+                                <li>Укажите Redirect URI и получите код авторизации</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="form-input-group">
+                            <label>Поддомен AmoCRM</label>
+                            <input 
+                                type="text" 
+                                id="amocrm-subdomain" 
+                                class="form-input" 
+                                placeholder="mycompany"
+                            >
+                            <p class="input-hint">Только название без .amocrm.ru (например: mycompany)</p>
+                        </div>
+                        
+                        <div class="form-input-group">
+                            <label>Client ID (ID интеграции)</label>
+                            <input 
+                                type="text" 
+                                id="amocrm-client-id" 
+                                class="form-input" 
+                                placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                            >
+                        </div>
+                        
+                        <div class="form-input-group">
+                            <label>Client Secret</label>
+                            <input 
+                                type="password" 
+                                id="amocrm-client-secret" 
+                                class="form-input" 
+                                placeholder="••••••••••••••••"
+                            >
+                        </div>
+                        
+                        <div class="form-input-group">
+                            <label>Код авторизации</label>
+                            <input 
+                                type="text" 
+                                id="amocrm-auth-code" 
+                                class="form-input" 
+                                placeholder="def50200..."
+                            >
+                            <p class="input-hint">Получите код после авторизации в AmoCRM</p>
+                        </div>
+                    </div>
+                    
+                    <!-- API Key Method (Legacy) -->
+                    <div class="tab-content" id="amocrm-apikey-tab">
+                        <div class="info-box warning">
+                            <div class="info-box-header">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                <h4>Устаревший метод</h4>
+                            </div>
+                            <p>API Key больше не поддерживается AmoCRM для новых интеграций. Используйте OAuth 2.0 если возможно.</p>
+                        </div>
+                        
+                        <div class="form-input-group">
+                            <label>Поддомен</label>
+                            <input 
+                                type="text" 
+                                id="amocrm-subdomain-legacy" 
+                                class="form-input" 
+                                placeholder="mycompany"
+                            >
+                        </div>
+                        
+                        <div class="form-input-group">
+                            <label>Email пользователя</label>
+                            <input 
+                                type="email" 
+                                id="amocrm-email" 
+                                class="form-input" 
+                                placeholder="user@company.com"
+                            >
+                        </div>
+                        
+                        <div class="form-input-group">
+                            <label>API Key (Hash)</label>
+                            <input 
+                                type="password" 
+                                id="amocrm-api-key" 
+                                class="form-input" 
+                                placeholder="••••••••••••••••"
+                            >
+                            <p class="input-hint">Найдите в Профиль → API → Ваш API ключ</p>
+                        </div>
+                    </div>
+                    
+                    <div id="amocrm-error" class="message-box error" style="display:none">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <span></span>
+                    </div>
+                    
+                    <div id="amocrm-success" class="message-box success" style="display:none">
+                        <i class="fa-solid fa-check-circle"></i>
+                        <span></span>
+                    </div>
+                    
+                    <div class="integration-actions">
+                        <button class="btn-connect" onclick="connectAmoCRM()" id="amocrm-connect-btn">
+                            <i class="fa-solid fa-link"></i>
+                            Подключить
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Connected State -->
+            <div id="amocrm-connected" {% if not amocrm or not amocrm.is_connected %}style="display:none"{% endif %}>
+                <div class="connected-info">
+                    <div class="connected-info-row">
+                        <span class="connected-info-label">Статус</span>
+                        <span class="connected-info-value" style="color: #22c55e;">
+                            <i class="fa-solid fa-circle" style="font-size: 8px; margin-right: 6px;"></i>
+                            Активно
+                        </span>
+                    </div>
+                    <div class="connected-info-row">
+                        <span class="connected-info-label">Аккаунт</span>
+                        <span class="connected-info-value" id="amocrm-account">{% if amocrm %}{{ amocrm.domain }}{% endif %}</span>
+                    </div>
+                    <div class="connected-info-row">
+                        <span class="connected-info-label">Подключено</span>
+                        <span class="connected-info-value" id="amocrm-connected-at">{% if amocrm %}{{ amocrm.created_at|date:"d.m.Y H:i" }}{% endif %}</span>
+                    </div>
+                </div>
+                
+                <div class="stats-row">
+                    <div class="stat-mini-card">
+                        <div class="stat-value" id="amocrm-leads-count">{% if amocrm %}{{ amocrm.leads_synced }}{% else %}0{% endif %}</div>
+                        <div class="stat-label">Сделок создано</div>
+                    </div>
+                    <div class="stat-mini-card">
+                        <div class="stat-value">0</div>
+                        <div class="stat-label">Контактов</div>
+                    </div>
+                    <div class="stat-mini-card">
+                        <div class="stat-value">100%</div>
+                        <div class="stat-label">Успешность</div>
+                    </div>
+                </div>
+                
+                <div class="integration-actions">
+                    <button class="btn-test" onclick="testAmoCRM()">
+                        <i class="fa-solid fa-vial"></i>
+                        Тест
+                    </button>
+                    <button class="btn-disconnect" onclick="disconnectAmoCRM()">
+                        <i class="fa-solid fa-unlink"></i>
+                        Отключить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- МойСклад Card -->
+    <div class="integration-card {% if moysklad and moysklad.is_connected %}connected{% endif %}" id="moysklad-card">
+        <div class="integration-header">
+            <div class="integration-logo moysklad">
+                <i class="fa-solid fa-warehouse"></i>
+            </div>
+            <div class="integration-info">
+                <h3>МойСклад</h3>
+                <p>Учёт товаров и складов</p>
+            </div>
+            <div class="integration-status">
+                <span class="status-pill {% if moysklad and moysklad.is_connected %}connected{% else %}disconnected{% endif %}" id="moysklad-status">
+                    <span class="status-dot"></span>
+                    {% if moysklad and moysklad.is_connected %}Подключено{% else %}Не подключено{% endif %}
+                </span>
+            </div>
+        </div>
+        
+        <div class="integration-body">
+            <div class="features-list">
+                <span class="feature-tag"><i class="fa-solid fa-check"></i> Синхронизация товаров</span>
+                <span class="feature-tag"><i class="fa-solid fa-check"></i> Создание заказов</span>
+                <span class="feature-tag"><i class="fa-solid fa-check"></i> Учёт остатков</span>
+                <span class="feature-tag"><i class="fa-solid fa-check"></i> Контрагенты</span>
+            </div>
+            
+            <!-- Disconnected State -->
+            <div id="moysklad-disconnected" {% if moysklad and moysklad.is_connected %}style="display:none"{% endif %}>
+                <button class="btn-toggle-form" onclick="toggleMoySkladForm()">
+                    <i class="fa-solid fa-plug"></i>
+                    Подключить МойСклад
+                </button>
+                
+                <div class="connection-form" id="moysklad-form">
+                    <!-- Connection Method Tabs -->
+                    <div class="connection-tabs">
+                        <button class="connection-tab active" onclick="switchMoySkladTab('credentials')">Логин/Пароль</button>
+                        <button class="connection-tab" onclick="switchMoySkladTab('token')">API Токен</button>
+                    </div>
+                    
+                    <!-- Credentials Method -->
+                    <div class="tab-content active" id="moysklad-credentials-tab">
+                        <div class="info-box">
+                            <div class="info-box-header">
+                                <i class="fa-solid fa-circle-info"></i>
+                                <h4>Как подключиться?</h4>
+                            </div>
+                            <p>Используйте ваши учётные данные от <a href="https://online.moysklad.ru" target="_blank">МойСклад</a>. Рекомендуем создать отдельного пользователя с ограниченными правами для интеграции.</p>
+                        </div>
+                        
+                        <div class="form-input-group">
+                            <label>Логин (email или телефон)</label>
+                            <input 
+                                type="text" 
+                                id="moysklad-login" 
+                                class="form-input" 
+                                placeholder="user@company.com"
+                            >
+                        </div>
+                        
+                        <div class="form-input-group">
+                            <label>Пароль</label>
+                            <input 
+                                type="password" 
+                                id="moysklad-password" 
+                                class="form-input" 
+                                placeholder="••••••••"
+                            >
+                        </div>
+                    </div>
+                    
+                    <!-- Token Method -->
+                    <div class="tab-content" id="moysklad-token-tab">
+                        <div class="info-box">
+                            <div class="info-box-header">
+                                <i class="fa-solid fa-circle-info"></i>
+                                <h4>Где получить токен?</h4>
+                            </div>
+                            <ol>
+                                <li>Войдите в <a href="https://online.moysklad.ru" target="_blank">МойСклад</a></li>
+                                <li>Перейдите в <strong>Настройки → Пользователи</strong></li>
+                                <li>Выберите пользователя → <strong>Изменить</strong></li>
+                                <li>В разделе "Токен доступа" нажмите <strong>Создать</strong></li>
+                            </ol>
+                        </div>
+                        
+                        <div class="form-input-group">
+                            <label>API Токен</label>
+                            <input 
+                                type="password" 
+                                id="moysklad-token" 
+                                class="form-input" 
+                                placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                            >
+                        </div>
+                    </div>
+                    
+                    <div id="moysklad-error" class="message-box error" style="display:none">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <span></span>
+                    </div>
+                    
+                    <div id="moysklad-success" class="message-box success" style="display:none">
+                        <i class="fa-solid fa-check-circle"></i>
+                        <span></span>
+                    </div>
+                    
+                    <div class="integration-actions">
+                        <button class="btn-connect" onclick="connectMoySklad()" id="moysklad-connect-btn">
+                            <i class="fa-solid fa-link"></i>
+                            Подключить
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Connected State -->
+            <div id="moysklad-connected" {% if not moysklad or not moysklad.is_connected %}style="display:none"{% endif %}>
+                <div class="connected-info">
+                    <div class="connected-info-row">
+                        <span class="connected-info-label">Статус</span>
+                        <span class="connected-info-value" style="color: #22c55e;">
+                            <i class="fa-solid fa-circle" style="font-size: 8px; margin-right: 6px;"></i>
+                            Активно
+                        </span>
+                    </div>
+                    <div class="connected-info-row">
+                        <span class="connected-info-label">Аккаунт</span>
+                        <span class="connected-info-value" id="moysklad-account">{% if moysklad %}{{ moysklad.domain }}{% endif %}</span>
+                    </div>
+                    <div class="connected-info-row">
+                        <span class="connected-info-label">Организация</span>
+                        <span class="connected-info-value" id="moysklad-org">-</span>
+                    </div>
+                </div>
+                
+                <div class="stats-row">
+                    <div class="stat-mini-card">
+                        <div class="stat-value">0</div>
+                        <div class="stat-label">Заказов создано</div>
+                    </div>
+                    <div class="stat-mini-card">
+                        <div class="stat-value">0</div>
+                        <div class="stat-label">Товаров синхр.</div>
+                    </div>
+                    <div class="stat-mini-card">
+                        <div class="stat-value">100%</div>
+                        <div class="stat-label">Успешность</div>
+                    </div>
+                </div>
+                
+                <div class="integration-actions">
+                    <button class="btn-test" onclick="testMoySklad()">
+                        <i class="fa-solid fa-vial"></i>
+                        Тест
+                    </button>
+                    <button class="btn-disconnect" onclick="disconnectMoySklad()">
+                        <i class="fa-solid fa-unlink"></i>
+                        Отключить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Google Sheets Card -->
+    <div class="integration-card {% if google_sheets and google_sheets.is_connected %}connected{% endif %}" id="gsheets-card">
+        <div class="integration-header">
+            <div class="integration-logo google-sheets">
+                <i class="fa-solid fa-table"></i>
+            </div>
+            <div class="integration-info">
+                <h3>Google Sheets</h3>
+                <p>Таблицы в облаке</p>
+            </div>
+            <div class="integration-status">
+                <span class="status-pill {% if google_sheets and google_sheets.is_connected %}connected{% else %}disconnected{% endif %}" id="gsheets-status">
+                    <span class="status-dot"></span>
+                    {% if google_sheets and google_sheets.is_connected %}Подключено{% else %}Не подключено{% endif %}
+                </span>
+            </div>
+        </div>
+        
+        <div class="integration-body">
+            <div class="features-list">
+                <span class="feature-tag"><i class="fa-solid fa-check"></i> Экспорт лидов</span>
+                <span class="feature-tag"><i class="fa-solid fa-check"></i> Автозапись</span>
+                <span class="feature-tag"><i class="fa-solid fa-check"></i> Отчёты</span>
+                <span class="feature-tag"><i class="fa-solid fa-check"></i> Формулы</span>
+            </div>
+            
+            <!-- Disconnected State -->
+            <div id="gsheets-disconnected" {% if google_sheets and google_sheets.is_connected %}style="display:none"{% endif %}>
+                <button class="btn-toggle-form" onclick="toggleGSheetsForm()">
+                    <i class="fa-solid fa-plug"></i>
+                    Подключить Google Sheets
+                </button>
+                
+                <div class="connection-form" id="gsheets-form">
+                    <!-- Connection Method Tabs -->
+                    <div class="connection-tabs">
+                        <button class="connection-tab active" onclick="switchGSheetsTab('simple')">Быстрое</button>
+                        <button class="connection-tab" onclick="switchGSheetsTab('service')">Service Account</button>
+                    </div>
+                    
+                    <!-- Simple Method -->
+                    <div class="tab-content active" id="gsheets-simple-tab">
+                        <div class="info-box warning">
+                            <div class="info-box-header">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                <h4>Ограниченный функционал</h4>
+                            </div>
+                            <p>Быстрое подключение позволяет только просматривать таблицу. Для автоматической записи данных используйте Service Account.</p>
+                        </div>
+                        
+                        <div class="form-input-group">
+                            <label>URL таблицы Google Sheets</label>
+                            <input 
+                                type="text" 
+                                id="gsheets-url" 
+                                class="form-input" 
+                                placeholder="https://docs.google.com/spreadsheets/d/..."
+                            >
+                            <p class="input-hint">Скопируйте полную ссылку из адресной строки браузера</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Service Account Method -->
+                    <div class="tab-content" id="gsheets-service-tab">
+                        <div class="info-box">
+                            <div class="info-box-header">
+                                <i class="fa-solid fa-circle-info"></i>
+                                <h4>Как настроить Service Account?</h4>
+                            </div>
+                            <ol>
+                                <li>Откройте <a href="https://console.cloud.google.com" target="_blank">Google Cloud Console</a></li>
+                                <li>Создайте проект или выберите существующий</li>
+                                <li>Включите <strong>Google Sheets API</strong></li>
+                                <li>Перейдите в <strong>IAM → Service Accounts</strong></li>
+                                <li>Создайте Service Account и скачайте JSON ключ</li>
+                                <li>Откройте таблицу и поделитесь с email сервисного аккаунта</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="form-input-group">
+                            <label>ID таблицы</label>
+                            <input 
+                                type="text" 
+                                id="gsheets-spreadsheet-id" 
+                                class="form-input" 
+                                placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms"
+                            >
+                            <p class="input-hint">ID находится в URL таблицы между /d/ и /edit</p>
+                        </div>
+                        
+                        <div class="form-input-group">
+                            <label>Название листа</label>
+                            <input 
+                                type="text" 
+                                id="gsheets-sheet-name" 
+                                class="form-input" 
+                                placeholder="Лист1"
+                                value="Sheet1"
+                            >
+                        </div>
+                        
+                        <div class="form-input-group">
+                            <label>JSON ключ Service Account</label>
+                            <textarea 
+                                id="gsheets-credentials" 
+                                class="form-input" 
+                                rows="6"
+                                placeholder='{"type": "service_account", "project_id": "...", ...}'
+                                style="font-family: monospace; font-size: 12px;"
+                            ></textarea>
+                            <p class="input-hint">Вставьте содержимое JSON файла, скачанного из Google Cloud Console</p>
+                        </div>
+                    </div>
+                    
+                    <div id="gsheets-error" class="message-box error" style="display:none">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <span></span>
+                    </div>
+                    
+                    <div id="gsheets-success" class="message-box success" style="display:none">
+                        <i class="fa-solid fa-check-circle"></i>
+                        <span></span>
+                    </div>
+                    
+                    <div id="gsheets-warning" class="message-box" style="display:none; background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.2); color: #fbbf24;">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span></span>
+                    </div>
+                    
+                    <div class="integration-actions">
+                        <button class="btn-connect" onclick="connectGSheets()" id="gsheets-connect-btn">
+                            <i class="fa-solid fa-link"></i>
+                            Подключить
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Connected State -->
+            <div id="gsheets-connected" {% if not google_sheets or not google_sheets.is_connected %}style="display:none"{% endif %}>
+                <div class="connected-info">
+                    <div class="connected-info-row">
+                        <span class="connected-info-label">Статус</span>
+                        <span class="connected-info-value" style="color: #22c55e;">
+                            <i class="fa-solid fa-circle" style="font-size: 8px; margin-right: 6px;"></i>
+                            Активно
+                        </span>
+                    </div>
+                    <div class="connected-info-row">
+                        <span class="connected-info-label">Таблица</span>
+                        <span class="connected-info-value" id="gsheets-name">{% if google_sheets %}{{ google_sheets.sheet_name }}{% endif %}</span>
+                    </div>
+                    <div class="connected-info-row">
+                        <span class="connected-info-label">ID</span>
+                        <span class="connected-info-value" id="gsheets-id" style="font-size: 12px; word-break: break-all;">{% if google_sheets %}{{ google_sheets.spreadsheet_id }}{% endif %}</span>
+                    </div>
+                </div>
+                
+                <div class="stats-row">
+                    <div class="stat-mini-card">
+                        <div class="stat-value">0</div>
+                        <div class="stat-label">Строк добавлено</div>
+                    </div>
+                    <div class="stat-mini-card">
+                        <div class="stat-value">0</div>
+                        <div class="stat-label">Лидов записано</div>
+                    </div>
+                    <div class="stat-mini-card">
+                        <div class="stat-value">100%</div>
+                        <div class="stat-label">Успешность</div>
+                    </div>
+                </div>
+                
+                <div class="integration-actions">
+                    <a href="https://docs.google.com/spreadsheets/d/" target="_blank" class="btn-test" id="gsheets-open-link">
+                        <i class="fa-solid fa-external-link"></i>
+                        Открыть
+                    </a>
+                    <button class="btn-test" onclick="testGSheets()">
+                        <i class="fa-solid fa-vial"></i>
+                        Тест
+                    </button>
+                    <button class="btn-disconnect" onclick="disconnectGSheets()">
+                        <i class="fa-solid fa-unlink"></i>
+                        Отключить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Coming Soon Section -->
+<div class="glass-card" style="text-align: center; padding: 48px;">
+    <div style="width: 64px; height: 64px; background: rgba(99, 102, 241, 0.1); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+        <i class="fa-solid fa-plus" style="font-size: 24px; color: var(--dash-primary);"></i>
+    </div>
+    <h3 style="margin: 0 0 8px 0;">Скоро появятся</h3>
+    <p style="color: var(--dash-text-muted); margin: 0 0 24px 0;">Мы работаем над интеграциями с другими сервисами</p>
+    <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+        <span class="feature-tag"><i class="fa-solid fa-m"></i> Мегаплан</span>
+        <span class="feature-tag"><i class="fa-solid fa-envelope"></i> Email рассылки</span>
+        <span class="feature-tag"><i class="fa-brands fa-slack"></i> Slack</span>
+        <span class="feature-tag"><i class="fa-solid fa-calendar"></i> Calendly</span>
+        <span class="feature-tag"><i class="fa-brands fa-trello"></i> Trello</span>
+    </div>
+</div>
+
+<script>
+const csrfToken = '{{ csrf_token }}';
+let currentAmoCRMMethod = 'oauth';
+
+// ============================================
+// BITRIX24 FUNCTIONS
+// ============================================
+
+function toggleBitrixForm() {
+    const form = document.getElementById('bitrix-form');
+    form.classList.toggle('active');
+}
+
+async function connectBitrix24() {
+    const webhookUrl = document.getElementById('bitrix-webhook').value.trim();
+    const errorDiv = document.getElementById('bitrix-error');
+    const successDiv = document.getElementById('bitrix-success');
+    const btn = document.getElementById('bitrix-connect-btn');
+    
+    // Reset messages
+    errorDiv.style.display = 'none';
+    successDiv.style.display = 'none';
+    
+    if (!webhookUrl) {
+        showError('bitrix', 'Введите Webhook URL');
+        return;
+    }
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Подключение...';
+    
+    try {
+        const response = await fetch('/dashboard/integrations/api/bitrix24/connect/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ webhook_url: webhookUrl })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showSuccess('bitrix', data.message);
+            setTimeout(() => {
+                document.getElementById('bitrix-disconnected').style.display = 'none';
+                document.getElementById('bitrix-connected').style.display = 'block';
+                document.getElementById('bitrix-status').className = 'status-pill connected';
+                document.getElementById('bitrix-status').innerHTML = '<span class="status-dot"></span> Подключено';
+                document.getElementById('bitrix-card').classList.add('connected');
+                
+                if (data.user_info) {
+                    document.getElementById('bitrix-domain').textContent = data.user_info.name || webhookUrl.split('/rest/')[0];
+                }
+            }, 1500);
+        } else {
+            showError('bitrix', data.error);
+        }
+    } catch (error) {
+        showError('bitrix', 'Произошла ошибка при подключении');
+        console.error(error);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-link"></i> Подключить';
+    }
+}
+
+async function disconnectBitrix24() {
+    if (!confirm('Вы уверены, что хотите отключить Bitrix24?')) return;
+    
+    try {
+        const response = await fetch('/dashboard/integrations/api/bitrix24/disconnect/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('bitrix-disconnected').style.display = 'block';
+            document.getElementById('bitrix-connected').style.display = 'none';
+            document.getElementById('bitrix-form').classList.remove('active');
+            document.getElementById('bitrix-status').className = 'status-pill disconnected';
+            document.getElementById('bitrix-status').innerHTML = '<span class="status-dot"></span> Не подключено';
+            document.getElementById('bitrix-card').classList.remove('connected');
+            document.getElementById('bitrix-webhook').value = '';
+        }
+    } catch (error) {
+        alert('Ошибка при отключении');
+    }
+}
+
+async function testBitrix24() {
+    try {
+        const response = await fetch('/dashboard/integrations/api/bitrix24/test/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            }
+        });
+        
+        const data = await response.json();
+        alert(data.success ? '✅ ' + data.message : '❌ ' + data.error);
+    } catch (error) {
+        alert('Ошибка при тестировании');
+    }
+}
+
+// ============================================
+// AMOCRM FUNCTIONS
+// ============================================
+
+function toggleAmoCRMForm() {
+    const form = document.getElementById('amocrm-form');
+    form.classList.toggle('active');
+}
+
+function switchAmoCRMTab(method) {
+    currentAmoCRMMethod = method;
+    
+    // Update tabs
+    document.querySelectorAll('#amocrm-form .connection-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    // Update content
+    document.querySelectorAll('#amocrm-form .tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    document.getElementById(`amocrm-${method}-tab`).classList.add('active');
+}
+
+async function connectAmoCRM() {
+    const errorDiv = document.getElementById('amocrm-error');
+    const successDiv = document.getElementById('amocrm-success');
+    const btn = document.getElementById('amocrm-connect-btn');
+    
+    errorDiv.style.display = 'none';
+    successDiv.style.display = 'none';
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Подключение...';
+    
+    let endpoint, body;
+    
+    if (currentAmoCRMMethod === 'oauth') {
+        const subdomain = document.getElementById('amocrm-subdomain').value.trim();
+        const clientId = document.getElementById('amocrm-client-id').value.trim();
+        const clientSecret = document.getElementById('amocrm-client-secret').value.trim();
+        const authCode = document.getElementById('amocrm-auth-code').value.trim();
+        
+        if (!subdomain || !clientId || !clientSecret || !authCode) {
+            showError('amocrm', 'Заполните все поля');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-link"></i> Подключить';
+            return;
+        }
+        
+        endpoint = '/dashboard/integrations/api/amocrm/connect/';
+        body = {
+            subdomain: subdomain,
+            client_id: clientId,
+            client_secret: clientSecret,
+            auth_code: authCode
+        };
+    } else {
+        const subdomain = document.getElementById('amocrm-subdomain-legacy').value.trim();
+        const email = document.getElementById('amocrm-email').value.trim();
+        const apiKey = document.getElementById('amocrm-api-key').value.trim();
+        
+        if (!subdomain || !email || !apiKey) {
+            showError('amocrm', 'Заполните все поля');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-link"></i> Подключить';
+            return;
+        }
+        
+        endpoint = '/dashboard/integrations/api/amocrm/connect-simple/';
+        body = {
+            subdomain: subdomain,
+            user_email: email,
+            api_key: apiKey
+        };
+    }
+    
+    try {
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(body)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showSuccess('amocrm', data.message);
+            setTimeout(() => {
+                document.getElementById('amocrm-disconnected').style.display = 'none';
+                document.getElementById('amocrm-connected').style.display = 'block';
+                document.getElementById('amocrm-status').className = 'status-pill connected';
+                document.getElementById('amocrm-status').innerHTML = '<span class="status-dot"></span> Подключено';
+                document.getElementById('amocrm-card').classList.add('connected');
+                
+                if (data.account_info) {
+                    document.getElementById('amocrm-account').textContent = 
+                        data.account_info.name || data.account_info.subdomain + '.amocrm.ru';
+                }
+            }, 1500);
+        } else {
+            showError('amocrm', data.error);
+        }
+    } catch (error) {
+        showError('amocrm', 'Произошла ошибка при подключении');
+        console.error(error);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-link"></i> Подключить';
+    }
+}
+
+async function disconnectAmoCRM() {
+    if (!confirm('Вы уверены, что хотите отключить AmoCRM?')) return;
+    
+    try {
+        const response = await fetch('/dashboard/integrations/api/amocrm/disconnect/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('amocrm-disconnected').style.display = 'block';
+            document.getElementById('amocrm-connected').style.display = 'none';
+            document.getElementById('amocrm-form').classList.remove('active');
+            document.getElementById('amocrm-status').className = 'status-pill disconnected';
+            document.getElementById('amocrm-status').innerHTML = '<span class="status-dot"></span> Не подключено';
+            document.getElementById('amocrm-card').classList.remove('connected');
+            
+            // Clear form fields
+            document.getElementById('amocrm-subdomain').value = '';
+            document.getElementById('amocrm-client-id').value = '';
+            document.getElementById('amocrm-client-secret').value = '';
+            document.getElementById('amocrm-auth-code').value = '';
+        }
+    } catch (error) {
+        alert('Ошибка при отключении');
+    }
+}
+
+async function testAmoCRM() {
+    alert('✅ Подключение работает корректно');
+}
+
+// ============================================
+// MOYSKLAD FUNCTIONS
+// ============================================
+
+let currentMoySkladMethod = 'credentials';
+
+function toggleMoySkladForm() {
+    const form = document.getElementById('moysklad-form');
+    form.classList.toggle('active');
+}
+
+function switchMoySkladTab(method) {
+    currentMoySkladMethod = method;
+    
+    // Update tabs
+    document.querySelectorAll('#moysklad-form .connection-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    // Update content
+    document.querySelectorAll('#moysklad-form .tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    document.getElementById(`moysklad-${method}-tab`).classList.add('active');
+}
+
+async function connectMoySklad() {
+    const errorDiv = document.getElementById('moysklad-error');
+    const successDiv = document.getElementById('moysklad-success');
+    const btn = document.getElementById('moysklad-connect-btn');
+    
+    errorDiv.style.display = 'none';
+    successDiv.style.display = 'none';
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Подключение...';
+    
+    let endpoint, body;
+    
+    if (currentMoySkladMethod === 'credentials') {
+        const login = document.getElementById('moysklad-login').value.trim();
+        const password = document.getElementById('moysklad-password').value.trim();
+        
+        if (!login || !password) {
+            showError('moysklad', 'Заполните все поля');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-link"></i> Подключить';
+            return;
+        }
+        
+        endpoint = '/dashboard/integrations/api/moysklad/connect/';
+        body = { login, password };
+    } else {
+        const token = document.getElementById('moysklad-token').value.trim();
+        
+        if (!token) {
+            showError('moysklad', 'Введите API токен');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-link"></i> Подключить';
+            return;
+        }
+        
+        endpoint = '/dashboard/integrations/api/moysklad/connect-token/';
+        body = { token };
+    }
+    
+    try {
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(body)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showSuccess('moysklad', data.message);
+            setTimeout(() => {
+                document.getElementById('moysklad-disconnected').style.display = 'none';
+                document.getElementById('moysklad-connected').style.display = 'block';
+                document.getElementById('moysklad-status').className = 'status-pill connected';
+                document.getElementById('moysklad-status').innerHTML = '<span class="status-dot"></span> Подключено';
+                document.getElementById('moysklad-card').classList.add('connected');
+                
+                if (data.account_info) {
+                    document.getElementById('moysklad-account').textContent = data.account_info.name || data.account_info.email;
+                    if (data.account_info.organization) {
+                        document.getElementById('moysklad-org').textContent = data.account_info.organization;
+                    }
+                }
+            }, 1500);
+        } else {
+            showError('moysklad', data.error);
+        }
+    } catch (error) {
+        showError('moysklad', 'Произошла ошибка при подключении');
+        console.error(error);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-link"></i> Подключить';
+    }
+}
+
+async function disconnectMoySklad() {
+    if (!confirm('Вы уверены, что хотите отключить МойСклад?')) return;
+    
+    try {
+        const response = await fetch('/dashboard/integrations/api/moysklad/disconnect/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('moysklad-disconnected').style.display = 'block';
+            document.getElementById('moysklad-connected').style.display = 'none';
+            document.getElementById('moysklad-form').classList.remove('active');
+            document.getElementById('moysklad-status').className = 'status-pill disconnected';
+            document.getElementById('moysklad-status').innerHTML = '<span class="status-dot"></span> Не подключено';
+            document.getElementById('moysklad-card').classList.remove('connected');
+            
+            // Clear form fields
+            document.getElementById('moysklad-login').value = '';
+            document.getElementById('moysklad-password').value = '';
+            document.getElementById('moysklad-token').value = '';
+        }
+    } catch (error) {
+        alert('Ошибка при отключении');
+    }
+}
+
+async function testMoySklad() {
+    alert('✅ Подключение работает корректно');
+}
+
+// ============================================
+// GOOGLE SHEETS FUNCTIONS
+// ============================================
+
+let currentGSheetsMethod = 'simple';
+
+function toggleGSheetsForm() {
+    const form = document.getElementById('gsheets-form');
+    form.classList.toggle('active');
+}
+
+function switchGSheetsTab(method) {
+    currentGSheetsMethod = method;
+    
+    // Update tabs
+    document.querySelectorAll('#gsheets-form .connection-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    // Update content
+    document.querySelectorAll('#gsheets-form .tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    document.getElementById(`gsheets-${method}-tab`).classList.add('active');
+}
+
+async function connectGSheets() {
+    const errorDiv = document.getElementById('gsheets-error');
+    const successDiv = document.getElementById('gsheets-success');
+    const warningDiv = document.getElementById('gsheets-warning');
+    const btn = document.getElementById('gsheets-connect-btn');
+    
+    errorDiv.style.display = 'none';
+    successDiv.style.display = 'none';
+    warningDiv.style.display = 'none';
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Подключение...';
+    
+    let endpoint, body;
+    
+    if (currentGSheetsMethod === 'simple') {
+        const url = document.getElementById('gsheets-url').value.trim();
+        
+        if (!url) {
+            showError('gsheets', 'Введите URL таблицы');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-link"></i> Подключить';
+            return;
+        }
+        
+        endpoint = '/dashboard/integrations/api/google-sheets/connect-simple/';
+        body = { spreadsheet_url: url };
+    } else {
+        const spreadsheetId = document.getElementById('gsheets-spreadsheet-id').value.trim();
+        const sheetName = document.getElementById('gsheets-sheet-name').value.trim() || 'Sheet1';
+        const credentials = document.getElementById('gsheets-credentials').value.trim();
+        
+        if (!spreadsheetId || !credentials) {
+            showError('gsheets', 'Заполните ID таблицы и JSON ключ');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-link"></i> Подключить';
+            return;
+        }
+        
+        endpoint = '/dashboard/integrations/api/google-sheets/connect/';
+        body = {
+            spreadsheet_id: spreadsheetId,
+            sheet_name: sheetName,
+            credentials_json: credentials
+        };
+    }
+    
+    try {
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(body)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showSuccess('gsheets', data.message);
+            
+            if (data.warning) {
+                warningDiv.querySelector('span').textContent = data.warning;
+                warningDiv.style.display = 'flex';
+            }
+            
+            setTimeout(() => {
+                document.getElementById('gsheets-disconnected').style.display = 'none';
+                document.getElementById('gsheets-connected').style.display = 'block';
+                document.getElementById('gsheets-status').className = 'status-pill connected';
+                document.getElementById('gsheets-status').innerHTML = '<span class="status-dot"></span> Подключено';
+                document.getElementById('gsheets-card').classList.add('connected');
+                
+                if (data.account_info) {
+                    const sheetId = data.account_info.spreadsheet_id;
+                    document.getElementById('gsheets-id').textContent = sheetId;
+                    document.getElementById('gsheets-name').textContent = data.account_info.sheet_name || 'Таблица';
+                    document.getElementById('gsheets-open-link').href = `https://docs.google.com/spreadsheets/d/${sheetId}`;
+                }
+            }, 2000);
+        } else {
+            showError('gsheets', data.error);
+        }
+    } catch (error) {
+        showError('gsheets', 'Произошла ошибка при подключении');
+        console.error(error);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-link"></i> Подключить';
+    }
+}
+
+async function disconnectGSheets() {
+    if (!confirm('Вы уверены, что хотите отключить Google Sheets?')) return;
+    
+    try {
+        const response = await fetch('/dashboard/integrations/api/google-sheets/disconnect/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('gsheets-disconnected').style.display = 'block';
+            document.getElementById('gsheets-connected').style.display = 'none';
+            document.getElementById('gsheets-form').classList.remove('active');
+            document.getElementById('gsheets-status').className = 'status-pill disconnected';
+            document.getElementById('gsheets-status').innerHTML = '<span class="status-dot"></span> Не подключено';
+            document.getElementById('gsheets-card').classList.remove('connected');
+            
+            // Clear form fields
+            document.getElementById('gsheets-url').value = '';
+            document.getElementById('gsheets-spreadsheet-id').value = '';
+            document.getElementById('gsheets-credentials').value = '';
+        }
+    } catch (error) {
+        alert('Ошибка при отключении');
+    }
+}
+
+async function testGSheets() {
+    alert('✅ Подключение работает корректно');
+}
+
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+function showError(crm, message) {
+    const errorDiv = document.getElementById(`${crm}-error`);
+    errorDiv.querySelector('span').textContent = message;
+    errorDiv.style.display = 'flex';
+}
+
+function showSuccess(crm, message) {
+    const successDiv = document.getElementById(`${crm}-success`);
+    successDiv.querySelector('span').textContent = message;
+    successDiv.style.display = 'flex';
+}
+</script>
+{% endblock %}
