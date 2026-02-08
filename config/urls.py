@@ -1,4 +1,8 @@
 # config/urls.py
+"""
+URL Configuration - ОЧИЩЕНО И ОПТИМИЗИРОВАНО
+Убраны дублирующиеся и неиспользуемые пути
+"""
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -11,14 +15,13 @@ urlpatterns = [
     # ============================================
     path('admin/', admin.site.urls),
     
-    # Кастомная аутентификация (из views.py)
+    # Кастомная аутентификация
     path('accounts/login/', views.login_view, name='login'),
     path('accounts/logout/', views.logout_view, name='logout'),
     path('accounts/register/', views.register_view, name='register'),
     path('accounts/profile/', views.profile_view, name='profile'),
-
     
-    # Allauth (оставляем для соц. сетей, если нужно)
+    # Allauth (для социальных сетей)
     path('accounts/', include('allauth.urls')),
     
     # ============================================
@@ -38,22 +41,19 @@ urlpatterns = [
 
     # ============================================
     # БОТЫ (AGENTS)
-    # Используем имена agents_*, чтобы не ломать старые шаблоны
     # ============================================
     path('dashboard/agents/', views.bots_list, name='agents_list'),
     path('dashboard/agents/create/', views.bot_create, name='create_agent'),
     path('dashboard/agents/<int:bot_id>/', views.bot_detail, name='agent_detail'),
-    path('dashboard/agents/<int:bot_id>/edit/', views.bot_edit, name='bot_edit'),
-    path('dashboard/agents/<int:bot_id>/delete/', views.bot_delete, name='bot_delete'),
-
-    # API управления ботами (JS fetch)
+    
+    # API управления ботами
     path('api/agents/<int:bot_id>/toggle/', views.toggle_bot_status, name='toggle_bot_status'),
     path('api/agents/<int:bot_id>/delete/', views.delete_bot_api, name='delete_bot_api'),
     path('api/agents/<int:bot_id>/update-prompt/', views.update_bot_prompt, name='update_bot_prompt'),
     path('api/agents/<int:bot_id>/update/', views.update_bot_api, name='update_bot_api'),
 
     # ============================================
-    # TELEGRAM CONNECT (Восстановлено)
+    # TELEGRAM CONNECT
     # ============================================
     path('dashboard/agents/<int:bot_id>/telegram-connect/', views.telegram_connect_view, name='telegram_connect'),
     path('api/agents/<int:bot_id>/telegram/save-credentials/', views.telegram_save_credentials, name='telegram_save_credentials'),
@@ -70,26 +70,30 @@ urlpatterns = [
     path('dashboard/conversations/<int:conversation_id>/', views.conversation_detail, name='conversation_detail'),
 
     # ============================================
-    # БАЗА ЗНАНИЙ (RAG)
+    # БАЗА ЗНАНИЙ (RAG) - ОБНОВЛЕНО!
     # ============================================
-    # Список документов бота
-    path('dashboard/bot/<int:bot_id>/knowledge/', views.knowledge_base_list, name='knowledge_base'),
+    # Общая база знаний пользователя (все файлы)
+    path('dashboard/knowledge/', views.knowledge_base_list, name='knowledge_base_list'),
     
-    # Загрузка (Form submit)
-    path('dashboard/bot/<int:bot_id>/knowledge/upload/', views.upload_knowledge_file, name='upload_kb'),
-    # Загрузка (API/JS)
-    path('api/agents/<int:bot_id>/upload/', views.upload_knowledge_api, name='upload_knowledge_api'),
-
+    # База знаний конкретного бота (отфильтрованная)
+    path('dashboard/agents/<int:bot_id>/knowledge/', views.bot_knowledge_base, name='bot_knowledge_base'),
+    
+    # Загрузка файлов
+    path('dashboard/knowledge/upload/', views.upload_knowledge_file, name='upload_knowledge'),
+    
     # Детали и удаление
     path('dashboard/knowledge/<int:kb_id>/', views.knowledge_detail, name='knowledge_detail'),
     path('dashboard/knowledge/<int:kb_id>/delete/', views.knowledge_delete, name='knowledge_delete'),
+    
+    # Назначение ботов к файлу
+    path('api/knowledge/<int:kb_id>/assign-bots/', views.assign_bots_to_knowledge, name='assign_bots'),
     
     # API действия с RAG
     path('api/knowledge/<int:kb_id>/reindex/', views.reindex_knowledge_base, name='reindex_kb'),
     path('api/bot/<int:bot_id>/rag/test/', views.test_rag_search, name='test_rag'),
 
     # ============================================
-    # CRM INTEGRATIONS (views_crm)
+    # CRM INTEGRATIONS
     # ============================================
     path('dashboard/integrations/', views_crm.integrations_view, name='integrations'),
     
@@ -114,13 +118,9 @@ urlpatterns = [
     path('dashboard/integrations/api/google-sheets/connect-simple/', views_crm.connect_google_sheets_simple, name='connect_google_sheets_simple'),
     path('dashboard/integrations/api/google-sheets/disconnect/', views_crm.disconnect_google_sheets, name='disconnect_google_sheets'),
     path('dashboard/integrations/api/google-sheets/test/', views_crm.test_google_sheets, name='test_google_sheets'),
-    
-    # Общие CRM логи
-    path('dashboard/integrations/api/<str:crm_type>/status/', views_crm.get_integration_status, name='integration_status'),
-    path('dashboard/integrations/api/<str:crm_type>/logs/', views_crm.get_sync_logs, name='sync_logs'),
 
     # ============================================
-    # ANALYTICS API (Графики)
+    # ANALYTICS API
     # ============================================
     path('api/analytics/summary/', views.get_analytics_summary, name='analytics_summary'),
     path('api/analytics/conversations-chart/', views.get_conversations_chart, name='conversations_chart'),
@@ -129,15 +129,8 @@ urlpatterns = [
     path('api/analytics/agents-performance/', views.get_agents_performance, name='agents_performance'),
     path('api/analytics/export/', views.export_analytics, name='export_analytics'),
 
-    # Старые пути аналитики (перенаправление на новые функции, если используются)
-    path('api/summary/', views.get_analytics_summary, name='analytics_summary_old'),
-    path('api/conversations/', views.get_conversations_chart, name='analytics_conversations'),
-    path('api/channels/', views.get_channels_chart, name='analytics_channels'),
-    path('api/heatmap/', views.get_activity_heatmap, name='analytics_heatmap'),
-    path('api/agents/', views.get_agents_performance, name='analytics_agents'),
-
     # ============================================
-    # WEBHOOKS & BOT API
+    # WEBHOOKS
     # ============================================
     path('api/webhook/telegram/<str:bot_token>/', views.telegram_webhook, name='telegram_webhook'),
     path('api/webhook/whatsapp/<str:bot_token>/', views.whatsapp_webhook, name='whatsapp_webhook'),

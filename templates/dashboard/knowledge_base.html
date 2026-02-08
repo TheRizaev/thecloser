@@ -1,221 +1,688 @@
 {% extends 'dashboard/base.html' %}
 {% load static %}
 
-{% block title %}База знаний - {{ bot.name }}{% endblock %}
+{% block title %}База знаний{% endblock %}
+
+{% block extra_css %}
+<style>
+.knowledge-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.stat-card-mini {
+    background: var(--dash-surface);
+    border: 1px solid var(--dash-border);
+    border-radius: 16px;
+    padding: 24px;
+    transition: transform 0.2s;
+}
+
+.stat-card-mini:hover {
+    transform: translateY(-2px);
+}
+
+.stat-card-mini .stat-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    font-size: 24px;
+    color: var(--dash-primary);
+}
+
+.stat-card-mini .stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.stat-card-mini .stat-label {
+    font-size: 13px;
+    color: var(--dash-text-muted);
+}
+
+.filters-bar {
+    background: var(--dash-surface);
+    border: 1px solid var(--dash-border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-label {
+    font-size: 13px;
+    color: var(--dash-text-muted);
+    white-space: nowrap;
+}
+
+.filter-select, .search-input {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--dash-border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: var(--dash-text);
+    font-size: 13px;
+}
+
+.filter-select {
+    min-width: 140px;
+}
+
+.search-input {
+    flex: 1;
+    min-width: 250px;
+    font-size: 14px;
+    padding: 8px 16px;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--dash-primary);
+}
+
+.files-grid {
+    display: grid;
+    gap: 16px;
+}
+
+.file-card {
+    background: var(--dash-surface);
+    border: 1px solid var(--dash-border);
+    border-radius: 16px;
+    padding: 20px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.file-card:hover {
+    border-color: rgba(99, 102, 241, 0.3);
+    transform: translateX(4px);
+}
+
+.file-icon {
+    width: 56px;
+    height: 56px;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: var(--dash-primary);
+    flex-shrink: 0;
+}
+
+.file-icon.pdf { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+.file-icon.docx { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+.file-icon.txt { background: rgba(168, 85, 247, 0.1); color: #a855f7; }
+.file-icon.md { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
+
+.file-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.file-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.file-meta {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: var(--dash-text-muted);
+}
+
+.file-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.file-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.file-badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.file-badge.indexed {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.file-badge.pending {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.file-badge.bot-count {
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--dash-primary);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.file-badge.bot-count:hover {
+    background: rgba(99, 102, 241, 0.2);
+    transform: scale(1.05);
+}
+
+.file-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.empty-state-kb {
+    text-align: center;
+    padding: 80px 20px;
+}
+
+.empty-state-kb .empty-icon {
+    width: 120px;
+    height: 120px;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    font-size: 48px;
+    color: var(--dash-primary);
+}
+
+.modal-assign-bots {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.modal-assign-bots.active {
+    display: flex;
+}
+
+.modal-content-assign {
+    background: var(--dash-bg);
+    border: 1px solid var(--dash-border);
+    border-radius: 20px;
+    padding: 32px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.modal-header-assign {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.modal-header-assign h3 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.bots-checklist {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.bot-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--dash-border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.bot-checkbox-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--dash-primary);
+}
+
+.bot-checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--dash-primary);
+}
+
+.bot-checkbox-label {
+    flex: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.bot-avatar-small {
+    width: 32px;
+    height: 32px;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h2>База знаний: {{ bot.name }}</h2>
-                    <p class="text-muted">Управление документами для RAG системы</p>
-                </div>
-                <a href="{% url 'upload_kb' bot.id %}" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Загрузить документ
-                </a>
-            </div>
-        </div>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">📚 База знаний</h1>
+        <p class="page-subtitle">Управление документами для AI ботов</p>
     </div>
+    <a href="{% url 'upload_knowledge' %}" class="btn btn-primary">
+        <i class="fa-solid fa-upload"></i>
+        Загрузить файл
+    </a>
+</div>
 
-    {% if messages %}
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+<!-- Stats -->
+<div class="knowledge-stats-grid">
+    <div class="stat-card-mini">
+        <div class="stat-icon">
+            <i class="fa-solid fa-file"></i>
+        </div>
+        <div class="stat-value">{{ total_files }}</div>
+        <div class="stat-label">Всего файлов</div>
+    </div>
+    
+    <div class="stat-card-mini">
+        <div class="stat-icon" style="background: rgba(34, 197, 94, 0.1); color: #22c55e;">
+            <i class="fa-solid fa-check-circle"></i>
+        </div>
+        <div class="stat-value">{{ indexed_files }}</div>
+        <div class="stat-label">Проиндексировано</div>
+    </div>
+    
+    <div class="stat-card-mini">
+        <div class="stat-icon" style="background: rgba(168, 85, 247, 0.1); color: #a855f7;">
+            <i class="fa-solid fa-puzzle-piece"></i>
+        </div>
+        <div class="stat-value">{{ total_chunks|default:0 }}</div>
+        <div class="stat-label">Всего фрагментов</div>
+    </div>
+</div>
+
+<!-- Filters -->
+<form method="GET" id="filters-form">
+    <div class="filters-bar">
+        <div class="filter-group">
+            <span class="filter-label">Тип:</span>
+            <select name="file_type" class="filter-select" onchange="document.getElementById('filters-form').submit()">
+                <option value="all" {% if current_filters.file_type == 'all' %}selected{% endif %}>Все типы</option>
+                <option value="pdf" {% if current_filters.file_type == 'pdf' %}selected{% endif %}>PDF</option>
+                <option value="docx" {% if current_filters.file_type == 'docx' %}selected{% endif %}>Word</option>
+                <option value="txt" {% if current_filters.file_type == 'txt' %}selected{% endif %}>Text</option>
+                <option value="md" {% if current_filters.file_type == 'md' %}selected{% endif %}>Markdown</option>
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <span class="filter-label">Статус:</span>
+            <select name="status" class="filter-select" onchange="document.getElementById('filters-form').submit()">
+                <option value="all" {% if current_filters.status == 'all' %}selected{% endif %}>Все</option>
+                <option value="indexed" {% if current_filters.status == 'indexed' %}selected{% endif %}>Проиндексировано</option>
+                <option value="pending" {% if current_filters.status == 'pending' %}selected{% endif %}>Ожидает</option>
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <span class="filter-label">Бот:</span>
+            <select name="bot" class="filter-select" onchange="document.getElementById('filters-form').submit()">
+                <option value="all" {% if current_filters.bot == 'all' %}selected{% endif %}>Все боты</option>
+                {% for bot in user_bots %}
+                <option value="{{ bot.id }}" {% if current_filters.bot == bot.id|stringformat:"s" %}selected{% endif %}>
+                    {{ bot.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <span class="filter-label">Сортировка:</span>
+            <select name="sort" class="filter-select" onchange="document.getElementById('filters-form').submit()">
+                <option value="-created_at" {% if current_filters.sort == '-created_at' %}selected{% endif %}>Новые первые</option>
+                <option value="created_at" {% if current_filters.sort == 'created_at' %}selected{% endif %}>Старые первые</option>
+                <option value="title" {% if current_filters.sort == 'title' %}selected{% endif %}>По названию (А-Я)</option>
+                <option value="-file_size" {% if current_filters.sort == '-file_size' %}selected{% endif %}>Большие файлы</option>
+            </select>
+        </div>
+        
+        <input 
+            type="search" 
+            name="search" 
+            class="search-input" 
+            placeholder="🔍 Поиск по названию или описанию..."
+            value="{{ current_filters.search }}"
+        >
+        
+        {% if current_filters.search or current_filters.file_type != 'all' or current_filters.status != 'all' or current_filters.bot != 'all' %}
+        <a href="{% url 'knowledge_base_list' %}" class="btn btn-secondary">
+            <i class="fa-solid fa-xmark"></i>
+            Сбросить
+        </a>
+        {% endif %}
+    </div>
+</form>
+
+<!-- Files List -->
+{% if page_obj %}
+<div class="glass-card">
+    <div class="files-grid">
+        {% for file in page_obj %}
+        <div class="file-card">
+            <div class="file-icon {{ file.file_type }}">
+                {% if file.file_type == 'pdf' %}
+                    <i class="fa-solid fa-file-pdf"></i>
+                {% elif file.file_type == 'docx' %}
+                    <i class="fa-solid fa-file-word"></i>
+                {% elif file.file_type == 'txt' %}
+                    <i class="fa-solid fa-file-lines"></i>
+                {% elif file.file_type == 'md' %}
+                    <i class="fa-brands fa-markdown"></i>
+                {% else %}
+                    <i class="fa-solid fa-file"></i>
+                {% endif %}
+            </div>
+            
+            <div class="file-info">
+                <div class="file-title">{{ file.title }}</div>
+                <div class="file-meta">
+                    <div class="file-meta-item">
+                        <i class="fa-solid fa-calendar"></i>
+                        {{ file.created_at|date:"d.m.Y" }}
+                    </div>
+                    <div class="file-meta-item">
+                        <i class="fa-solid fa-database"></i>
+                        {{ file.file_size_display }}
+                    </div>
+                    <div class="file-meta-item">
+                        <i class="fa-solid fa-puzzle-piece"></i>
+                        {{ file.chunks_count }} фрагментов
+                    </div>
+                </div>
+            </div>
+            
+            <div class="file-badges">
+                {% if file.is_indexed %}
+                    <span class="file-badge indexed">
+                        <i class="fa-solid fa-check"></i> Indexed
+                    </span>
+                {% else %}
+                    <span class="file-badge pending">
+                        <i class="fa-solid fa-clock"></i> Pending
+                    </span>
+                {% endif %}
+                
+                <span class="file-badge bot-count" 
+                      onclick="openAssignModal({{ file.id }}, '{{ file.title|escapejs }}')" 
+                      title="Назначить ботам">
+                    <i class="fa-solid fa-robot"></i> 
+                    {{ file.bots_count }} бот{% if file.bots_count == 1 %}{% elif file.bots_count < 5 %}а{% else %}ов{% endif %}
+                </span>
+            </div>
+            
+            <div class="file-actions">
+                <a href="{% url 'knowledge_detail' file.id %}" class="btn-icon" title="Просмотр">
+                    <i class="fa-solid fa-eye"></i>
+                </a>
+                <button class="btn-icon" onclick="reindexFile({{ file.id }})" title="Переиндексировать">
+                    <i class="fa-solid fa-sync"></i>
+                </button>
+                <button class="btn-icon btn-danger" onclick="deleteFile({{ file.id }}, '{{ file.title|escapejs }}')" title="Удалить">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </div>
         </div>
         {% endfor %}
-    {% endif %}
-
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Документы ({{ documents.count }})</h5>
-                </div>
-                <div class="card-body">
-                    {% if documents %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Название</th>
-                                    <th>Тип</th>
-                                    <th>Статус</th>
-                                    <th>Фрагменты</th>
-                                    <th>Дата загрузки</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for doc in documents %}
-                                <tr>
-                                    <td>
-                                        <strong>{{ doc.title }}</strong>
-                                        {% if doc.description %}
-                                        <br><small class="text-muted">{{ doc.description|truncatewords:10 }}</small>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-secondary">{{ doc.get_file_type_display }}</span>
-                                    </td>
-                                    <td>
-                                        {% if doc.is_indexed %}
-                                        <span class="badge bg-success">
-                                            <i class="fas fa-check"></i> Проиндексирован
-                                        </span>
-                                        {% else %}
-                                        <span class="badge bg-warning">
-                                            <i class="fas fa-clock"></i> Ожидает
-                                        </span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-info">{{ doc.chunks_count_db }} фрагментов</span>
-                                    </td>
-                                    <td>
-                                        {{ doc.created_at|date:"d.m.Y H:i" }}
-                                    </td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm">
-                                            <a href="{% url 'knowledge_detail' doc.id %}" class="btn btn-outline-primary" title="Просмотр">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <button class="btn btn-outline-secondary" onclick="reindexDocument({{ doc.id }})" title="Переиндексировать">
-                                                <i class="fas fa-sync"></i>
-                                            </button>
-                                            <form method="post" action="{% url 'knowledge_delete' doc.id %}" style="display:inline;" onsubmit="return confirm('Удалить этот документ?');">
-                                                {% csrf_token %}
-                                                <button type="submit" class="btn btn-outline-danger" title="Удалить">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <div class="text-center py-5">
-                        <i class="fas fa-book fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">Документов пока нет</p>
-                        <a href="{% url 'upload_kb' bot.id %}" class="btn btn-primary">
-                            Загрузить первый документ
-                        </a>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
     </div>
+    
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 32px;">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}" class="btn btn-secondary">
+            <i class="fa-solid fa-chevron-left"></i>
+        </a>
+        {% endif %}
+        
+        <span style="color: var(--dash-text-muted); font-size: 14px;">
+            Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+        </span>
+        
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}" class="btn btn-secondary">
+            <i class="fa-solid fa-chevron-right"></i>
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% else %}
+<div class="glass-card">
+    <div class="empty-state-kb">
+        <div class="empty-icon">
+            <i class="fa-solid fa-book"></i>
+        </div>
+        <h3 style="margin: 0 0 12px 0;">База знаний пуста</h3>
+        <p style="color: var(--dash-text-muted); margin: 0 0 24px 0;">
+            Загрузите документы, чтобы ваши боты могли использовать их для ответов
+        </p>
+        <a href="{% url 'upload_knowledge' %}" class="btn btn-primary">
+            <i class="fa-solid fa-upload"></i>
+            Загрузить первый файл
+        </a>
+    </div>
+</div>
+{% endif %}
 
-    <!-- Тестирование RAG -->
-    <div class="row mt-4">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Тестирование RAG</h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label">Задайте вопрос:</label>
-                        <input type="text" id="test-query" class="form-control" placeholder="Например: Как настроить бота?">
+<!-- Modal: Assign Bots -->
+<div class="modal-assign-bots" id="assignBotsModal">
+    <div class="modal-content-assign">
+        <div class="modal-header-assign">
+            <h3 id="modalTitle">Назначить ботам</h3>
+            <button class="btn-icon" onclick="closeAssignModal()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        
+        <div class="bots-checklist" id="botsChecklist">
+            {% for bot in user_bots %}
+            <label class="bot-checkbox-item">
+                <input type="checkbox" value="{{ bot.id }}" data-bot-id="{{ bot.id }}">
+                <div class="bot-checkbox-label">
+                    <div class="bot-avatar-small">
+                        {% if bot.platform == 'telegram' %}
+                            <i class="fa-brands fa-telegram" style="color: #229ED9;"></i>
+                        {% elif bot.platform == 'whatsapp' %}
+                            <i class="fa-brands fa-whatsapp" style="color: #25D366;"></i>
+                        {% else %}
+                            <i class="fa-solid fa-robot"></i>
+                        {% endif %}
                     </div>
-                    <button onclick="testRAG()" class="btn btn-success">
-                        <i class="fas fa-search"></i> Поиск ответа
-                    </button>
-                    
-                    <div id="rag-result" class="mt-3" style="display:none;">
-                        <div class="alert alert-info">
-                            <h6>Ответ:</h6>
-                            <p id="rag-answer"></p>
-                            <hr>
-                            <small><strong>Источники:</strong> <span id="rag-sources"></span></small><br>
-                            <small><strong>Уверенность:</strong> <span id="rag-confidence"></span></small>
-                        </div>
+                    <div>
+                        <div style="font-weight: 500;">{{ bot.name }}</div>
+                        <div style="font-size: 11px; color: var(--dash-text-muted);">{{ bot.get_platform_display }}</div>
                     </div>
                 </div>
-            </div>
+            </label>
+            {% endfor %}
+        </div>
+        
+        <div style="display: flex; gap: 12px;">
+            <button class="btn btn-primary" onclick="saveAssignment()" style="flex: 1;">
+                <i class="fa-solid fa-check"></i>
+                Сохранить
+            </button>
+            <button class="btn btn-secondary" onclick="closeAssignModal()">
+                Отмена
+            </button>
         </div>
     </div>
 </div>
 
 <script>
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
+const csrfToken = '{{ csrf_token }}';
+let currentFileId = null;
+
+async function openAssignModal(fileId, fileName) {
+    currentFileId = fileId;
+    document.getElementById('modalTitle').textContent = `Назначить ботам: ${fileName}`;
+    
+    // Загружаем текущее назначение
+    try {
+        const response = await fetch(`/dashboard/knowledge/${fileId}/`);
+        // TODO: парсим JSON и проставляем галочки
+    } catch (error) {
+        console.error('Error loading assignments:', error);
     }
-    return cookieValue;
+    
+    document.getElementById('assignBotsModal').classList.add('active');
 }
 
-async function reindexDocument(kbId) {
-    if (!confirm('Переиндексировать этот документ?')) return;
+function closeAssignModal() {
+    document.getElementById('assignBotsModal').classList.remove('active');
+    currentFileId = null;
+    
+    // Сброс чекбоксов
+    document.querySelectorAll('#botsChecklist input[type="checkbox"]').forEach(cb => {
+        cb.checked = false;
+    });
+}
+
+async function saveAssignment() {
+    if (!currentFileId) return;
+    
+    // Собираем выбранных ботов
+    const selectedBots = Array.from(
+        document.querySelectorAll('#botsChecklist input[type="checkbox"]:checked')
+    ).map(cb => parseInt(cb.value));
     
     try {
-        const response = await fetch(`/api/knowledge/${kbId}/reindex/`, {
+        const response = await fetch(`/api/knowledge/${currentFileId}/assign-bots/`, {
             method: 'POST',
             headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
-                'Content-Type': 'application/json'
-            }
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ bot_ids: selectedBots })
         });
         
         const data = await response.json();
         
         if (data.success) {
-            alert(data.message);
+            alert('✅ ' + data.message);
             location.reload();
         } else {
-            alert('Ошибка: ' + data.error);
+            alert('❌ ' + data.error);
         }
     } catch (error) {
         alert('Ошибка: ' + error);
     }
 }
 
-async function testRAG() {
-    const query = document.getElementById('test-query').value.trim();
-    if (!query) {
-        alert('Введите вопрос');
-        return;
-    }
-    
-    document.getElementById('rag-result').style.display = 'none';
+async function reindexFile(fileId) {
+    if (!confirm('Переиндексировать этот файл? Это может занять время.')) return;
     
     try {
-        const response = await fetch(`/api/bot/{{ bot.id }}/rag/test/`, {
+        const response = await fetch(`/api/knowledge/${fileId}/reindex/`, {
             method: 'POST',
-            headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ query: query })
+            headers: { 'X-CSRFToken': csrfToken }
         });
         
         const data = await response.json();
         
         if (data.success) {
-            document.getElementById('rag-answer').textContent = data.answer;
-            document.getElementById('rag-sources').textContent = data.sources.join(', ') || 'Нет';
-            document.getElementById('rag-confidence').textContent = (data.confidence * 100).toFixed(0) + '%';
-            document.getElementById('rag-result').style.display = 'block';
+            alert('✅ ' + data.message);
+            location.reload();
         } else {
-            alert('Ошибка: ' + data.error);
+            alert('❌ ' + data.error);
         }
     } catch (error) {
         alert('Ошибка: ' + error);
     }
 }
+
+async function deleteFile(fileId, fileName) {
+    if (!confirm(`Удалить файл "${fileName}"?\n\nЭто действие необратимо.`)) return;
+    
+    try {
+        const response = await fetch(`/dashboard/knowledge/${fileId}/delete/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken }
+        });
+        
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Ошибка удаления');
+        }
+    } catch (error) {
+        alert('Ошибка: ' + error);
+    }
+}
+
+// Close modal on outside click
+document.getElementById('assignBotsModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeAssignModal();
+    }
+});
 </script>
 {% endblock %}

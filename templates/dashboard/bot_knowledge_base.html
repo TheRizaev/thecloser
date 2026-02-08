@@ -1,0 +1,468 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}База знаний — {{ bot.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.bot-header-card {
+    background: var(--dash-surface);
+    border: 1px solid var(--dash-border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.bot-avatar-large {
+    width: 64px;
+    height: 64px;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+}
+
+.bot-header-info {
+    flex: 1;
+}
+
+.bot-header-info h2 {
+    font-size: 20px;
+    margin: 0 0 6px 0;
+}
+
+.bot-header-info p {
+    font-size: 13px;
+    color: var(--dash-text-muted);
+    margin: 0;
+}
+
+.knowledge-stats-mini {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat-mini {
+    background: var(--dash-surface);
+    border: 1px solid var(--dash-border);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.stat-mini-value {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.stat-mini-label {
+    font-size: 12px;
+    color: var(--dash-text-muted);
+}
+
+.filters-bar-simple {
+    background: var(--dash-surface);
+    border: 1px solid var(--dash-border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 24px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filter-select, .search-input {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--dash-border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: var(--dash-text);
+    font-size: 13px;
+}
+
+.search-input {
+    flex: 1;
+    min-width: 250px;
+    font-size: 14px;
+}
+
+.files-grid {
+    display: grid;
+    gap: 16px;
+}
+
+.file-card {
+    background: var(--dash-surface);
+    border: 1px solid var(--dash-border);
+    border-radius: 16px;
+    padding: 20px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.file-card:hover {
+    border-color: rgba(99, 102, 241, 0.3);
+    transform: translateX(4px);
+}
+
+.file-icon {
+    width: 56px;
+    height: 56px;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: var(--dash-primary);
+    flex-shrink: 0;
+}
+
+.file-icon.pdf { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+.file-icon.docx { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+.file-icon.txt { background: rgba(168, 85, 247, 0.1); color: #a855f7; }
+.file-icon.md { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
+
+.file-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.file-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.file-meta {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: var(--dash-text-muted);
+}
+
+.file-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.file-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.file-badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.file-badge.indexed {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.file-badge.pending {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.file-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.empty-state-kb {
+    text-align: center;
+    padding: 80px 20px;
+}
+
+.empty-state-kb .empty-icon {
+    width: 120px;
+    height: 120px;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    font-size: 48px;
+    color: var(--dash-primary);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Bot Header -->
+<div class="bot-header-card">
+    <div class="bot-avatar-large">
+        {% if bot.platform == 'telegram' %}
+            <i class="fa-brands fa-telegram" style="color: #229ED9;"></i>
+        {% elif bot.platform == 'whatsapp' %}
+            <i class="fa-brands fa-whatsapp" style="color: #25D366;"></i>
+        {% elif bot.platform == 'vk' %}
+            <i class="fa-brands fa-vk" style="color: #0077FF;"></i>
+        {% elif bot.platform == 'instagram' %}
+            <i class="fa-brands fa-instagram" style="color: #E4405F;"></i>
+        {% else %}
+            <i class="fa-solid fa-robot"></i>
+        {% endif %}
+    </div>
+    
+    <div class="bot-header-info">
+        <h2>{{ bot.name }}</h2>
+        <p>База знаний бота · {{ bot.get_platform_display }}</p>
+    </div>
+    
+    <div style="display: flex; gap: 12px;">
+        <a href="{% url 'upload_knowledge' %}?bot_id={{ bot.id }}" class="btn btn-primary">
+            <i class="fa-solid fa-upload"></i>
+            Загрузить файл
+        </a>
+        <a href="{% url 'agent_detail' bot.id %}" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i>
+            К боту
+        </a>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="knowledge-stats-mini">
+    <div class="stat-mini">
+        <div class="stat-mini-value">{{ total_files }}</div>
+        <div class="stat-mini-label">Файлов</div>
+    </div>
+    
+    <div class="stat-mini">
+        <div class="stat-mini-value">{{ indexed_files }}</div>
+        <div class="stat-mini-label">Проиндексировано</div>
+    </div>
+    
+    <div class="stat-mini">
+        <div class="stat-mini-value">{{ total_chunks|default:0 }}</div>
+        <div class="stat-mini-label">Фрагментов</div>
+    </div>
+</div>
+
+<!-- Filters -->
+<form method="GET" id="filters-form">
+    <div class="filters-bar-simple">
+        <select name="file_type" class="filter-select" onchange="document.getElementById('filters-form').submit()">
+            <option value="all" {% if current_filters.file_type == 'all' %}selected{% endif %}>Все типы</option>
+            <option value="pdf" {% if current_filters.file_type == 'pdf' %}selected{% endif %}>PDF</option>
+            <option value="docx" {% if current_filters.file_type == 'docx' %}selected{% endif %}>Word</option>
+            <option value="txt" {% if current_filters.file_type == 'txt' %}selected{% endif %}>Text</option>
+            <option value="md" {% if current_filters.file_type == 'md' %}selected{% endif %}>Markdown</option>
+        </select>
+        
+        <select name="sort" class="filter-select" onchange="document.getElementById('filters-form').submit()">
+            <option value="-created_at" {% if current_filters.sort == '-created_at' %}selected{% endif %}>Новые первые</option>
+            <option value="created_at" {% if current_filters.sort == 'created_at' %}selected{% endif %}>Старые первые</option>
+            <option value="title" {% if current_filters.sort == 'title' %}selected{% endif %}>По названию</option>
+        </select>
+        
+        <input 
+            type="search" 
+            name="search" 
+            class="search-input" 
+            placeholder="🔍 Поиск..."
+            value="{{ current_filters.search }}"
+        >
+        
+        {% if current_filters.search or current_filters.file_type != 'all' %}
+        <a href="{% url 'bot_knowledge_base' bot.id %}" class="btn btn-secondary">
+            <i class="fa-solid fa-xmark"></i>
+            Сбросить
+        </a>
+        {% endif %}
+    </div>
+</form>
+
+<!-- Files List -->
+{% if page_obj %}
+<div class="glass-card">
+    <div class="files-grid">
+        {% for file in page_obj %}
+        <div class="file-card">
+            <div class="file-icon {{ file.file_type }}">
+                {% if file.file_type == 'pdf' %}
+                    <i class="fa-solid fa-file-pdf"></i>
+                {% elif file.file_type == 'docx' %}
+                    <i class="fa-solid fa-file-word"></i>
+                {% elif file.file_type == 'txt' %}
+                    <i class="fa-solid fa-file-lines"></i>
+                {% elif file.file_type == 'md' %}
+                    <i class="fa-brands fa-markdown"></i>
+                {% else %}
+                    <i class="fa-solid fa-file"></i>
+                {% endif %}
+            </div>
+            
+            <div class="file-info">
+                <div class="file-title">{{ file.title }}</div>
+                <div class="file-meta">
+                    <div class="file-meta-item">
+                        <i class="fa-solid fa-calendar"></i>
+                        {{ file.created_at|date:"d.m.Y" }}
+                    </div>
+                    <div class="file-meta-item">
+                        <i class="fa-solid fa-database"></i>
+                        {{ file.file_size_display }}
+                    </div>
+                    <div class="file-meta-item">
+                        <i class="fa-solid fa-puzzle-piece"></i>
+                        {{ file.chunks_count }} фрагментов
+                    </div>
+                </div>
+            </div>
+            
+            <div class="file-badges">
+                {% if file.is_indexed %}
+                    <span class="file-badge indexed">
+                        <i class="fa-solid fa-check"></i> Indexed
+                    </span>
+                {% else %}
+                    <span class="file-badge pending">
+                        <i class="fa-solid fa-clock"></i> Pending
+                    </span>
+                {% endif %}
+            </div>
+            
+            <div class="file-actions">
+                <a href="{% url 'knowledge_detail' file.id %}" class="btn-icon" title="Просмотр">
+                    <i class="fa-solid fa-eye"></i>
+                </a>
+                <button class="btn-icon" onclick="reindexFile({{ file.id }})" title="Переиндексировать">
+                    <i class="fa-solid fa-sync"></i>
+                </button>
+                <button class="btn-icon btn-danger" onclick="removeFromBot({{ file.id }}, '{{ file.title|escapejs }}')" title="Убрать из бота">
+                    <i class="fa-solid fa-unlink"></i>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 32px;">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}" class="btn btn-secondary">
+            <i class="fa-solid fa-chevron-left"></i>
+        </a>
+        {% endif %}
+        
+        <span style="color: var(--dash-text-muted); font-size: 14px;">
+            Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+        </span>
+        
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}" class="btn btn-secondary">
+            <i class="fa-solid fa-chevron-right"></i>
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% else %}
+<div class="glass-card">
+    <div class="empty-state-kb">
+        <div class="empty-icon">
+            <i class="fa-solid fa-book"></i>
+        </div>
+        <h3 style="margin: 0 0 12px 0;">База знаний пуста</h3>
+        <p style="color: var(--dash-text-muted); margin: 0 0 24px 0;">
+            Загрузите документы для этого бота или назначьте существующие из общей базы знаний
+        </p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <a href="{% url 'upload_knowledge' %}?bot_id={{ bot.id }}" class="btn btn-primary">
+                <i class="fa-solid fa-upload"></i>
+                Загрузить файл
+            </a>
+            <a href="{% url 'knowledge_base_list' %}" class="btn btn-secondary">
+                <i class="fa-solid fa-folder"></i>
+                К общей базе знаний
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+const csrfToken = '{{ csrf_token }}';
+const botId = {{ bot.id }};
+
+async function reindexFile(fileId) {
+    if (!confirm('Переиндексировать этот файл?')) return;
+    
+    try {
+        const response = await fetch(`/api/knowledge/${fileId}/reindex/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('✅ ' + data.message);
+            location.reload();
+        } else {
+            alert('❌ ' + data.error);
+        }
+    } catch (error) {
+        alert('Ошибка: ' + error);
+    }
+}
+
+async function removeFromBot(fileId, fileName) {
+    if (!confirm(`Убрать файл "${fileName}" из этого бота?\n\nФайл останется в общей базе знаний.`)) return;
+    
+    try {
+        // Получаем текущее назначение и убираем этого бота
+        const response = await fetch(`/api/knowledge/${fileId}/assign-bots/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ 
+                bot_ids: [],  // Пустой массив = убрать от всех ботов
+                remove_bot_id: botId  // Или можно добавить отдельный эндпоинт
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('❌ ' + data.error);
+        }
+    } catch (error) {
+        alert('Ошибка: ' + error);
+    }
+}
+</script>
+{% endblock %}

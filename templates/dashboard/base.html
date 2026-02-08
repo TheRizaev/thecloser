@@ -62,17 +62,10 @@
                         <i class="fa-solid fa-comments"></i>
                         <span>Диалоги</span>
                     </a>
-                    {% if bot %}
-                        <a href="{% url 'knowledge_base' bot.id %}" class="menu-link {% if 'knowledge' in request.path %}active{% endif %}">
-                            <i class="fa-solid fa-brain"></i>
-                            <span>База знаний</span>
-                        </a>
-                    {% else %}
-                        <a href="{% url 'agents_list' %}" class="menu-link {% if 'knowledge' in request.path %}active{% endif %}">
-                            <i class="fa-solid fa-brain"></i>
-                            <span>База знаний</span>
-                        </a>
-                    {% endif %}
+                    <a href="{% url 'knowledge_base_list' %}" class="menu-link {% if request.resolver_match.url_name == 'knowledge_base_list' %}active{% endif %}">
+                        <i class="fa-solid fa-brain"></i>
+                        <span>База знаний</span>
+                    </a>
                 </div>
                 
                 <div class="menu-section">

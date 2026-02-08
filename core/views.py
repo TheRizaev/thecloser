@@ -219,16 +219,35 @@ def bots_list(request):
 
 @login_required
 def bot_detail(request, bot_id):
-    """Детали бота"""
+    """Детали бота и сохранение настроек"""
     bot = get_object_or_404(BotAgent, id=bot_id, user=request.user)
+
+    # ЛОГИКА СОХРАНЕНИЯ (Добавлено)
+    if request.method == 'POST':
+        bot.name = request.POST.get('name', bot.name)
+        bot.description = request.POST.get('description', bot.description)
+        bot.system_prompt = request.POST.get('system_prompt', bot.system_prompt)
+        bot.openai_model = request.POST.get('model', bot.openai_model)
+        bot.temperature = float(request.POST.get('temperature', bot.temperature))
+        bot.max_tokens = int(request.POST.get('max_tokens', bot.max_tokens))
+        
+        # Чекбоксы возвращают 'on' если включены, или ничего если выключены
+        bot.status = 'active' if request.POST.get('is_active') else 'paused'
+        bot.use_rag = bool(request.POST.get('use_rag'))
+        bot.rag_top_k = int(request.POST.get('rag_k', bot.rag_top_k))
+        
+        bot.save()
+        messages.success(request, 'Настройки бота сохранены')
+        return redirect('agent_detail', bot_id=bot.id)
     
     # Статистика
     conversations = Conversation.objects.filter(bot=bot)
     bot.conversations_count = conversations.count()
     bot.leads_count = conversations.filter(is_lead=True).count()
-    bot.knowledge_count = KnowledgeBase.objects.filter(bot=bot).count()
     
-    # Исправлено: путь к шаблону (agent_detail.html)
+    # Исправляем ошибку фильтрации KnowledgeBase (заменяем .filter(bot=bot) на .filter(bots=bot))
+    bot.knowledge_count = KnowledgeBase.objects.filter(bots=bot).count()
+    
     return render(request, 'dashboard/agent_detail.html', {'bot': bot})
 
 @login_required
@@ -582,34 +601,172 @@ def export_analytics(request):
 # ============================================
 
 @login_required
-def knowledge_base_list(request, bot_id):
-    """Список документов в базе знаний бота"""
-    bot = get_object_or_404(BotAgent, id=bot_id, user=request.user)
-    documents = KnowledgeBase.objects.filter(bot=bot).order_by('-created_at')
-    for doc in documents:
-        doc.chunks_count_db = doc.chunks.count()
-    return render(request, 'dashboard/knowledge_base.html', {'bot': bot, 'documents': documents})
+def knowledge_base_list(request):
+    """
+    Общая страница базы знаний - ВСЕ файлы пользователя
+    С фильтрами, поиском и красивым дизайном
+    """
+    # Получаем все файлы пользователя
+    files = KnowledgeBase.objects.filter(user=request.user).prefetch_related('bots')
+    
+    # Фильтр по типу файла
+    file_type = request.GET.get('file_type')
+    if file_type and file_type != 'all':
+        files = files.filter(file_type=file_type)
+    
+    # Фильтр по статусу индексации
+    status = request.GET.get('status')
+    if status == 'indexed':
+        files = files.filter(is_indexed=True)
+    elif status == 'pending':
+        files = files.filter(is_indexed=False)
+    
+    # Фильтр по боту
+    bot_id = request.GET.get('bot')
+    if bot_id and bot_id != 'all':
+        files = files.filter(bots__id=bot_id)
+    
+    # Поиск
+    search_query = request.GET.get('search', '').strip()
+    if search_query:
+        files = files.filter(
+            Q(title__icontains=search_query) | 
+            Q(description__icontains=search_query)
+        )
+    
+    # Сортировка
+    sort_by = request.GET.get('sort', '-created_at')
+    files = files.order_by(sort_by)
+    
+    # Аннотация: количество ботов для каждого файла
+    files = files.annotate(bots_count=Count('bots'))
+    
+    # Пагинация
+    paginator = Paginator(files, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Статистика
+    total_files = KnowledgeBase.objects.filter(user=request.user).count()
+    indexed_files = KnowledgeBase.objects.filter(user=request.user, is_indexed=True).count()
+    total_chunks = KnowledgeChunk.objects.filter(knowledge_base__user=request.user).count()
+    
+    # Список ботов пользователя для фильтра
+    user_bots = BotAgent.objects.filter(user=request.user)
+    
+    context = {
+        'page_obj': page_obj,
+        'total_files': total_files,
+        'indexed_files': indexed_files,
+        'total_chunks': total_chunks,
+        'user_bots': user_bots,
+        'current_filters': {
+            'file_type': file_type or 'all',
+            'status': status or 'all',
+            'bot': bot_id or 'all',
+            'search': search_query,
+            'sort': sort_by,
+        }
+    }
+    
+    return render(request, 'dashboard/knowledge_base.html', context)
 
 @login_required
-def upload_knowledge_file(request, bot_id):
-    """Загрузка документа в базу знаний (с RAG индексацией)"""
+def bot_knowledge_base(request, bot_id):
+    """
+    База знаний конкретного бота - только его файлы
+    """
     bot = get_object_or_404(BotAgent, id=bot_id, user=request.user)
     
+    # Получаем только файлы этого бота
+    files = KnowledgeBase.objects.filter(
+        user=request.user,
+        bots=bot
+    ).prefetch_related('bots')
+    
+    # Поиск
+    search_query = request.GET.get('search', '').strip()
+    if search_query:
+        files = files.filter(
+            Q(title__icontains=search_query) | 
+            Q(description__icontains=search_query)
+        )
+    
+    # Фильтр по типу
+    file_type = request.GET.get('file_type')
+    if file_type and file_type != 'all':
+        files = files.filter(file_type=file_type)
+    
+    # Сортировка
+    sort_by = request.GET.get('sort', '-created_at')
+    files = files.order_by(sort_by)
+    
+    # Пагинация
+    paginator = Paginator(files, 15)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Статистика для этого бота
+    total_files = files.count()
+    indexed_files = files.filter(is_indexed=True).count()
+    total_chunks = KnowledgeChunk.objects.filter(knowledge_base__bots=bot).count()
+    
+    context = {
+        'bot': bot,
+        'page_obj': page_obj,
+        'total_files': total_files,
+        'indexed_files': indexed_files,
+        'total_chunks': total_chunks,
+        'current_filters': {
+            'file_type': file_type or 'all',
+            'search': search_query,
+            'sort': sort_by,
+        }
+    }
+    
+    return render(request, 'dashboard/bot_knowledge_base.html', context)
+
+@login_required
+@require_http_methods(['GET', 'POST'])
+def upload_knowledge_file(request):
+    """
+    Загрузка нового файла в базу знаний
+    Можно сразу назначить ботам
+    """
     if request.method == 'POST':
         uploaded_file = request.FILES.get('file')
-        title = request.POST.get('title', uploaded_file.name)
+        title = request.POST.get('title', uploaded_file.name if uploaded_file else '')
         description = request.POST.get('description', '')
+        bot_ids = request.POST.getlist('bots')  # Список ID ботов
+        
+        if not uploaded_file:
+            messages.error(request, 'Файл не выбран')
+            return redirect('knowledge_base_list')
         
         file_ext = os.path.splitext(uploaded_file.name)[1].lower()
         if file_ext not in ALLOWED_EXTENSIONS:
             messages.error(request, f'Неподдерживаемый формат. Разрешены: {", ".join(ALLOWED_EXTENSIONS)}')
-            return redirect('knowledge_base', bot_id=bot_id)
+            return redirect('knowledge_base_list')
+        
+        if uploaded_file.size > MAX_FILE_SIZE:
+            messages.error(request, f'Файл слишком большой. Максимум: 50 МБ')
+            return redirect('knowledge_base_list')
         
         try:
+            # Создаем запись
             kb = KnowledgeBase.objects.create(
-                bot=bot, title=title, description=description,
-                file=uploaded_file, file_type=file_ext[1:], file_size=uploaded_file.size
+                user=request.user,
+                title=title,
+                description=description,
+                file=uploaded_file,
+                file_type=file_ext[1:],
+                file_size=uploaded_file.size
             )
+            
+            # Назначаем ботам
+            if bot_ids:
+                bots = BotAgent.objects.filter(id__in=bot_ids, user=request.user)
+                kb.bots.set(bots)
             
             # Индексация RAG
             file_path = kb.file.path
@@ -619,74 +776,172 @@ def upload_knowledge_file(request, bot_id):
             kb.indexed_at = timezone.now()
             kb.save()
             
-            messages.success(request, f'Файл "{title}" загружен и проиндексирован ({chunks_count} фрагментов).')
+            messages.success(request, f'✅ Файл "{title}" загружен и проиндексирован ({chunks_count} фрагментов)')
             
         except Exception as e:
             logger.error(f"Ошибка при загрузке: {str(e)}")
             messages.error(request, f'Ошибка: {str(e)}')
-            if 'kb' in locals(): kb.delete()
+            if 'kb' in locals():
+                kb.delete()
         
-        return redirect('knowledge_base', bot_id=bot_id)
+        # Определяем куда редиректить
+        redirect_bot_id = request.POST.get('redirect_bot_id')
+        if redirect_bot_id:
+            return redirect('bot_knowledge_base', bot_id=redirect_bot_id)
+        else:
+            return redirect('knowledge_base_list')
     
-    return render(request, 'dashboard/upload_kb.html', {'bot': bot})
+    # GET - показываем форму
+    user_bots = BotAgent.objects.filter(user=request.user)
+    redirect_bot_id = request.GET.get('bot_id')  # Для редиректа после загрузки
+    
+    context = {
+        'user_bots': user_bots,
+        'redirect_bot_id': redirect_bot_id,
+    }
+    
+    return render(request, 'dashboard/upload_knowledge.html', context)
 
 @login_required
 def knowledge_detail(request, kb_id):
-    """Просмотр документа и чанков"""
-    kb = get_object_or_404(KnowledgeBase, id=kb_id, bot__user=request.user)
-    # Исправлено: добавление chunks для шаблона
-    sample_chunks = kb.chunks.all()[:5]
-    return render(request, 'dashboard/knowledge_detail.html', {
-        'kb': kb, 
-        'sample_chunks': sample_chunks, 
-        'total_chunks': kb.chunks.count()
-    })
+    """Просмотр деталей файла и его фрагментов"""
+    kb = get_object_or_404(KnowledgeBase, id=kb_id, user=request.user)
+    
+    # Получаем несколько примеров чанков
+    sample_chunks = kb.chunks.all()[:10]
+    
+    # Боты, использующие этот файл
+    assigned_bots = kb.bots.all()
+    
+    # Все боты пользователя (для назначения)
+    all_user_bots = BotAgent.objects.filter(user=request.user)
+    
+    context = {
+        'kb': kb,
+        'sample_chunks': sample_chunks,
+        'total_chunks': kb.chunks.count(),
+        'assigned_bots': assigned_bots,
+        'all_user_bots': all_user_bots,
+    }
+    
+    return render(request, 'dashboard/knowledge_detail.html', context)
+
+
+@login_required
+@require_http_methods(['POST', 'DELETE'])
+def knowledge_delete(request, kb_id):
+    """Удаление файла из базы знаний"""
+    kb = get_object_or_404(KnowledgeBase, id=kb_id, user=request.user)
+    
+    # Удаляем физический файл
+    if kb.file and os.path.exists(kb.file.path):
+        try:
+            os.remove(kb.file.path)
+        except:
+            pass
+    
+    title = kb.title
+    kb.delete()
+    
+    messages.success(request, f'Документ "{title}" удален')
+    
+    # JSON response для AJAX
+    if request.content_type == 'application/json':
+        return JsonResponse({'success': True})
+    
+    return redirect('knowledge_base_list')
+
+# ============================================
+# API: НАЗНАЧЕНИЕ БОТОВ
+# ============================================
 
 @login_required
 @require_http_methods(['POST'])
-def knowledge_delete(request, kb_id):
-    """Удаление документа"""
-    kb = get_object_or_404(KnowledgeBase, id=kb_id, bot__user=request.user)
-    bot_id = kb.bot.id
-    if kb.file and os.path.exists(kb.file.path):
-        os.remove(kb.file.path)
-    kb.delete()
-    messages.success(request, 'Документ удален')
-    return redirect('knowledge_base', bot_id=bot_id)
+def assign_bots_to_knowledge(request, kb_id):
+    """
+    API: Назначение/отвязка ботов от файла
+    """
+    kb = get_object_or_404(KnowledgeBase, id=kb_id, user=request.user)
+    
+    try:
+        data = json.loads(request.body)
+        bot_ids = data.get('bot_ids', [])
+        
+        # Получаем ботов пользователя
+        bots = BotAgent.objects.filter(id__in=bot_ids, user=request.user)
+        
+        # Устанавливаем связь
+        kb.bots.set(bots)
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Файл назначен {bots.count()} ботам',
+            'assigned_count': bots.count()
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+# ============================================
+# API: ПЕРЕИНДЕКСАЦИЯ
+# ============================================
 
 @login_required
 @require_http_methods(['POST'])
 def reindex_knowledge_base(request, kb_id):
-    """API: Переиндексация"""
-    kb = get_object_or_404(KnowledgeBase, id=kb_id, bot__user=request.user)
+    """API: Переиндексация документа"""
+    kb = get_object_or_404(KnowledgeBase, id=kb_id, user=request.user)
+    
     try:
+        # Удаляем старые чанки
         kb.chunks.all().delete()
+        
+        # Переиндексируем
         chunks_count = rag_service.process_document(kb.id, kb.file.path)
+        
         kb.chunks_count = chunks_count
         kb.indexed_at = timezone.now()
+        kb.is_indexed = True
         kb.save()
-        return JsonResponse({'success': True, 'message': f'Переиндексировано: {chunks_count} чанков'})
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Переиндексировано: {chunks_count} чанков',
+            'chunks_count': chunks_count
+        })
+        
     except Exception as e:
+        logger.error(f"Reindex error: {e}")
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
 
 @login_required
 @require_http_methods(['POST'])
 def test_rag_search(request, bot_id):
-    """API: Тест RAG поиска"""
+    """API: Тест RAG поиска для бота"""
     bot = get_object_or_404(BotAgent, id=bot_id, user=request.user)
+    
     try:
         data = json.loads(request.body)
         query = data.get('query', '')
-        if not query: return JsonResponse({'success': False, 'error': 'Empty query'}, status=400)
         
+        if not query:
+            return JsonResponse({'success': False, 'error': 'Empty query'}, status=400)
+        
+        # Используем RAG сервис
         result = rag_service.answer_question(bot.id, query, top_k=5)
+        
         return JsonResponse({
-            'success': True, 'answer': result['answer'],
-            'sources': result['sources'], 'confidence': result['confidence']
+            'success': True,
+            'answer': result['answer'],
+            'sources': result['sources'],
+            'confidence': result['confidence']
         })
+        
     except Exception as e:
+        logger.error(f"RAG test error: {e}")
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
-
+    
 # ============================================
 # TELEGRAM CONNECT
 # ============================================
@@ -919,9 +1174,14 @@ def upload_knowledge_api(request, bot_id):
              return JsonResponse({'success': False, 'message': 'Неверный формат'}, status=400)
 
         kb = KnowledgeBase.objects.create(
-            bot=bot, title=uploaded_file.name, file=uploaded_file,
-            file_type=file_ext[1:], file_size=uploaded_file.size
+            user=request.user,  # Обязательно указываем владельца
+            title=uploaded_file.name, 
+            file=uploaded_file,
+            file_type=file_ext[1:], 
+            file_size=uploaded_file.size
         )
+        
+        kb.bots.add(bot)
         
         chunks_count = rag_service.process_document(kb.id, kb.file.path)
         kb.chunks_count = chunks_count

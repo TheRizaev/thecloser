@@ -1,0 +1,481 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Загрузить файл{% endblock %}
+
+{% block extra_css %}
+<style>
+.upload-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.upload-zone {
+    border: 2px dashed var(--dash-border);
+    border-radius: 20px;
+    padding: 60px 40px;
+    text-align: center;
+    background: var(--dash-surface);
+    transition: all 0.3s;
+    cursor: pointer;
+    margin-bottom: 32px;
+}
+
+.upload-zone:hover {
+    border-color: var(--dash-primary);
+    background: rgba(99, 102, 241, 0.05);
+}
+
+.upload-zone.dragover {
+    border-color: var(--dash-primary);
+    background: rgba(99, 102, 241, 0.1);
+    transform: scale(1.02);
+}
+
+.upload-icon-large {
+    width: 100px;
+    height: 100px;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    font-size: 40px;
+    color: var(--dash-primary);
+}
+
+.upload-zone h3 {
+    margin: 0 0 8px 0;
+    font-size: 20px;
+}
+
+.upload-zone p {
+    color: var(--dash-text-muted);
+    margin: 0 0 8px 0;
+}
+
+.file-selected {
+    display: none;
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+}
+
+.file-selected.active {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.file-selected-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(34, 197, 94, 0.2);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #22c55e;
+}
+
+.file-selected-info {
+    flex: 1;
+}
+
+.file-selected-name {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.file-selected-size {
+    font-size: 12px;
+    color: var(--dash-text-muted);
+}
+
+.bots-selection {
+    background: var(--dash-surface);
+    border: 1px solid var(--dash-border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.bots-selection h3 {
+    font-size: 16px;
+    margin: 0 0 16px 0;
+}
+
+.bots-grid {
+    display: grid;
+    gap: 12px;
+}
+
+.bot-select-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--dash-border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.bot-select-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--dash-primary);
+}
+
+.bot-select-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--dash-primary);
+}
+
+.bot-select-label {
+    flex: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.bot-select-avatar {
+    width: 36px;
+    height: 36px;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+.info-box {
+    background: rgba(99, 102, 241, 0.05);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+}
+
+.info-box h4 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    color: var(--dash-primary);
+}
+
+.info-box ul {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 13px;
+    color: var(--dash-text-muted);
+    line-height: 1.8;
+}
+
+.progress-section {
+    display: none;
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.progress-section.active {
+    display: block;
+}
+
+.progress-bar {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 12px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--dash-primary);
+    width: 0%;
+    transition: width 0.3s;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="upload-container">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">📤 Загрузить файл</h1>
+            <p class="page-subtitle">Добавьте документ в базу знаний</p>
+        </div>
+        <a href="{% url 'knowledge_base_list' %}" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i>
+            Назад
+        </a>
+    </div>
+
+    <!-- Info Box -->
+    <div class="info-box">
+        <h4><i class="fa-solid fa-circle-info"></i> Поддерживаемые форматы</h4>
+        <ul>
+            <li><strong>PDF</strong> — документы, инструкции, брошюры</li>
+            <li><strong>Word (DOCX)</strong> — текстовые документы</li>
+            <li><strong>Text (TXT)</strong> — простые текстовые файлы</li>
+            <li><strong>Markdown (MD)</strong> — форматированный текст</li>
+        </ul>
+        <p style="margin: 12px 0 0 0; font-size: 13px; color: var(--dash-text-muted);">
+            Максимальный размер файла: <strong>50 МБ</strong>
+        </p>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" id="uploadForm">
+        {% csrf_token %}
+        
+        <!-- Hidden input for redirect -->
+        {% if redirect_bot_id %}
+        <input type="hidden" name="redirect_bot_id" value="{{ redirect_bot_id }}">
+        {% endif %}
+        
+        <!-- Upload Zone -->
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+            <div class="upload-icon-large">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+            </div>
+            <h3>Перетащите файл сюда</h3>
+            <p>или кликните для выбора</p>
+            <p style="font-size: 12px;">PDF, DOCX, TXT, MD • До 50 МБ</p>
+        </div>
+        
+        <input 
+            type="file" 
+            id="fileInput" 
+            name="file" 
+            accept=".pdf,.docx,.txt,.md" 
+            style="display: none;"
+            required
+        >
+        
+        <!-- File Selected -->
+        <div class="file-selected" id="fileSelected">
+            <div class="file-selected-icon">
+                <i class="fa-solid fa-file"></i>
+            </div>
+            <div class="file-selected-info">
+                <div class="file-selected-name" id="fileName"></div>
+                <div class="file-selected-size" id="fileSize"></div>
+            </div>
+            <button type="button" class="btn-icon btn-danger" onclick="clearFile()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        
+        <div class="glass-card">
+            <!-- Title -->
+            <div class="form-group">
+                <label class="form-label">Название файла *</label>
+                <input 
+                    type="text" 
+                    name="title" 
+                    id="titleInput"
+                    class="form-input" 
+                    placeholder="Например: Инструкция пользователя"
+                    required
+                >
+            </div>
+            
+            <!-- Description -->
+            <div class="form-group">
+                <label class="form-label">Описание (необязательно)</label>
+                <textarea 
+                    name="description" 
+                    class="form-textarea" 
+                    rows="3"
+                    placeholder="Краткое описание содержимого документа..."
+                ></textarea>
+            </div>
+        </div>
+        
+        <!-- Bots Selection -->
+        <div class="bots-selection">
+            <h3>Назначить ботам</h3>
+            <p style="font-size: 13px; color: var(--dash-text-muted); margin: 0 0 16px 0;">
+                Выберите ботов, которые смогут использовать этот файл для ответов
+            </p>
+            
+            <div class="bots-grid">
+                {% for bot in user_bots %}
+                <label class="bot-select-item">
+                    <input 
+                        type="checkbox" 
+                        name="bots" 
+                        value="{{ bot.id }}"
+                        {% if redirect_bot_id == bot.id|stringformat:"s" %}checked{% endif %}
+                    >
+                    <div class="bot-select-label">
+                        <div class="bot-select-avatar">
+                            {% if bot.platform == 'telegram' %}
+                                <i class="fa-brands fa-telegram" style="color: #229ED9;"></i>
+                            {% elif bot.platform == 'whatsapp' %}
+                                <i class="fa-brands fa-whatsapp" style="color: #25D366;"></i>
+                            {% elif bot.platform == 'vk' %}
+                                <i class="fa-brands fa-vk" style="color: #0077FF;"></i>
+                            {% else %}
+                                <i class="fa-solid fa-robot"></i>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <div style="font-weight: 500;">{{ bot.name }}</div>
+                            <div style="font-size: 11px; color: var(--dash-text-muted);">
+                                {{ bot.get_platform_display }}
+                            </div>
+                        </div>
+                    </div>
+                </label>
+                {% empty %}
+                <div style="text-align: center; padding: 20px; color: var(--dash-text-muted);">
+                    У вас пока нет ботов. <a href="{% url 'create_agent' %}">Создать бота</a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Progress Section -->
+        <div class="progress-section" id="progressSection">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size: 20px; color: var(--dash-primary);"></i>
+                <div>
+                    <strong>Загрузка и индексация...</strong>
+                    <p style="margin: 4px 0 0 0; font-size: 13px; color: var(--dash-text-muted);">
+                        Это может занять несколько минут
+                    </p>
+                </div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div style="display: flex; gap: 12px;">
+            <button type="submit" class="btn btn-primary" style="flex: 1;" id="submitBtn">
+                <i class="fa-solid fa-upload"></i>
+                Загрузить и проиндексировать
+            </button>
+            <a href="{% url 'knowledge_base_list' %}" class="btn btn-secondary">
+                Отмена
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+const fileSelected = document.getElementById('fileSelected');
+const titleInput = document.getElementById('titleInput');
+const submitBtn = document.getElementById('submitBtn');
+const progressSection = document.getElementById('progressSection');
+const uploadForm = document.getElementById('uploadForm');
+
+// Drag & Drop
+uploadZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadZone.classList.add('dragover');
+});
+
+uploadZone.addEventListener('dragleave', () => {
+    uploadZone.classList.remove('dragover');
+});
+
+uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        fileInput.files = files;
+        handleFileSelect();
+    }
+});
+
+// File Select
+fileInput.addEventListener('change', handleFileSelect);
+
+function handleFileSelect() {
+    const file = fileInput.files[0];
+    if (!file) return;
+    
+    // Check file size
+    if (file.size > 50 * 1024 * 1024) {
+        alert('Файл слишком большой! Максимум 50 МБ');
+        clearFile();
+        return;
+    }
+    
+    // Check file type
+    const validExtensions = ['.pdf', '.docx', '.txt', '.md'];
+    const fileExt = '.' + file.name.split('.').pop().toLowerCase();
+    if (!validExtensions.includes(fileExt)) {
+        alert('Неподдерживаемый формат файла!');
+        clearFile();
+        return;
+    }
+    
+    // Display file info
+    document.getElementById('fileName').textContent = file.name;
+    document.getElementById('fileSize').textContent = formatFileSize(file.size);
+    fileSelected.classList.add('active');
+    uploadZone.style.display = 'none';
+    
+    // Auto-fill title if empty
+    if (!titleInput.value) {
+        const nameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+        titleInput.value = nameWithoutExt;
+    }
+}
+
+function clearFile() {
+    fileInput.value = '';
+    fileSelected.classList.remove('active');
+    uploadZone.style.display = 'block';
+}
+
+function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' Б';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' КБ';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' МБ';
+}
+
+// Form Submit
+uploadForm.addEventListener('submit', function(e) {
+    if (!fileInput.files || fileInput.files.length === 0) {
+        e.preventDefault();
+        alert('Выберите файл для загрузки');
+        return;
+    }
+    
+    // Show progress
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Загрузка...';
+    progressSection.classList.add('active');
+    
+    // Simulate progress (actual progress would need AJAX)
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+        progress += 5;
+        document.getElementById('progressFill').style.width = progress + '%';
+        if (progress >= 90) {
+            clearInterval(progressInterval);
+        }
+    }, 200);
+});
+</script>
+{% endblock %}

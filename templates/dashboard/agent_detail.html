@@ -1,15 +1,20 @@
 {% extends 'dashboard/base.html' %}
 {% load static %}
 
-{% block title %}{{ bot.name }} — Настройки{% endblock %}
+{% block title %}{{ bot.name }} — Детали бота{% endblock %}
 
 {% block extra_css %}
 <style>
-.agent-header-card {
+.bot-detail-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Header Card */
+.bot-header-card {
     background: var(--dash-surface);
-    backdrop-filter: blur(20px);
     border: 1px solid var(--dash-border);
-    border-radius: 16px;
+    border-radius: 20px;
     padding: 32px;
     margin-bottom: 32px;
     display: flex;
@@ -17,71 +22,151 @@
     gap: 24px;
 }
 
-.agent-avatar-large {
-    width: 80px;
-    height: 80px;
+.bot-avatar-xl {
+    width: 100px;
+    height: 100px;
     background: rgba(99, 102, 241, 0.1);
-    border: 2px solid var(--dash-border);
-    border-radius: 16px;
+    border-radius: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 36px;
+    font-size: 40px;
     flex-shrink: 0;
 }
 
-.agent-header-info {
+.bot-header-info {
     flex: 1;
 }
 
-.agent-header-info h1 {
-    font-size: 28px;
+.bot-header-info h1 {
+    font-size: 32px;
     margin: 0 0 8px 0;
-    color: var(--dash-text);
 }
 
-.agent-meta {
+.bot-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.bot-status-badge.active {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.bot-status-badge.inactive {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.bot-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+    margin-top: 12px;
+}
+
+.bot-meta-item {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 8px;
     font-size: 14px;
     color: var(--dash-text-muted);
 }
 
-.agent-meta-item {
+.bot-header-actions {
     display: flex;
-    align-items: center;
-    gap: 6px;
+    gap: 12px;
+    flex-direction: column;
 }
 
-.settings-tabs {
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.stat-card {
+    background: var(--dash-surface);
+    border: 1px solid var(--dash-border);
+    border-radius: 16px;
+    padding: 24px;
+    transition: transform 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-icon {
+    width: 56px;
+    height: 56px;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    font-size: 24px;
+    color: var(--dash-primary);
+}
+
+.stat-value {
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.stat-label {
+    font-size: 13px;
+    color: var(--dash-text-muted);
+}
+
+/* Tabs */
+.tabs-nav {
     display: flex;
     gap: 8px;
-    margin-bottom: 32px;
-    border-bottom: 1px solid var(--dash-border);
+    margin-bottom: 24px;
+    padding: 8px;
+    background: var(--dash-surface);
+    border: 1px solid var(--dash-border);
+    border-radius: 16px;
     overflow-x: auto;
 }
 
-.settings-tab {
-    padding: 12px 20px;
-    background: none;
+.tab-button {
+    padding: 12px 24px;
     border: none;
+    background: transparent;
     color: var(--dash-text-muted);
     font-size: 14px;
     font-weight: 500;
+    border-radius: 10px;
     cursor: pointer;
-    border-bottom: 2px solid transparent;
     transition: all 0.2s;
     white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.settings-tab:hover {
+.tab-button:hover {
+    background: rgba(255, 255, 255, 0.05);
     color: var(--dash-text);
 }
 
-.settings-tab.active {
-    color: var(--dash-primary);
-    border-bottom-color: var(--dash-primary);
+.tab-button.active {
+    background: var(--dash-primary);
+    color: white;
 }
 
 .tab-content {
@@ -90,132 +175,196 @@
 
 .tab-content.active {
     display: block;
-    animation: fadeIn 0.3s;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.connection-card {
-    background: rgba(99, 102, 241, 0.05);
-    border: 1px solid rgba(99, 102, 241, 0.2);
-    border-radius: 12px;
-    padding: 20px;
+/* Configuration Tab */
+.config-section {
+    background: var(--dash-surface);
+    border: 1px solid var(--dash-border);
+    border-radius: 16px;
+    padding: 24px;
     margin-bottom: 20px;
 }
 
-.connection-card.connected {
-    background: rgba(34, 197, 94, 0.05);
-    border-color: rgba(34, 197, 94, 0.2);
-}
-
-.connection-card.disconnected {
-    background: rgba(239, 68, 68, 0.05);
-    border-color: rgba(239, 68, 68, 0.2);
-}
-
-.connection-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-}
-
-.connection-status {
+.config-section h3 {
+    margin: 0 0 20px 0;
+    font-size: 18px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    font-size: 13px;
     font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--dash-text);
 }
 
-.status-indicator {
-    width: 10px;
-    height: 10px;
+.form-input, .form-textarea, .form-select {
+    width: 100%;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--dash-border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--dash-text);
+    font-size: 14px;
+    font-family: inherit;
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.form-input:focus, .form-textarea:focus, .form-select:focus {
+    outline: none;
+    border-color: var(--dash-primary);
+}
+
+.form-hint {
+    font-size: 12px;
+    color: var(--dash-text-muted);
+    margin-top: 6px;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 28px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.1);
+    transition: .3s;
+    border-radius: 28px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .3s;
     border-radius: 50%;
-    animation: statusPulse 2s infinite;
 }
 
-.status-indicator.online {
-    background: var(--dash-success);
+input:checked + .toggle-slider {
+    background-color: var(--dash-primary);
 }
 
-.status-indicator.offline {
-    background: var(--dash-error);
+input:checked + .toggle-slider:before {
+    transform: translateX(24px);
 }
 
-@keyframes statusPulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-}
-
-.stats-mini-grid {
+/* Knowledge Base Tab */
+.kb-stats-mini {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 16px;
-    margin-top: 24px;
+    margin-bottom: 24px;
 }
 
-.stat-mini {
-    background: rgba(255, 255, 255, 0.03);
-    padding: 16px;
-    border-radius: 10px;
-    border: 1px solid var(--dash-border);
-}
-
-.stat-mini-value {
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--dash-text);
-    margin-bottom: 4px;
-}
-
-.stat-mini-label {
-    font-size: 12px;
-    color: var(--dash-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.prompt-editor {
-    width: 100%;
-    min-height: 200px;
-    padding: 16px;
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid var(--dash-border);
-    border-radius: 12px;
-    color: var(--dash-text);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 14px;
-    line-height: 1.6;
-    resize: vertical;
-}
-
-.prompt-editor:focus {
-    outline: none;
-    border-color: var(--dash-primary);
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
-}
-
-.knowledge-item {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 16px;
+.kb-stat-mini {
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid var(--dash-border);
     border-radius: 12px;
-    margin-bottom: 12px;
+    padding: 16px;
+}
+
+.kb-stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.kb-stat-label {
+    font-size: 12px;
+    color: var(--dash-text-muted);
+}
+
+.kb-files-preview {
+    display: grid;
+    gap: 12px;
+}
+
+.kb-file-mini {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--dash-border);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
     transition: all 0.2s;
 }
 
-.knowledge-item:hover {
-    background: rgba(255, 255, 255, 0.04);
+.kb-file-mini:hover {
     border-color: rgba(99, 102, 241, 0.3);
 }
 
-.knowledge-icon {
+.kb-file-icon-mini {
+    width: 44px;
+    height: 44px;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.kb-file-icon-mini.pdf { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+.kb-file-icon-mini.docx { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+.kb-file-icon-mini.txt { background: rgba(168, 85, 247, 0.1); color: #a855f7; }
+.kb-file-icon-mini.md { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
+
+/* Conversations Tab */
+.conversations-list {
+    display: grid;
+    gap: 12px;
+}
+
+.conversation-mini {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--dash-border);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.conversation-mini:hover {
+    border-color: rgba(99, 102, 241, 0.3);
+    transform: translateX(4px);
+}
+
+.conversation-avatar {
     width: 48px;
     height: 48px;
     background: rgba(99, 102, 241, 0.1);
@@ -223,67 +372,78 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--dash-primary);
     font-size: 20px;
     flex-shrink: 0;
 }
 
-.knowledge-info {
+.conversation-info {
     flex: 1;
     min-width: 0;
 }
 
-.knowledge-title {
+.conversation-user {
     font-weight: 600;
     margin-bottom: 4px;
+}
+
+.conversation-last-msg {
+    font-size: 13px;
+    color: var(--dash-text-muted);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.knowledge-meta {
+.conversation-meta {
     font-size: 12px;
     color: var(--dash-text-muted);
+    text-align: right;
 }
 
-.upload-zone {
-    border: 2px dashed var(--dash-border);
+/* Analytics Tab */
+.chart-container {
+    background: var(--dash-surface);
+    border: 1px solid var(--dash-border);
     border-radius: 16px;
-    padding: 48px 24px;
+    padding: 24px;
+    margin-bottom: 20px;
+    height: 300px;
+}
+
+/* Empty States */
+.empty-state {
     text-align: center;
-    background: rgba(255, 255, 255, 0.02);
-    transition: all 0.3s;
-    cursor: pointer;
+    padding: 60px 20px;
 }
 
-.upload-zone:hover {
-    border-color: var(--dash-primary);
-    background: rgba(99, 102, 241, 0.05);
-}
-
-.upload-zone.dragover {
-    border-color: var(--dash-primary);
+.empty-state .empty-icon {
+    width: 100px;
+    height: 100px;
     background: rgba(99, 102, 241, 0.1);
-    transform: scale(1.02);
-}
-
-.upload-icon {
-    width: 64px;
-    height: 64px;
-    margin: 0 auto 16px;
-    background: rgba(99, 102, 241, 0.1);
-    border-radius: 16px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 28px;
+    margin: 0 auto 20px;
+    font-size: 40px;
     color: var(--dash-primary);
 }
 
+.empty-state h3 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+}
+
+.empty-state p {
+    color: var(--dash-text-muted);
+    margin: 0 0 20px 0;
+}
+
+/* Danger Zone */
 .danger-zone {
     background: rgba(239, 68, 68, 0.05);
     border: 1px solid rgba(239, 68, 68, 0.2);
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 24px;
     margin-top: 32px;
 }
@@ -293,688 +453,623 @@
     margin: 0 0 12px 0;
     font-size: 16px;
 }
+
+.danger-zone p {
+    color: var(--dash-text-muted);
+    margin: 0 0 16px 0;
+    font-size: 14px;
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Agent Header -->
-<div class="agent-header-card">
-    <div class="agent-avatar-large">
-        {% if bot.platform == 'telegram' %}
-            <i class="fa-brands fa-telegram" style="color: #229ED9;"></i>
-        {% elif bot.platform == 'whatsapp' %}
-            <i class="fa-brands fa-whatsapp" style="color: #25D366;"></i>
-        {% elif bot.platform == 'vk' %}
-            <i class="fa-brands fa-vk" style="color: #0077FF;"></i>
-        {% elif bot.platform == 'instagram' %}
-            <i class="fa-brands fa-instagram" style="color: #E4405F;"></i>
-        {% else %}
-            <i class="fa-solid fa-robot"></i>
-        {% endif %}
-    </div>
-    
-    <div class="agent-header-info">
-        <h1>{{ bot.name }}</h1>
-        <div class="agent-meta">
-            <div class="agent-meta-item">
-                <i class="fa-solid fa-circle" style="font-size: 6px;"></i>
-                {{ bot.get_platform_display }}
-            </div>
-            <div class="agent-meta-item">
-                <i class="fa-solid fa-calendar"></i>
-                Создан {{ bot.created_at|date:"d.m.Y" }}
-            </div>
-            <div class="agent-meta-item">
-                <span class="status-badge {% if bot.status == 'active' %}active{% else %}inactive{% endif %}">
-                    <span class="status-dot"></span>
-                    {% if bot.status == 'active' %}Активен{% else %}Неактивен{% endif %}
-                </span>
-            </div>
-        </div>
-    </div>
-    
-    <div style="display: flex; gap: 12px;">
-        <button onclick="toggleBotStatus()" class="btn btn-primary" id="toggle-btn">
-            <i class="fa-solid {% if bot.status == 'active' %}fa-pause{% else %}fa-play{% endif %}" id="toggle-icon"></i>
-            <span id="toggle-text">{% if bot.status == 'active' %}Остановить{% else %}Запустить{% endif %}</span>
-        </button>
-        <a href="{% url 'agents_list' %}" class="btn btn-secondary">
-            <i class="fa-solid fa-arrow-left"></i>
-            Назад
-        </a>
-    </div>
-</div>
-
-<!-- Stats -->
-<div class="stats-mini-grid">
-    <div class="stat-mini">
-        <div class="stat-mini-value">{{ bot.total_conversations }}</div>
-        <div class="stat-mini-label">Диалогов</div>
-    </div>
-    <div class="stat-mini">
-        <div class="stat-mini-value">{{ bot.total_messages }}</div>
-        <div class="stat-mini-label">Сообщений</div>
-    </div>
-    <div class="stat-mini">
-        <div class="stat-mini-value">{{ bot.conversion_rate }}%</div>
-        <div class="stat-mini-label">Конверсия</div>
-    </div>
-</div>
-
-<!-- Tabs -->
-<div class="settings-tabs" style="margin-top: 32px;">
-    <button class="settings-tab active" onclick="switchTab('connection')">
-        <i class="fa-solid fa-plug"></i> Подключение
-    </button>
-    <button class="settings-tab" onclick="switchTab('ai')">
-        <i class="fa-solid fa-brain"></i> AI настройки
-    </button>
-    <button class="settings-tab" onclick="switchTab('knowledge')">
-        <i class="fa-solid fa-book"></i> База знаний
-    </button>
-    <button class="settings-tab" onclick="switchTab('conversations')">
-        <i class="fa-solid fa-comments"></i> Диалоги
-    </button>
-    <button class="settings-tab" onclick="switchTab('settings')">
-        <i class="fa-solid fa-gear"></i> Настройки
-    </button>
-</div>
-
-<!-- Tab: Connection -->
-<div id="tab-connection" class="tab-content active">
-    <div class="glass-card">
-        <h2 class="card-title" style="margin-bottom: 24px;">
-            <i class="fa-solid fa-plug"></i>
-            Подключение к {{ bot.get_platform_display }}
-        </h2>
-        
-        {% if bot.platform == 'telegram' %}
-            {% if bot.session_string %}
-                <!-- Connected -->
-                <div class="connection-card connected">
-                    <div class="connection-header">
-                        <div class="connection-status">
-                            <div class="status-indicator online"></div>
-                            <span style="color: var(--dash-success);">Telegram подключен</span>
-                        </div>
-                    </div>
-                    <p style="color: var(--dash-text-muted); margin: 0; font-size: 14px;">
-                        <i class="fa-solid fa-phone"></i> Номер: <strong>{{ bot.phone_number }}</strong>
-                    </p>
-                    <p style="color: var(--dash-text-muted); margin: 8px 0 0 0; font-size: 14px;">
-                        <i class="fa-solid fa-calendar"></i> Подключено: {{ bot.updated_at|date:"d.m.Y H:i" }}
-                    </p>
-                    
-                    <div style="display: flex; gap: 12px; margin-top: 20px;">
-                        <button onclick="validateSession()" class="btn btn-secondary">
-                            <i class="fa-solid fa-check-circle"></i>
-                            Проверить подключение
-                        </button>
-                        <button onclick="getAccountInfo()" class="btn btn-secondary">
-                            <i class="fa-solid fa-info-circle"></i>
-                            Информация об аккаунте
-                        </button>
-                        <button onclick="disconnectTelegram()" class="btn btn-secondary" style="background: rgba(239, 68, 68, 0.1); color: var(--dash-error); border-color: rgba(239, 68, 68, 0.3);">
-                            <i class="fa-solid fa-unlink"></i>
-                            Отключить
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Account Info Display -->
-                <div id="account-info" style="display: none; margin-top: 20px; padding: 20px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--dash-border); border-radius: 12px;">
-                    <h4 style="margin: 0 0 12px 0;">Информация об аккаунте</h4>
-                    <div id="account-info-content"></div>
-                </div>
+<div class="bot-detail-container">
+    <!-- Bot Header -->
+    <div class="bot-header-card">
+        <div class="bot-avatar-xl">
+            {% if bot.platform == 'telegram' %}
+                <i class="fa-brands fa-telegram" style="color: #229ED9;"></i>
+            {% elif bot.platform == 'whatsapp' %}
+                <i class="fa-brands fa-whatsapp" style="color: #25D366;"></i>
+            {% elif bot.platform == 'vk' %}
+                <i class="fa-brands fa-vk" style="color: #0077FF;"></i>
+            {% elif bot.platform == 'instagram' %}
+                <i class="fa-brands fa-instagram" style="color: #E4405F;"></i>
             {% else %}
-                <!-- Not Connected -->
-                <div class="connection-card disconnected">
-                    <div class="connection-header">
-                        <div class="connection-status">
-                            <div class="status-indicator offline"></div>
-                            <span style="color: var(--dash-error);">Telegram не подключен</span>
-                        </div>
-                    </div>
-                    <p style="color: var(--dash-text-muted); margin: 0 0 20px 0; font-size: 14px;">
-                        Подключите свой Telegram аккаунт, чтобы бот мог отвечать на сообщения
-                    </p>
-                    <a href="{% url 'telegram_connect' bot.id %}" class="btn btn-primary">
-                        <i class="fa-brands fa-telegram"></i>
-                        Подключить Telegram
-                    </a>
-                </div>
-                
-                <div style="background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 12px; padding: 16px; margin-top: 20px;">
-                    <h4 style="margin: 0 0 8px 0; color: var(--dash-primary); font-size: 14px;">
-                        <i class="fa-solid fa-info-circle"></i> Что нужно для подключения?
-                    </h4>
-                    <ul style="margin: 0; padding-left: 20px; color: var(--dash-text-muted); font-size: 14px; line-height: 1.8;">
-                        <li>API ID и API Hash с <a href="https://my.telegram.org" target="_blank" style="color: var(--dash-primary);">my.telegram.org</a></li>
-                        <li>Номер телефона Telegram в международном формате</li>
-                        <li>Доступ к Telegram для получения кода верификации</li>
-                    </ul>
-                </div>
+                <i class="fa-solid fa-robot"></i>
             {% endif %}
-        {% else %}
-            <p style="color: var(--dash-text-muted);">
-                Подключение для {{ bot.get_platform_display }} скоро будет доступно
-            </p>
-        {% endif %}
-    </div>
-</div>
-
-<!-- Tab: AI Settings -->
-<div id="tab-ai" class="tab-content">
-    <div class="glass-card">
-        <h2 class="card-title" style="margin-bottom: 24px;">
-            <i class="fa-solid fa-brain"></i>
-            Настройки AI
-        </h2>
-        
-        <form id="ai-settings-form" onsubmit="saveAISettings(event)">
-            <div class="form-group">
-                <label class="form-label">Системный промпт</label>
-                <textarea 
-                    name="system_prompt" 
-                    class="prompt-editor"
-                    placeholder="Например: Ты - профессиональный консультант по продажам. Отвечай вежливо и помогай клиентам выбрать продукт..."
-                >{{ bot.system_prompt }}</textarea>
-                <div style="font-size: 12px; color: var(--dash-text-muted); margin-top: 8px;">
-                    Системный промпт определяет, как AI будет отвечать клиентам. Опишите роль, стиль общения и основные инструкции.
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">AI Модель</label>
-                <select name="ai_model" class="form-input">
-                    <option value="gpt-4">GPT-4 (Рекомендуется)</option>
-                    <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Быстрее)</option>
-                    <option value="deepseek">DeepSeek (Экономный)</option>
-                </select>
-            </div>
-            
-            <button type="submit" class="btn btn-primary">
-                <i class="fa-solid fa-floppy-disk"></i>
-                Сохранить настройки
-            </button>
-        </form>
-    </div>
-</div>
-
-<!-- Tab: Knowledge Base -->
-<div id="tab-knowledge" class="tab-content">
-    <div class="glass-card">
-        <div class="card-header">
-            <h2 class="card-title">
-                <i class="fa-solid fa-book"></i>
-                База знаний
-            </h2>
-            <button onclick="document.getElementById('file-upload').click()" class="btn btn-primary">
-                <i class="fa-solid fa-upload"></i>
-                Загрузить файл
-            </button>
-            <input type="file" id="file-upload" style="display: none;" accept=".pdf,.doc,.docx,.txt" onchange="uploadFile(this)">
         </div>
         
-        {% if knowledge_base %}
-            <div style="margin-top: 24px;">
-                {% for doc in knowledge_base %}
-                    <div class="knowledge-item">
-                        <div class="knowledge-icon">
-                            <i class="fa-solid fa-file-pdf"></i>
-                        </div>
-                        <div class="knowledge-info">
-                            <div class="knowledge-title">{{ doc.title }}</div>
-                            <div class="knowledge-meta">
-                                Загружен {{ doc.created_at|date:"d.m.Y H:i" }} · {{ doc.file_type|upper }}
-                            </div>
-                        </div>
-                        <button class="btn-icon btn-danger" onclick="deleteDocument({{ doc.id }})">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
+        <div class="bot-header-info">
+            <h1>{{ bot.name }}</h1>
+            
+            <div class="bot-status-badge {% if bot.is_active %}active{% else %}inactive{% endif %}">
+                <i class="fa-solid fa-circle" style="font-size: 8px;"></i>
+                {% if bot.is_active %}Активен{% else %}Неактивен{% endif %}
+            </div>
+            
+            <div class="bot-meta-grid">
+                <div class="bot-meta-item">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <span>{{ bot.get_platform_display }}</span>
+                </div>
+                <div class="bot-meta-item">
+                    <i class="fa-solid fa-calendar"></i>
+                    <span>Создан {{ bot.created_at|date:"d.m.Y" }}</span>
+                </div>
+                {% if bot.platform == 'telegram' and bot.telegram_bot_token %}
+                <div class="bot-meta-item">
+                    <i class="fa-solid fa-link"></i>
+                    <span>Подключен к Telegram</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="bot-header-actions">
+            {% if bot.platform == 'telegram' %}
+                {% if bot.telegram_bot_token %}
+                <a href="https://t.me/{{ bot.telegram_username }}" target="_blank" class="btn btn-primary" style="background: #229ED9; border-color: #229ED9;">
+                    <i class="fa-brands fa-telegram"></i>
+                    Открыть в Telegram
+                </a>
+                {% else %}
+                <a href="{% url 'telegram_connect' bot.id %}" class="btn btn-secondary">
+                    <i class="fa-brands fa-telegram"></i>
+                    Подключить Telegram
+                </a>
+                {% endif %}
+            {% endif %}
+            
+            <button class="btn btn-secondary" onclick="toggleBotStatus()">
+                <i class="fa-solid fa-power-off"></i>
+                {% if bot.is_active %}Отключить{% else %}Включить{% endif %}
+            </button>
+            
+            <a href="{% url 'agents_list' %}" class="btn btn-secondary">
+                <i class="fa-solid fa-arrow-left"></i>
+                Назад к списку
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fa-solid fa-comments"></i>
+            </div>
+            <div class="stat-value">{{ stats.total_conversations|default:0 }}</div>
+            <div class="stat-label">Всего диалогов</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(34, 197, 94, 0.1); color: #22c55e;">
+                <i class="fa-solid fa-message"></i>
+            </div>
+            <div class="stat-value">{{ stats.total_messages|default:0 }}</div>
+            <div class="stat-label">Сообщений обработано</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(168, 85, 247, 0.1); color: #a855f7;">
+                <i class="fa-solid fa-brain"></i>
+            </div>
+            <div class="stat-value">{{ stats.knowledge_files|default:0 }}</div>
+            <div class="stat-label">Файлов знаний</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+                <i class="fa-solid fa-clock"></i>
+            </div>
+            <div class="stat-value">{{ stats.avg_response_time|default:"<1" }}с</div>
+            <div class="stat-label">Среднее время ответа</div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs-nav">
+        <button class="tab-button active" onclick="switchTab('overview')">
+            <i class="fa-solid fa-chart-line"></i>
+            Обзор
+        </button>
+        <button class="tab-button" onclick="switchTab('config')">
+            <i class="fa-solid fa-gear"></i>
+            Настройки
+        </button>
+        <button class="tab-button" onclick="switchTab('knowledge')">
+            <i class="fa-solid fa-brain"></i>
+            База знаний
+        </button>
+        <button class="tab-button" onclick="switchTab('conversations')">
+            <i class="fa-solid fa-comments"></i>
+            Диалоги
+        </button>
+        <button class="tab-button" onclick="switchTab('analytics')">
+            <i class="fa-solid fa-chart-pie"></i>
+            Аналитика
+        </button>
+    </div>
+
+    <!-- Tab: Overview -->
+    <div id="tab-overview" class="tab-content active">
+        <div class="glass-card">
+            <h3 style="margin: 0 0 20px 0;">
+                <i class="fa-solid fa-info-circle"></i>
+                О боте
+            </h3>
+            
+            <div style="display: grid; gap: 20px;">
+                <div>
+                    <div class="form-label">Описание</div>
+                    <p style="color: var(--dash-text-muted); margin: 0;">
+                        {{ bot.description|default:"Описание не указано" }}
+                    </p>
+                </div>
+                
+                <div>
+                    <div class="form-label">Системный промпт</div>
+                    <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--dash-border); border-radius: 10px; padding: 16px;">
+                        <pre style="margin: 0; white-space: pre-wrap; font-size: 13px; color: var(--dash-text-muted);">{{ bot.system_prompt|truncatewords:50 }}</pre>
                     </div>
+                </div>
+                
+                <div>
+                    <div class="form-label">Модель AI</div>
+                    <p style="color: var(--dash-text-muted); margin: 0;">
+                        {{ bot.model|default:"gpt-3.5-turbo" }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="glass-card" style="margin-top: 20px;">
+            <h3 style="margin: 0 0 20px 0;">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                Последняя активность
+            </h3>
+            
+            {% if recent_conversations %}
+            <div class="conversations-list">
+                {% for conv in recent_conversations|slice:":5" %}
+                <a href="{% url 'conversation_detail' conv.id %}" class="conversation-mini" style="text-decoration: none; color: inherit;">
+                    <div class="conversation-avatar">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <div class="conversation-info">
+                        <div class="conversation-user">{{ conv.user_name|default:"Пользователь" }}</div>
+                        <div class="conversation-last-msg">{{ conv.last_message|truncatewords:10 }}</div>
+                    </div>
+                    <div class="conversation-meta">
+                        {{ conv.updated_at|timesince }} назад
+                    </div>
+                </a>
                 {% endfor %}
             </div>
-        {% else %}
-            <div class="upload-zone" onclick="document.getElementById('file-upload').click()">
-                <div class="upload-icon">
-                    <i class="fa-solid fa-cloud-arrow-up"></i>
-                </div>
-                <h3 style="margin: 0 0 8px 0;">Загрузите документы</h3>
-                <p style="color: var(--dash-text-muted); margin: 0; font-size: 14px;">
-                    Перетащите файлы сюда или кликните для выбора
-                </p>
-                <p style="color: var(--dash-text-muted); margin: 8px 0 0 0; font-size: 12px;">
-                    Поддерживаются: PDF, DOC, DOCX, TXT
-                </p>
+            {% else %}
+            <div class="empty-state" style="padding: 40px 20px;">
+                <p style="color: var(--dash-text-muted);">Пока нет активных диалогов</p>
             </div>
-        {% endif %}
+            {% endif %}
+        </div>
     </div>
-</div>
 
-<!-- Tab: Conversations -->
-<div id="tab-conversations" class="tab-content">
-    <div class="glass-card">
-        <h2 class="card-title" style="margin-bottom: 24px;">
-            <i class="fa-solid fa-comments"></i>
-            Последние диалоги
-        </h2>
-        
-        {% if recent_conversations %}
-            <div class="table-responsive">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Пользователь</th>
-                            <th>Время</th>
-                            <th>Статус</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for conv in recent_conversations %}
-                        <tr>
-                            <td>
-                                <div style="display: flex; align-items: center; gap: 12px;">
-                                    <div style="width: 36px; height: 36px; background: rgba(99, 102, 241, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--dash-primary);">
-                                        <i class="fa-solid fa-user"></i>
-                                    </div>
-                                    <div>
-                                        <div style="font-weight: 500;">{{ conv.user_name|default:"Гость" }}</div>
-                                        <div style="font-size: 12px; color: var(--dash-text-muted);">{{ conv.user_id|truncatechars:20 }}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td style="color: var(--dash-text-muted);">
-                                {{ conv.last_message_at|timesince }} назад
-                            </td>
-                            <td>
-                                {% if conv.is_lead %}
-                                    <span class="status-badge active">
-                                        <span class="status-dot"></span>
-                                        Лид
-                                    </span>
-                                {% else %}
-                                    <span class="status-badge inactive">Диалог</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <a href="{% url 'conversation_detail' conv.id %}" class="btn-icon">
-                                    <i class="fa-solid fa-arrow-right"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+    <!-- Tab: Configuration -->
+    <div id="tab-config" class="tab-content">
+        <form method="POST" action="{% url 'agent_detail' bot.id %}">
+            {% csrf_token %}
             
-            <div style="text-align: center; margin-top: 24px;">
-                <a href="{% url 'conversations_list' %}?bot={{ bot.id }}" class="btn btn-secondary">
-                    Посмотреть все диалоги
+            <!-- Basic Settings -->
+            <div class="config-section">
+                <h3>
+                    <i class="fa-solid fa-sliders"></i>
+                    Основные настройки
+                </h3>
+                
+                <div class="form-group">
+                    <label class="form-label">Название бота *</label>
+                    <input type="text" name="name" class="form-input" value="{{ bot.name }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Описание</label>
+                    <textarea name="description" class="form-textarea">{{ bot.description }}</textarea>
+                    <div class="form-hint">Краткое описание назначения бота</div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Платформа</label>
+                    <select name="platform" class="form-select" disabled>
+                        <option value="telegram" {% if bot.platform == 'telegram' %}selected{% endif %}>Telegram</option>
+                        <option value="whatsapp" {% if bot.platform == 'whatsapp' %}selected{% endif %}>WhatsApp</option>
+                        <option value="vk" {% if bot.platform == 'vk' %}selected{% endif %}>ВКонтакте</option>
+                        <option value="instagram" {% if bot.platform == 'instagram' %}selected{% endif %}>Instagram</option>
+                    </select>
+                    <div class="form-hint">Платформу нельзя изменить после создания</div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" style="display: flex; align-items: center; gap: 12px;">
+                        <span>Статус бота</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="is_active" {% if bot.is_active %}checked{% endif %}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </label>
+                    <div class="form-hint">Включить или отключить бота</div>
+                </div>
+            </div>
+
+            <!-- AI Settings -->
+            <div class="config-section">
+                <h3>
+                    <i class="fa-solid fa-brain"></i>
+                    Настройки AI
+                </h3>
+                
+                <div class="form-group">
+                    <label class="form-label">Модель AI</label>
+                    <select name="model" class="form-select">
+                        <option value="gpt-3.5-turbo" {% if bot.model == 'gpt-3.5-turbo' %}selected{% endif %}>GPT-3.5 Turbo</option>
+                        <option value="gpt-4" {% if bot.model == 'gpt-4' %}selected{% endif %}>GPT-4</option>
+                        <option value="gpt-4-turbo" {% if bot.model == 'gpt-4-turbo' %}selected{% endif %}>GPT-4 Turbo</option>
+                        <option value="claude-3-sonnet" {% if bot.model == 'claude-3-sonnet' %}selected{% endif %}>Claude 3 Sonnet</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Системный промпт *</label>
+                    <textarea name="system_prompt" class="form-textarea" rows="8" required>{{ bot.system_prompt }}</textarea>
+                    <div class="form-hint">Инструкции для AI о том, как отвечать на вопросы</div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Температура ({{ bot.temperature|default:"0.7" }})</label>
+                    <input type="range" name="temperature" min="0" max="2" step="0.1" value="{{ bot.temperature|default:'0.7' }}" class="form-input" style="padding: 0;">
+                    <div class="form-hint">Креативность ответов: 0 = точные, 2 = креативные</div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Максимум токенов в ответе</label>
+                    <input type="number" name="max_tokens" class="form-input" value="{{ bot.max_tokens|default:'1000' }}" min="100" max="4000">
+                    <div class="form-hint">Максимальная длина ответа бота</div>
+                </div>
+            </div>
+
+            <!-- RAG Settings -->
+            <div class="config-section">
+                <h3>
+                    <i class="fa-solid fa-database"></i>
+                    Настройки RAG (база знаний)
+                </h3>
+                
+                <div class="form-group">
+                    <label class="form-label" style="display: flex; align-items: center; gap: 12px;">
+                        <span>Использовать базу знаний</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="use_rag" {% if bot.use_rag %}checked{% endif %}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </label>
+                    <div class="form-hint">Искать ответы в загруженных документах</div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Количество фрагментов для поиска</label>
+                    <input type="number" name="rag_k" class="form-input" value="{{ bot.rag_k|default:'3' }}" min="1" max="10">
+                    <div class="form-hint">Сколько релевантных фрагментов искать (1-10)</div>
+                </div>
+            </div>
+
+            <!-- Save Button -->
+            <div style="display: flex; gap: 12px;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">
+                    <i class="fa-solid fa-save"></i>
+                    Сохранить изменения
+                </button>
+                <button type="reset" class="btn btn-secondary">
+                    Отменить
+                </button>
+            </div>
+        </form>
+
+        <!-- Danger Zone -->
+        <div class="danger-zone">
+            <h3><i class="fa-solid fa-triangle-exclamation"></i> Опасная зона</h3>
+            <p>Удаление бота нельзя отменить. Все данные, диалоги и настройки будут удалены навсегда.</p>
+            <button class="btn btn-secondary" onclick="deleteBot()" style="background: var(--dash-error); border-color: var(--dash-error); color: white;">
+                <i class="fa-solid fa-trash"></i>
+                Удалить бота
+            </button>
+        </div>
+    </div>
+
+    <!-- Tab: Knowledge Base -->
+    <div id="tab-knowledge" class="tab-content">
+        <div class="glass-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h3 style="margin: 0;">
+                    <i class="fa-solid fa-brain"></i>
+                    База знаний бота
+                </h3>
+                <div style="display: flex; gap: 12px;">
+                    <a href="{% url 'upload_knowledge' %}?bot_id={{ bot.id }}" class="btn btn-primary">
+                        <i class="fa-solid fa-upload"></i>
+                        Загрузить файл
+                    </a>
+                    <a href="{% url 'bot_knowledge_base' bot.id %}" class="btn btn-secondary">
+                        <i class="fa-solid fa-folder-open"></i>
+                        Открыть полностью
+                    </a>
+                </div>
+            </div>
+
+            <!-- KB Stats -->
+            <div class="kb-stats-mini">
+                <div class="kb-stat-mini">
+                    <div class="kb-stat-value">{{ stats.knowledge_files|default:0 }}</div>
+                    <div class="kb-stat-label">Файлов</div>
+                </div>
+                
+                <div class="kb-stat-mini">
+                    <div class="kb-stat-value">{{ stats.knowledge_chunks|default:0 }}</div>
+                    <div class="kb-stat-label">Фрагментов</div>
+                </div>
+                
+                <div class="kb-stat-mini">
+                    <div class="kb-stat-value">{{ stats.knowledge_indexed|default:0 }}</div>
+                    <div class="kb-stat-label">Проиндексировано</div>
+                </div>
+            </div>
+
+            <!-- Files Preview -->
+            {% if knowledge_files %}
+            <div class="kb-files-preview">
+                {% for file in knowledge_files|slice:":5" %}
+                <div class="kb-file-mini">
+                    <div class="kb-file-icon-mini {{ file.file_type }}">
+                        {% if file.file_type == 'pdf' %}
+                            <i class="fa-solid fa-file-pdf"></i>
+                        {% elif file.file_type == 'docx' %}
+                            <i class="fa-solid fa-file-word"></i>
+                        {% elif file.file_type == 'txt' %}
+                            <i class="fa-solid fa-file-lines"></i>
+                        {% elif file.file_type == 'md' %}
+                            <i class="fa-brands fa-markdown"></i>
+                        {% else %}
+                            <i class="fa-solid fa-file"></i>
+                        {% endif %}
+                    </div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="font-weight: 600; margin-bottom: 4px;">{{ file.title }}</div>
+                        <div style="font-size: 12px; color: var(--dash-text-muted);">
+                            {{ file.file_size_display }} • {{ file.chunks_count }} фрагментов
+                        </div>
+                    </div>
+                    <a href="{% url 'knowledge_detail' file.id %}" class="btn-icon">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                </div>
+                {% endfor %}
+                
+                {% if stats.knowledge_files > 5 %}
+                <div style="text-align: center; padding: 16px;">
+                    <a href="{% url 'bot_knowledge_base' bot.id %}" class="btn btn-secondary">
+                        Показать все {{ stats.knowledge_files }} файлов
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="fa-solid fa-book"></i>
+                </div>
+                <h3>База знаний пуста</h3>
+                <p>Загрузите документы, чтобы бот мог отвечать на вопросы на основе ваших данных</p>
+                <a href="{% url 'upload_knowledge' %}?bot_id={{ bot.id }}" class="btn btn-primary">
+                    <i class="fa-solid fa-upload"></i>
+                    Загрузить первый файл
                 </a>
             </div>
-        {% else %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Tab: Conversations -->
+    <div id="tab-conversations" class="tab-content">
+        <div class="glass-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h3 style="margin: 0;">
+                    <i class="fa-solid fa-comments"></i>
+                    Диалоги с ботом
+                </h3>
+                <a href="{% url 'conversations_list' %}?bot={{ bot.id }}" class="btn btn-secondary">
+                    Все диалоги
+                </a>
+            </div>
+
+            {% if recent_conversations %}
+            <div class="conversations-list">
+                {% for conv in recent_conversations %}
+                <a href="{% url 'conversation_detail' conv.id %}" class="conversation-mini" style="text-decoration: none; color: inherit;">
+                    <div class="conversation-avatar">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <div class="conversation-info">
+                        <div class="conversation-user">
+                            {{ conv.user_name|default:"Пользователь" }}
+                            <span style="font-size: 12px; color: var(--dash-text-muted); font-weight: normal;">
+                                • {{ conv.messages_count }} сообщений
+                            </span>
+                        </div>
+                        <div class="conversation-last-msg">{{ conv.last_message|truncatewords:15 }}</div>
+                    </div>
+                    <div class="conversation-meta">
+                        <div style="margin-bottom: 4px;">{{ conv.updated_at|date:"d.m.Y" }}</div>
+                        <div>{{ conv.updated_at|time:"H:i" }}</div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
             <div class="empty-state">
                 <div class="empty-icon">
                     <i class="fa-solid fa-comments"></i>
                 </div>
-                <h3 class="empty-title">Диалогов пока нет</h3>
-                <p class="empty-text">
-                    Как только кто-то напишет вашему боту, диалоги появятся здесь
-                </p>
+                <h3>Пока нет диалогов</h3>
+                <p>Диалоги появятся, когда пользователи начнут общаться с ботом</p>
             </div>
-        {% endif %}
+            {% endif %}
+        </div>
     </div>
-</div>
 
-<!-- Tab: Settings -->
-<div id="tab-settings" class="tab-content">
-    <div class="glass-card">
-        <h2 class="card-title" style="margin-bottom: 24px;">
-            <i class="fa-solid fa-gear"></i>
-            Основные настройки
-        </h2>
-        
-        <form id="bot-settings-form" onsubmit="saveBotSettings(event)">
-            <div class="form-group">
-                <label class="form-label">Название бота</label>
-                <input 
-                    type="text" 
-                    name="name" 
-                    class="form-input" 
-                    value="{{ bot.name }}"
-                    required
-                >
+    <!-- Tab: Analytics -->
+    <div id="tab-analytics" class="tab-content">
+        <div class="glass-card">
+            <h3 style="margin: 0 0 24px 0;">
+                <i class="fa-solid fa-chart-line"></i>
+                Статистика использования
+            </h3>
+
+            <!-- Charts -->
+            <div class="chart-container">
+                <canvas id="messagesChart"></canvas>
             </div>
-            
-            <div class="form-group">
-                <label class="form-label">Описание</label>
-                <textarea 
-                    name="description" 
-                    class="form-textarea"
-                    placeholder="Краткое описание бота..."
-                >{{ bot.description }}</textarea>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px;">
+                <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--dash-border); border-radius: 12px; padding: 20px;">
+                    <div class="form-label">Всего диалогов</div>
+                    <div style="font-size: 32px; font-weight: 700;">{{ stats.total_conversations|default:0 }}</div>
+                </div>
+                
+                <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--dash-border); border-radius: 12px; padding: 20px;">
+                    <div class="form-label">Всего сообщений</div>
+                    <div style="font-size: 32px; font-weight: 700;">{{ stats.total_messages|default:0 }}</div>
+                </div>
+                
+                <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--dash-border); border-radius: 12px; padding: 20px;">
+                    <div class="form-label">Среднее время ответа</div>
+                    <div style="font-size: 32px; font-weight: 700;">{{ stats.avg_response_time|default:"<1" }}с</div>
+                </div>
+                
+                <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--dash-border); border-radius: 12px; padding: 20px;">
+                    <div class="form-label">Активных сегодня</div>
+                    <div style="font-size: 32px; font-weight: 700;">{{ stats.active_today|default:0 }}</div>
+                </div>
             </div>
-            
-            <button type="submit" class="btn btn-primary">
-                <i class="fa-solid fa-floppy-disk"></i>
-                Сохранить
-            </button>
-        </form>
-    </div>
-    
-    <!-- Danger Zone -->
-    <div class="danger-zone">
-        <h3><i class="fa-solid fa-triangle-exclamation"></i> Опасная зона</h3>
-        <p style="color: var(--dash-text-muted); margin: 0 0 16px 0; font-size: 14px;">
-            Эти действия необратимы. Будьте осторожны.
-        </p>
-        <button onclick="deleteBot()" class="btn btn-secondary" style="background: var(--dash-error); color: white; border-color: var(--dash-error);">
-            <i class="fa-solid fa-trash"></i>
-            Удалить бота
-        </button>
+
+            <div style="text-align: center; margin-top: 32px;">
+                <a href="{% url 'analytics' %}?bot={{ bot.id }}" class="btn btn-secondary">
+                    <i class="fa-solid fa-chart-bar"></i>
+                    Подробная аналитика
+                </a>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
+const csrfToken = '{{ csrf_token }}';
+const botId = {{ bot.id }};
+
 // Tab Switching
 function switchTab(tabName) {
     // Hide all tabs
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.remove('active');
     });
-    document.querySelectorAll('.settings-tab').forEach(btn => {
+    
+    // Remove active from all buttons
+    document.querySelectorAll('.tab-button').forEach(btn => {
         btn.classList.remove('active');
     });
     
     // Show selected tab
     document.getElementById('tab-' + tabName).classList.add('active');
-    event.target.closest('.settings-tab').classList.add('active');
+    
+    // Activate button
+    event.target.closest('.tab-button').classList.add('active');
 }
 
 // Toggle Bot Status
-function toggleBotStatus() {
-    const btn = document.getElementById('toggle-btn');
-    const icon = document.getElementById('toggle-icon');
-    const text = document.getElementById('toggle-text');
+async function toggleBotStatus() {
+    const isActive = {{ bot.is_active|lower }};
     
-    btn.disabled = true;
+    if (!confirm(`${isActive ? 'Отключить' : 'Включить'} бота?`)) return;
     
-    fetch('/api/agents/{{ bot.id }}/toggle/', {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
+    try {
+        const response = await fetch(`/api/bot/${botId}/toggle-status/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken }
+        });
+        
+        if (response.ok) {
             location.reload();
         } else {
-            alert('Ошибка: ' + (data.message || 'Не удалось изменить статус'));
+            alert('Ошибка изменения статуса');
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Произошла ошибка');
-    })
-    .finally(() => {
-        btn.disabled = false;
-    });
-}
-
-// Validate Telegram Session
-function validateSession() {
-    fetch('/api/agents/{{ bot.id }}/telegram/validate-session/', {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('✅ ' + data.message);
-        } else {
-            alert('❌ ' + data.error);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Произошла ошибка при проверке');
-    });
-}
-
-// Get Account Info
-function getAccountInfo() {
-    const infoDiv = document.getElementById('account-info');
-    const contentDiv = document.getElementById('account-info-content');
-    
-    contentDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Загрузка...';
-    infoDiv.style.display = 'block';
-    
-    fetch('/api/agents/{{ bot.id }}/telegram/account-info/', {
-        method: 'GET',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            const user = data.user;
-            contentDiv.innerHTML = `
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; font-size: 14px;">
-                    <div><strong>ID:</strong> ${user.id}</div>
-                    <div><strong>Username:</strong> @${user.username || 'Не указан'}</div>
-                    <div><strong>Имя:</strong> ${user.first_name} ${user.last_name || ''}</div>
-                    <div><strong>Телефон:</strong> ${user.phone}</div>
-                </div>
-            `;
-        } else {
-            contentDiv.innerHTML = `<div style="color: var(--dash-error);">${data.error}</div>`;
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        contentDiv.innerHTML = '<div style="color: var(--dash-error);">Ошибка загрузки</div>';
-    });
-}
-
-// Disconnect Telegram
-function disconnectTelegram() {
-    if (!confirm('Вы уверены, что хотите отключить Telegram? Вам придется переподключиться заново.')) {
-        return;
+    } catch (error) {
+        alert('Ошибка: ' + error);
     }
-    
-    fetch('/api/agents/{{ bot.id }}/telegram/disconnect/', {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert('Ошибка: ' + data.error);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Произошла ошибка');
-    });
-}
-
-// Save AI Settings
-function saveAISettings(event) {
-    event.preventDefault();
-    
-    const formData = new FormData(event.target);
-    const data = Object.fromEntries(formData);
-    
-    fetch('/api/agents/{{ bot.id }}/update-prompt/', {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('✅ Настройки AI сохранены');
-        } else {
-            alert('❌ Ошибка: ' + data.error);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Произошла ошибка при сохранении');
-    });
-}
-
-// Save Bot Settings
-function saveBotSettings(event) {
-    event.preventDefault();
-    
-    const formData = new FormData(event.target);
-    const data = Object.fromEntries(formData);
-    
-    fetch('/api/agents/{{ bot.id }}/update/', {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('✅ Настройки сохранены');
-            location.reload();
-        } else {
-            alert('❌ Ошибка: ' + data.error);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Произошла ошибка при сохранении');
-    });
-}
-
-// Upload File
-function uploadFile(input) {
-    if (!input.files || input.files.length === 0) return;
-    
-    const formData = new FormData();
-    formData.append('file', input.files[0]);
-    
-    fetch('/api/agents/{{ bot.id }}/upload/', {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}'
-        },
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('✅ Файл загружен');
-            location.reload();
-        } else {
-            alert('❌ Ошибка: ' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Произошла ошибка при загрузке');
-    });
-}
-
-// Delete Document
-function deleteDocument(docId) {
-    if (!confirm('Удалить документ?')) return;
-    
-    fetch(`/api/documents/${docId}/delete/`, {
-        method: 'DELETE',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert('Ошибка удаления');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Произошла ошибка');
-    });
 }
 
 // Delete Bot
-function deleteBot() {
-    const botName = '{{ bot.name }}';
-    const confirmation = prompt(`Введите "${botName}" для подтверждения удаления:`);
+async function deleteBot() {
+    const confirmation = prompt(
+        'Введите "УДАЛИТЬ" для подтверждения удаления бота "{{ bot.name|escapejs }}":'
+    );
     
-    if (confirmation !== botName) {
-        alert('Название не совпадает. Удаление отменено.');
+    if (confirmation !== 'УДАЛИТЬ') {
+        alert('Удаление отменено');
         return;
     }
     
-    fetch('/api/agents/{{ bot.id }}/delete/', {
-        method: 'DELETE',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('✅ Бот удален');
-            window.location.href = '/dashboard/agents/';
+    try {
+        const response = await fetch(`/api/bot/${botId}/delete/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken }
+        });
+        
+        if (response.ok) {
+            window.location.href = '{% url "agents_list" %}';
         } else {
-            alert('❌ Ошибка: ' + data.message);
+            alert('Ошибка удаления');
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Произошла ошибка при удалении');
-    });
+    } catch (error) {
+        alert('Ошибка: ' + error);
+    }
 }
 
-// Drag & Drop for Upload Zone
-const uploadZone = document.querySelector('.upload-zone');
-if (uploadZone) {
-    uploadZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadZone.classList.add('dragover');
-    });
-    
-    uploadZone.addEventListener('dragleave', () => {
-        uploadZone.classList.remove('dragover');
-    });
-    
-    uploadZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadZone.classList.remove('dragover');
-        
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            const input = document.getElementById('file-upload');
-            input.files = files;
-            uploadFile(input);
-        }
-    });
+// Initialize Chart (if Chart.js is loaded)
+if (typeof Chart !== 'undefined') {
+    const ctx = document.getElementById('messagesChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ analytics_labels|safe }},
+                datasets: [{
+                    label: 'Сообщения',
+                    data: {{ analytics_data|safe }},
+                    borderColor: 'rgb(99, 102, 241)',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
 }
 </script>
 {% endblock %}

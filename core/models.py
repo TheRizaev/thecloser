@@ -1,7 +1,7 @@
 # core/models.py
 """
 Модели базы данных для проекта SalesAI
-Включает: Боты, Диалоги, Сообщения, Базу знаний (с RAG), Аналитику, CRM
+ОБНОВЛЕНО: KnowledgeBase теперь поддерживает связь многие-ко-многим с ботами
 """
 
 from django.db import models
@@ -15,14 +15,18 @@ import re
 # ============================================
 
 def knowledge_base_upload_path(instance, filename):
-    """Генерирует путь для загрузки: knowledge_base/bot_id/filename"""
-    bot_name = instance.bot.name if instance.bot else 'common'
+    """
+    Генерирует путь для загрузки: knowledge_base/user_email/filename
+    Теперь все файлы пользователя хранятся в одной папке
+    """
+    user_email = instance.user.email.split('@')[0]  # Берем только часть до @
     # Очищаем имя от недопустимых символов
-    clean_name = re.sub(r'[^\w\-.]', '_', bot_name)
-    return f'knowledge_base/{clean_name}/{filename}'
+    clean_email = re.sub(r'[^\w\-.]', '_', user_email)
+    clean_filename = re.sub(r'[^\w\-.]', '_', filename)
+    return f'knowledge_base/{clean_email}/{clean_filename}'
 
 # ============================================
-# МОДЕЛЬ: БОТ-АССИСТЕНТ
+# МОДЕЛЬ: БОТ-АССИСТЕНТ (без изменений)
 # ============================================
 
 class BotAgent(models.Model):
@@ -39,7 +43,7 @@ class BotAgent(models.Model):
         ('active', 'Активен'),
         ('paused', 'На паузе'),
         ('inactive', 'Неактивен'),
-        ('waiting_code', 'Ожидание кода'), # Для Telegram Auth
+        ('waiting_code', 'Ожидание кода'),
         ('error', 'Ошибка'),
     ]
     
@@ -67,18 +71,18 @@ class BotAgent(models.Model):
         verbose_name='Статус'
     )
     
-    # --- Telegram UserBot Auth Data (Восстановлено) ---
+    # Telegram UserBot Auth Data
     phone_number = models.CharField(max_length=20, blank=True, verbose_name='Номер телефона')
     phone_code_hash = models.CharField(max_length=500, blank=True, verbose_name='Хеш кода')
     session_string = models.TextField(blank=True, null=True, verbose_name='Session String')
     api_id = models.CharField(max_length=50, null=True, blank=True, verbose_name='API ID')
     api_hash = models.CharField(max_length=100, blank=True, verbose_name='API Hash')
     
-    # --- Токены для Bot API (Webhook) ---
+    # Токены для Bot API (Webhook)
     telegram_token = models.CharField(max_length=200, blank=True, verbose_name='Telegram Bot Token')
     whatsapp_token = models.CharField(max_length=200, blank=True, verbose_name='WhatsApp Token')
     
-    # --- Настройки AI ---
+    # Настройки AI
     system_prompt = models.TextField(
         default='Ты - полезный AI ассистент. Отвечай четко и по существу.',
         verbose_name='Системный промпт'
@@ -93,7 +97,7 @@ class BotAgent(models.Model):
     temperature = models.FloatField(default=0.7, verbose_name='Temperature')
     max_tokens = models.IntegerField(default=500, verbose_name='Max tokens')
     
-    # --- Настройки RAG ---
+    # Настройки RAG
     use_rag = models.BooleanField(
         default=True,
         verbose_name='Использовать базу знаний (RAG)'
@@ -123,7 +127,7 @@ class BotAgent(models.Model):
 
 
 # ============================================
-# МОДЕЛЬ: ДИАЛОГ (CONVERSATION)
+# МОДЕЛЬ: ДИАЛОГ, СООБЩЕНИЕ (без изменений)
 # ============================================
 
 class Conversation(models.Model):
@@ -166,10 +170,6 @@ class Conversation(models.Model):
         return f"Диалог с {self.user_name or self.user_id}"
 
 
-# ============================================
-# МОДЕЛЬ: СООБЩЕНИЕ
-# ============================================
-
 class Message(models.Model):
     """Модель сообщения в диалоге"""
     
@@ -210,11 +210,14 @@ class Message(models.Model):
 
 
 # ============================================
-# МОДЕЛЬ: БАЗА ЗНАНИЙ
+# МОДЕЛЬ: БАЗА ЗНАНИЙ (ОБНОВЛЕНО!)
 # ============================================
 
 class KnowledgeBase(models.Model):
-    """Модель документа в базе знаний"""
+    """
+    Модель документа в базе знаний
+    ОБНОВЛЕНО: Теперь поддерживает связь многие-ко-многим с ботами
+    """
     
     FILE_TYPE_CHOICES = [
         ('pdf', 'PDF'),
@@ -223,11 +226,20 @@ class KnowledgeBase(models.Model):
         ('md', 'Markdown'),
     ]
     
-    bot = models.ForeignKey(
-        BotAgent,
+    # ИЗМЕНЕНО: Теперь владелец - пользователь, а не конкретный бот
+    user = models.ForeignKey(
+        User,
         on_delete=models.CASCADE,
+        related_name='knowledge_files',
+        verbose_name='Владелец'
+    )
+    
+    # НОВОЕ: Связь многие-ко-многим с ботами
+    bots = models.ManyToManyField(
+        BotAgent,
         related_name='knowledge_base',
-        verbose_name='Бот'
+        blank=True,
+        verbose_name='Боты'
     )
     
     title = models.CharField(max_length=300, verbose_name='Название')
@@ -259,7 +271,8 @@ class KnowledgeBase(models.Model):
         verbose_name_plural = 'База знаний'
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['bot', 'is_indexed']),
+            models.Index(fields=['user', 'is_indexed']),
+            models.Index(fields=['created_at']),
         ]
     
     def __str__(self):
@@ -274,10 +287,15 @@ class KnowledgeBase(models.Model):
                 return f"{size:.1f} {unit}"
             size /= 1024
         return f"{size:.1f} ТБ"
+    
+    @property
+    def bot_names(self):
+        """Возвращает список названий ботов через запятую"""
+        return ", ".join([bot.name for bot in self.bots.all()])
 
 
 # ============================================
-# МОДЕЛЬ: ФРАГМЕНТ ДОКУМЕНТА (CHUNK)
+# МОДЕЛЬ: ФРАГМЕНТ ДОКУМЕНТА (без изменений)
 # ============================================
 
 class KnowledgeChunk(models.Model):
@@ -291,11 +309,7 @@ class KnowledgeChunk(models.Model):
     )
     
     text = models.TextField(verbose_name='Текст фрагмента')
-    
-    # Векторное представление (embedding)
-    # Размерность 1536 для модели text-embedding-3-small
     embedding = VectorField(dimensions=1536, verbose_name='Вектор')
-    
     chunk_index = models.IntegerField(
         verbose_name='Порядковый номер',
         help_text='Порядковый номер фрагмента в документе'
@@ -317,7 +331,7 @@ class KnowledgeChunk(models.Model):
 
 
 # ============================================
-# МОДЕЛЬ: АНАЛИТИКА
+# ОСТАЛЬНЫЕ МОДЕЛИ (без изменений)
 # ============================================
 
 class Analytics(models.Model):
@@ -352,10 +366,6 @@ class Analytics(models.Model):
         return f"Аналитика {self.bot.name} - {self.date}"
 
 
-# ============================================
-# МОДЕЛИ CRM ИНТЕГРАЦИЙ (ВОССТАНОВЛЕНО)
-# ============================================
-
 class CRMIntegration(models.Model):
     """Базовая модель CRM интеграции"""
     CRM_CHOICES = [
@@ -376,29 +386,16 @@ class CRMIntegration(models.Model):
     crm_type = models.CharField(max_length=20, choices=CRM_CHOICES, verbose_name='Тип CRM')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='disconnected', verbose_name='Статус')
     
-    # Общие поля
     domain = models.CharField(max_length=255, blank=True, verbose_name='Домен/URL')
-    
-    # OAuth токены
     access_token = models.TextField(blank=True, verbose_name='Access Token')
     refresh_token = models.TextField(blank=True, verbose_name='Refresh Token')
     token_expires_at = models.DateTimeField(null=True, blank=True, verbose_name='Срок действия токена')
-    
-    # Webhook (для Bitrix24)
     webhook_url = models.CharField(max_length=500, blank=True, verbose_name='Webhook URL')
-    
-    # API Key (для AmoCRM)
     api_key = models.CharField(max_length=255, blank=True, verbose_name='API Key')
-    
-    # Google Sheets специфичные поля
     spreadsheet_id = models.CharField(max_length=255, blank=True, verbose_name='ID таблицы')
     sheet_name = models.CharField(max_length=100, blank=True, default='Sheet1', verbose_name='Название листа')
     credentials_json = models.TextField(blank=True, verbose_name='Google Credentials JSON')
-    
-    # Дополнительные настройки (JSON)
     settings = models.JSONField(default=dict, blank=True, verbose_name='Настройки')
-    
-    # Статистика
     last_sync_at = models.DateTimeField(null=True, blank=True, verbose_name='Последняя синхронизация')
     leads_synced = models.IntegerField(default=0, verbose_name='Синхронизировано лидов')
     
