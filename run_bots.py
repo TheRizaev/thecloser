@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 """
-The Closer Worker - Запускатор Telegram ботов с эмуляцией живого общения
-Адаптировано для OpenAI >= 1.0.0
+The Closer Worker - ИСПРАВЛЕННАЯ ВЕРСИЯ
+Исправления:
+1. RAG фильтр через ManyToMany (knowledge_base__bots__id)
+2. Удалена функция increment_bot_stats (поле total_messages не существует)
 """
 import asyncio
 import os
@@ -12,24 +14,25 @@ import random
 from asgiref.sync import sync_to_async
 
 # ===== Django Setup =====
-# Убедитесь, что путь к settings правильный
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
 from django.utils import timezone
 from core.models import BotAgent, Conversation, Message as MessageModel
 
+# ===== RAG Service Import =====
+from services.rag_service import rag_service
+
 # ===== Telethon & OpenAI =====
 from telethon import TelegramClient, events, functions
 from telethon.sessions import StringSession
 
-# Импорт OpenAI с проверкой версии
 try:
     from openai import OpenAI, OpenAIError
     OPENAI_AVAILABLE = True
 except ImportError:
     OPENAI_AVAILABLE = False
-    print("⚠️ Библиотека openai не установлена. Выполните: pip install openai")
+    print("⚠️ Библиотека openai не установлена")
 
 # Настройка логирования
 logging.basicConfig(
@@ -39,7 +42,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("BotWorker")
 
-# Инициализация клиента OpenAI (если ключ есть в переменных среды)
+# OpenAI
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 ai_client = None
 
@@ -50,9 +53,8 @@ if OPENAI_AVAILABLE and OPENAI_API_KEY:
     except Exception as e:
         logger.error(f"❌ Failed to initialize OpenAI: {e}")
 elif not OPENAI_API_KEY:
-    logger.warning("⚠️ OPENAI_API_KEY не найден в переменных среды (.env)")
+    logger.warning("⚠️ OPENAI_API_KEY не найден в .env")
 
-# Хранилище активных клиентов: {bot_id: {'client': client, 'tasks': [asyncio.Task]}}
 active_clients = {}
 
 
@@ -62,7 +64,7 @@ active_clients = {}
 
 @sync_to_async
 def get_active_bots_from_db():
-    """Получает список всех ботов, которые должны работать"""
+    """Получает активных ботов"""
     return list(BotAgent.objects.filter(
         platform='telegram',
         status='active'
@@ -70,7 +72,7 @@ def get_active_bots_from_db():
 
 @sync_to_async
 def get_bot_by_id(bot_id):
-    """Получает свежие данные бота"""
+    """Получает бота по ID"""
     try:
         return BotAgent.objects.get(id=bot_id)
     except BotAgent.DoesNotExist:
@@ -78,7 +80,7 @@ def get_bot_by_id(bot_id):
 
 @sync_to_async
 def get_or_create_conversation(bot_instance, user_id, user_name):
-    """Создает или возвращает существующий диалог"""
+    """Создает/получает диалог"""
     conversation, created = Conversation.objects.get_or_create(
         bot=bot_instance,
         user_id=user_id,
@@ -93,7 +95,7 @@ def get_or_create_conversation(bot_instance, user_id, user_name):
 
 @sync_to_async
 def save_message_to_db(conversation, role, content):
-    """Сохраняет сообщение в историю"""
+    """Сохраняет сообщение"""
     return MessageModel.objects.create(
         conversation=conversation,
         role=role,
@@ -101,27 +103,67 @@ def save_message_to_db(conversation, role, content):
     )
 
 @sync_to_async
-def increment_bot_stats(bot_id):
-    """Обновляет счетчик сообщений"""
-    BotAgent.objects.filter(id=bot_id).update(total_messages=django.db.models.F('total_messages') + 1)
+def mark_bot_invalid(bot_id):
+    """Помечает бота как invalid"""
+    BotAgent.objects.filter(id=bot_id).update(status='error')
+
+
+# ==========================================
+# 2. RAG Integration
+# ==========================================
 
 @sync_to_async
-def mark_bot_invalid(bot_id):
-    """Ставит статус invalid при ошибке авторизации"""
-    BotAgent.objects.filter(id=bot_id).update(status='invalid')
+def get_rag_response(bot_id, query):
+    """Получает ответ через RAG"""
+    try:
+        result = rag_service.answer_question(bot_id, query, top_k=5)
+        return result
+    except Exception as e:
+        logger.error(f"RAG Error for bot {bot_id}: {e}")
+        return {
+            'answer': None,
+            'sources': [],
+            'confidence': 0.0
+        }
 
 
 # ==========================================
-# 2. AI Logic (UPDATED for v1.0.0+)
+# 3. AI Logic with RAG
 # ==========================================
 
-async def get_chatgpt_response(message_text, system_prompt):
-    """Запрос к OpenAI ChatCompletion (новый синтаксис)"""
+async def get_chatgpt_response(message_text, system_prompt, bot_id=None, use_rag=False):
+    """Запрос к OpenAI с RAG поддержкой"""
     if not ai_client:
-        return "⚠️ Ошибка: AI клиент не инициализирован (проверьте API ключ)."
+        return "⚠️ Ошибка: AI клиент не инициализирован."
 
     try:
-        # OpenAI v1.0+ метод run_in_executor для асинхронности
+        # RAG поиск
+        rag_context = ""
+        rag_sources = []
+        
+        if use_rag and bot_id:
+            logger.info(f"🔍 [Bot {bot_id}] Searching knowledge base...")
+            rag_result = await get_rag_response(bot_id, message_text)
+            
+            if rag_result and rag_result.get('answer'):
+                rag_context = f"\n\n📚 ИНФОРМАЦИЯ ИЗ БАЗЫ ЗНАНИЙ:\n{rag_result['answer']}\n"
+                rag_sources = rag_result.get('sources', [])
+                logger.info(f"✅ [Bot {bot_id}] RAG found info (confidence: {rag_result.get('confidence', 0):.2f})")
+            else:
+                logger.info(f"ℹ️ [Bot {bot_id}] No relevant info in knowledge base")
+        
+        # Формируем промпт
+        enhanced_prompt = system_prompt
+        
+        if rag_context:
+            enhanced_prompt += """
+
+ВАЖНО: Используй информацию из базы знаний для ответа.
+Отвечай естественно, как живой человек.
+"""
+            enhanced_prompt += rag_context
+        
+        # Запрос к OpenAI
         loop = asyncio.get_event_loop()
         
         response = await loop.run_in_executor(
@@ -129,15 +171,17 @@ async def get_chatgpt_response(message_text, system_prompt):
             lambda: ai_client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": system_prompt},
+                    {"role": "system", "content": enhanced_prompt},
                     {"role": "user", "content": message_text}
                 ],
                 temperature=0.7,
                 max_tokens=1000
             )
         )
-        # Новый способ получения контента (через атрибуты)
-        return response.choices[0].message.content.strip()
+        
+        answer = response.choices[0].message.content.strip()
+        
+        return answer
         
     except Exception as e:
         logger.error(f"OpenAI Error: {e}")
@@ -145,24 +189,22 @@ async def get_chatgpt_response(message_text, system_prompt):
 
 
 # ==========================================
-# 3. Bot Behavior Logic
+# 4. Bot Behavior
 # ==========================================
 
 async def keep_online_loop(client, bot_name):
-    """Фоновая задача: обновляет статус 'Online' каждые 5 минут"""
+    """Держит статус 'Online'"""
     while True:
         try:
-            # Отправляем статус "Я здесь / В сети"
             await client(functions.account.UpdateStatusRequest(offline=False))
         except Exception as e:
-            logger.error(f"[{bot_name}] Failed to update online status: {e}")
+            logger.error(f"[{bot_name}] Failed to update status: {e}")
         
-        # Ждем 5 минут + случайный разброс
         await asyncio.sleep(300 + random.randint(0, 10))
 
 
 async def handle_message(event, bot_id):
-    """Основной обработчик входящих сообщений"""
+    """Обработчик сообщений с RAG"""
     
     bot_record = await get_bot_by_id(bot_id)
     if not bot_record or bot_record.status != 'active':
@@ -176,7 +218,7 @@ async def handle_message(event, bot_id):
     if not text:
         return
 
-    logger.info(f"📨 [{bot_record.name}] New msg from {user_name}: {text[:30]}...")
+    logger.info(f"📨 [{bot_record.name}] New msg from {user_name}: {text[:50]}...")
 
     # Сохраняем входящее
     conversation = await get_or_create_conversation(bot_record, user_id, user_name)
@@ -184,42 +226,57 @@ async def handle_message(event, bot_id):
 
     # --- ЭМУЛЯЦИЯ ЧЕЛОВЕКА ---
     
-    # 1. Задержка чтения (10-15 сек)
-    read_delay = 10 + random.randint(0, 5)
+    # 1. Задержка чтения
+    read_delay = 5 + random.randint(0, 5)
     await asyncio.sleep(read_delay)
 
-    # 2. Помечаем прочитанным
-    await event.message.mark_read()
+    # 2. Прочитано
+    try:
+        await event.message.mark_read()
+    except:
+        pass
     
-    # 3. Генерируем ответ
+    # 3. Генерация ответа с RAG
     system_prompt = bot_record.system_prompt or "Ты полезный ассистент."
-    response_text = await get_chatgpt_response(text, system_prompt)
+    use_rag = bot_record.use_rag
+    
+    response_text = await get_chatgpt_response(
+        text, 
+        system_prompt,
+        bot_id=bot_id,
+        use_rag=use_rag
+    )
 
-    # 4. Расчет времени печати
-    typing_speed = random.randint(5, 8) # символов в секунду
+    # 4. Печать
+    typing_speed = random.randint(5, 8)
     typing_duration = len(response_text) / typing_speed
-    typing_duration = max(3.0, min(20.0, typing_duration)) # от 3 до 20 сек
+    typing_duration = max(2.0, min(15.0, typing_duration))
 
     # 5. Статус "Печатает..."
-    async with event.client.action(event.chat_id, 'typing'):
+    try:
+        async with event.client.action(event.chat_id, 'typing'):
+            await asyncio.sleep(typing_duration)
+    except:
         await asyncio.sleep(typing_duration)
 
-    # 6. Отправка ответа
+    # 6. Отправка
     await event.reply(response_text)
     
-    # 7. Сохранение ответа
+    # 7. Сохранение
     await save_message_to_db(conversation, 'bot', response_text)
-    await increment_bot_stats(bot_id)
     
-    logger.info(f"✅ [{bot_record.name}] Replied to {user_name}")
+    # ========== ИСПРАВЛЕНИЕ: Удалена функция increment_bot_stats ==========
+    # Статистика теперь считается через количество Message объектов
+    
+    logger.info(f"✅ [{bot_record.name}] Replied to {user_name} (RAG: {use_rag})")
 
 
 # ==========================================
-# 4. Process Management
+# 5. Process Management
 # ==========================================
 
 async def start_single_bot(bot_record):
-    """Запуск одного клиента Telethon"""
+    """Запуск одного бота"""
     try:
         api_id = int(bot_record.api_id)
         api_hash = bot_record.api_hash
@@ -230,7 +287,7 @@ async def start_single_bot(bot_record):
         await client.connect()
         
         if not await client.is_user_authorized():
-            logger.error(f"❌ Bot [{bot_record.name}] session is invalid.")
+            logger.error(f"❌ Bot [{bot_record.name}] session invalid")
             await mark_bot_invalid(bot_record.id)
             return
 
@@ -238,7 +295,6 @@ async def start_single_bot(bot_record):
         async def wrapper(event, b_id=bot_record.id):
             await handle_message(event, b_id)
 
-        # Запускаем задачу "В сети"
         online_task = asyncio.create_task(keep_online_loop(client, bot_record.name))
         
         active_clients[bot_record.id] = {
@@ -247,7 +303,8 @@ async def start_single_bot(bot_record):
         }
         
         me = await client.get_me()
-        logger.info(f"🚀 Bot started: {bot_record.name} (@{me.username})")
+        rag_status = "✅ RAG ON" if bot_record.use_rag else "❌ RAG OFF"
+        logger.info(f"🚀 Bot started: {bot_record.name} (@{me.username}) | {rag_status}")
 
     except Exception as e:
         logger.error(f"❌ Error starting bot {bot_record.name}: {e}")
@@ -269,8 +326,9 @@ async def stop_single_bot(bot_id):
 
 
 async def monitor_manager():
-    """Мониторинг БД для запуска/остановки ботов"""
+    """Мониторинг ботов"""
     logger.info("👀 Monitor Manager started...")
+    logger.info(f"📚 RAG Service: {'✅ Available' if rag_service else '❌ Not available'}")
     
     while True:
         try:

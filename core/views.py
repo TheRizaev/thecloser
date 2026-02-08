@@ -222,7 +222,7 @@ def bot_detail(request, bot_id):
     """Детали бота и сохранение настроек"""
     bot = get_object_or_404(BotAgent, id=bot_id, user=request.user)
 
-    # ЛОГИКА СОХРАНЕНИЯ (Добавлено)
+    # ЛОГИКА СОХРАНЕНИЯ
     if request.method == 'POST':
         bot.name = request.POST.get('name', bot.name)
         bot.description = request.POST.get('description', bot.description)
@@ -245,10 +245,25 @@ def bot_detail(request, bot_id):
     bot.conversations_count = conversations.count()
     bot.leads_count = conversations.filter(is_lead=True).count()
     
-    # Исправляем ошибку фильтрации KnowledgeBase (заменяем .filter(bot=bot) на .filter(bots=bot))
+    # ИСПРАВЛЕНИЕ: Получаем файлы базы знаний для этого бота
+    knowledge_files = KnowledgeBase.objects.filter(
+        bots=bot
+    ).prefetch_related('bots').order_by('-created_at')[:5]
+    
+    # Подсчитываем количество файлов
     bot.knowledge_count = KnowledgeBase.objects.filter(bots=bot).count()
     
-    return render(request, 'dashboard/agent_detail.html', {'bot': bot})
+    # ИСПРАВЛЕНИЕ: Получаем последние диалоги
+    recent_conversations = conversations.select_related('bot').order_by('-last_message_at')[:10]
+    
+    # Передаём всё в контекст
+    context = {
+        'bot': bot,
+        'knowledge_files': knowledge_files,  # ← ДОБАВЛЕНО!
+        'recent_conversations': recent_conversations,
+    }
+    
+    return render(request, 'dashboard/agent_detail.html', context)
 
 @login_required
 def bot_create(request):
@@ -760,7 +775,8 @@ def upload_knowledge_file(request):
                 description=description,
                 file=uploaded_file,
                 file_type=file_ext[1:],
-                file_size=uploaded_file.size
+                file_size=uploaded_file.size,
+                is_indexed=False  # ← Явно устанавливаем в False до индексации
             )
             
             # Назначаем ботам
@@ -772,7 +788,9 @@ def upload_knowledge_file(request):
             file_path = kb.file.path
             chunks_count = rag_service.process_document(kb.id, file_path)
             
+            # ← ИСПРАВЛЕНИЕ: Правильно обновляем статус индексации
             kb.chunks_count = chunks_count
+            kb.is_indexed = True  # ← Теперь явно устанавливаем в True
             kb.indexed_at = timezone.now()
             kb.save()
             
@@ -1113,11 +1131,26 @@ def toggle_bot_status(request, bot_id):
     """API: Переключение статуса бота"""
     try:
         bot = BotAgent.objects.get(id=bot_id, user=request.user)
-        bot.status = 'paused' if bot.status == 'active' else 'active'
+        
+        # Определяем новый статус
+        if bot.status == 'active':
+            bot.status = 'paused'
+        elif bot.status == 'paused':
+            bot.status = 'active'
+        else:
+            bot.status = 'active'
+        
         bot.save()
-        return JsonResponse({'success': True, 'status': bot.status})
+        
+        return JsonResponse({
+            'success': True, 
+            'status': bot.status,
+            'status_display': bot.get_status_display()
+        })
     except BotAgent.DoesNotExist:
         return JsonResponse({'success': False, 'message': 'Бот не найден'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
 
 @login_required
 @require_http_methods(['POST'])

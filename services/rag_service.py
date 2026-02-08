@@ -1,394 +1,142 @@
-# services/rag_service.py
-"""
-RAG (Retrieval-Augmented Generation) сервис для работы с базой знаний
-Реализует чтение файлов, чанкинг, векторизацию через OpenAI и поиск
-"""
+# services/rag_service.py - ИСПРАВЛЕННАЯ ВЕРСИЯ
 
-import os
-import re
-import time
 import logging
-from typing import List, Dict, Optional, Tuple
-from io import BytesIO
-
-# Библиотеки для чтения файлов
-import pypdf
-from docx import Document
-
-# OpenAI для embeddings и генерации
-import openai
-from openai import OpenAI
-
-# Django imports
+from typing import List, Dict
 from django.conf import settings
-from django.db.models import F
+from openai import OpenAI
+import numpy as np
 
-# Настройка логирования
 logger = logging.getLogger(__name__)
 
-
 class FileReader:
-    """
-    Класс для извлечения текста из различных форматов файлов
-    """
+    """Читает разные форматы файлов"""
     
-    @staticmethod
-    def read_pdf(file_path: str) -> str:
-        """
-        Читает PDF файл и извлекает текст
+    def read_file(self, file_path: str) -> str:
+        """Универсальный читатель файлов"""
+        import os
+        from pathlib import Path
         
-        Args:
-            file_path: Путь к PDF файлу
-            
-        Returns:
-            Извлеченный текст
-        """
-        try:
-            text = ""
-            with open(file_path, 'rb') as file:
-                pdf_reader = pypdf.PdfReader(file)
-                
-                for page_num in range(len(pdf_reader.pages)):
-                    page = pdf_reader.pages[page_num]
-                    text += page.extract_text() + "\n\n"
-            
-            logger.info(f"PDF файл прочитан: {file_path}, страниц: {len(pdf_reader.pages)}")
-            return text
-            
-        except Exception as e:
-            logger.error(f"Ошибка чтения PDF файла {file_path}: {str(e)}")
-            raise
-    
-    @staticmethod
-    def read_docx(file_path: str) -> str:
-        """
-        Читает DOCX файл и извлекает текст
+        file_ext = Path(file_path).suffix.lower()
         
-        Args:
-            file_path: Путь к DOCX файлу
-            
-        Returns:
-            Извлеченный текст
-        """
-        try:
-            doc = Document(file_path)
-            text = ""
-            
-            # Извлекаем текст из параграфов
-            for paragraph in doc.paragraphs:
-                text += paragraph.text + "\n"
-            
-            # Извлекаем текст из таблиц
-            for table in doc.tables:
-                for row in table.rows:
-                    for cell in row.cells:
-                        text += cell.text + " "
-                    text += "\n"
-            
-            logger.info(f"DOCX файл прочитан: {file_path}, параграфов: {len(doc.paragraphs)}")
-            return text
-            
-        except Exception as e:
-            logger.error(f"Ошибка чтения DOCX файла {file_path}: {str(e)}")
-            raise
-    
-    @staticmethod
-    def read_txt(file_path: str) -> str:
-        """
-        Читает TXT файл
+        # TXT, MD, CSV
+        if file_ext in ['.txt', '.md', '.csv']:
+            logger.info(f"Чтение файла: {file_path}")
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                logger.info(f"TXT файл прочитан с кодировкой utf-8: {file_path}")
+                return content
+            except UnicodeDecodeError:
+                with open(file_path, 'r', encoding='latin-1') as f:
+                    content = f.read()
+                logger.info(f"TXT файл прочитан с кодировкой latin-1: {file_path}")
+                return content
         
-        Args:
-            file_path: Путь к TXT файлу
-            
-        Returns:
-            Извлеченный текст
-        """
-        try:
-            # Пробуем разные кодировки
-            encodings = ['utf-8', 'windows-1251', 'cp1252', 'iso-8859-1']
-            
-            for encoding in encodings:
-                try:
-                    with open(file_path, 'r', encoding=encoding) as file:
-                        text = file.read()
-                    logger.info(f"TXT файл прочитан с кодировкой {encoding}: {file_path}")
-                    return text
-                except UnicodeDecodeError:
-                    continue
-            
-            # Если все кодировки не подошли, читаем как binary и игнорируем ошибки
-            with open(file_path, 'r', encoding='utf-8', errors='ignore') as file:
-                text = file.read()
-            logger.warning(f"TXT файл прочитан с игнорированием ошибок: {file_path}")
-            return text
-            
-        except Exception as e:
-            logger.error(f"Ошибка чтения TXT файла {file_path}: {str(e)}")
-            raise
-    
-    @staticmethod
-    def read_file(file_path: str) -> str:
-        """
-        Определяет тип файла и извлекает текст
+        # PDF
+        elif file_ext == '.pdf':
+            try:
+                from pypdf import PdfReader
+                logger.info(f"Чтение PDF: {file_path}")
+                reader = PdfReader(file_path)
+                text = ""
+                for page in reader.pages:
+                    text += page.extract_text() + "\n"
+                logger.info(f"PDF прочитан: {len(reader.pages)} страниц")
+                return text
+            except Exception as e:
+                logger.error(f"Ошибка чтения PDF: {e}")
+                return ""
         
-        Args:
-            file_path: Путь к файлу
-            
-        Returns:
-            Извлеченный текст
-        """
-        ext = os.path.splitext(file_path)[1].lower()
+        # DOCX
+        elif file_ext == '.docx':
+            try:
+                from docx import Document
+                logger.info(f"Чтение DOCX: {file_path}")
+                doc = Document(file_path)
+                text = "\n".join([para.text for para in doc.paragraphs])
+                logger.info(f"DOCX прочитан: {len(doc.paragraphs)} параграфов")
+                return text
+            except Exception as e:
+                logger.error(f"Ошибка чтения DOCX: {e}")
+                return ""
         
-        if ext == '.pdf':
-            return FileReader.read_pdf(file_path)
-        elif ext == '.docx':
-            return FileReader.read_docx(file_path)
-        elif ext == '.txt':
-            return FileReader.read_txt(file_path)
         else:
-            raise ValueError(f"Неподдерживаемый формат файла: {ext}")
-
-
-class TextCleaner:
-    """
-    Класс для очистки текста от лишних символов и форматирования
-    """
-    
-    @staticmethod
-    def clean_text(text: str) -> str:
-        """
-        Очищает текст от лишних пробелов, переносов и мусора
-        
-        Args:
-            text: Исходный текст
-            
-        Returns:
-            Очищенный текст
-        """
-        # Удаляем множественные пробелы
-        text = re.sub(r'\s+', ' ', text)
-        
-        # Удаляем множественные переносы строк
-        text = re.sub(r'\n\s*\n', '\n\n', text)
-        
-        # Удаляем пробелы в начале и конце строк
-        text = '\n'.join(line.strip() for line in text.split('\n'))
-        
-        # Удаляем специальные символы (но оставляем знаки препинания)
-        text = re.sub(r'[^\w\s\.\,\!\?\-\:\;\(\)\"\'\n]', '', text, flags=re.UNICODE)
-        
-        # Убираем пробелы в начале и конце всего текста
-        text = text.strip()
-        
-        return text
+            logger.warning(f"Неподдерживаемый формат: {file_ext}")
+            return ""
 
 
 class TextChunker:
-    """
-    Класс для разбиения текста на смысловые чанки
-    """
+    """Разбивает текст на чанки"""
     
-    def __init__(self, chunk_size: int = 1000, overlap: int = 200):
-        """
-        Args:
-            chunk_size: Размер чанка в символах
-            overlap: Размер перекрытия между чанками в символах
-        """
+    def __init__(self, chunk_size: int = 500, overlap: int = 50):
         self.chunk_size = chunk_size
         self.overlap = overlap
     
     def split_text(self, text: str) -> List[str]:
-        """
-        Разбивает текст на чанки с перекрытием
-        
-        Args:
-            text: Исходный текст
-            
-        Returns:
-            Список чанков
-        """
-        # Очищаем текст
-        text = TextCleaner.clean_text(text)
-        
-        # Если текст короче чем chunk_size, возвращаем как есть
-        if len(text) <= self.chunk_size:
-            return [text]
-        
+        """Разбивает текст на перекрывающиеся фрагменты"""
+        words = text.split()
         chunks = []
-        start = 0
         
-        while start < len(text):
-            # Определяем конец чанка
-            end = start + self.chunk_size
-            
-            # Если это не последний чанк, пытаемся найти конец предложения
-            if end < len(text):
-                # Ищем точку, восклицательный или вопросительный знак
-                sentence_end = max(
-                    text.rfind('.', start, end),
-                    text.rfind('!', start, end),
-                    text.rfind('?', start, end)
-                )
-                
-                # Если нашли конец предложения, используем его
-                if sentence_end > start:
-                    end = sentence_end + 1
-            
-            # Добавляем чанк
-            chunk = text[start:end].strip()
-            if chunk:
+        for i in range(0, len(words), self.chunk_size - self.overlap):
+            chunk = " ".join(words[i:i + self.chunk_size])
+            if chunk.strip():
                 chunks.append(chunk)
-            
-            # Сдвигаемся с учетом перекрытия
-            start = end - self.overlap
-            
-            # Защита от бесконечного цикла
-            if start <= 0:
-                start = end
         
-        logger.info(f"Текст разбит на {len(chunks)} чанков")
         return chunks
 
 
 class OpenAIEmbedder:
-    """
-    Класс для получения embeddings через OpenAI API
-    """
+    """Генерирует embeddings через OpenAI"""
     
-    def __init__(self, api_key: Optional[str] = None, model: str = "text-embedding-3-small"):
-        """
-        Args:
-            api_key: OpenAI API ключ (если None, берется из settings)
-            model: Модель для embeddings
-        """
-        self.api_key = api_key or settings.OPENAI_API_KEY
-        self.model = model
-        self.client = OpenAI(api_key=self.api_key)
-        
-        # Параметры для retry
-        self.max_retries = 3
-        self.retry_delay = 1  # секунды
+    def __init__(self, api_key: str):
+        self.client = OpenAI(api_key=api_key)
+        self.model = "text-embedding-3-small"
     
-    def get_embedding(self, text: str, retry_count: int = 0) -> List[float]:
-        """
-        Получает embedding для текста с поддержкой retry
-        
-        Args:
-            text: Текст для векторизации
-            retry_count: Текущая попытка (для рекурсии)
-            
-        Returns:
-            Вектор embedding
-        """
+    def get_embedding(self, text: str) -> List[float]:
+        """Получает embedding для текста"""
         try:
             response = self.client.embeddings.create(
-                input=text,
-                model=self.model
+                model=self.model,
+                input=text
             )
-            
-            embedding = response.data[0].embedding
-            logger.debug(f"Получен embedding, размер: {len(embedding)}")
-            return embedding
-            
-        except openai.RateLimitError as e:
-            if retry_count < self.max_retries:
-                wait_time = self.retry_delay * (2 ** retry_count)  # Exponential backoff
-                logger.warning(f"Rate limit, ожидание {wait_time} секунд...")
-                time.sleep(wait_time)
-                return self.get_embedding(text, retry_count + 1)
-            else:
-                logger.error(f"Превышен лимит попыток для получения embedding")
-                raise
-                
-        except openai.APIError as e:
-            if retry_count < self.max_retries:
-                wait_time = self.retry_delay * (2 ** retry_count)
-                logger.warning(f"API ошибка, повтор через {wait_time} секунд...")
-                time.sleep(wait_time)
-                return self.get_embedding(text, retry_count + 1)
-            else:
-                logger.error(f"API ошибка после {self.max_retries} попыток: {str(e)}")
-                raise
-                
+            return response.data[0].embedding
         except Exception as e:
-            logger.error(f"Неожиданная ошибка при получении embedding: {str(e)}")
-            raise
-    
-    def get_embeddings_batch(self, texts: List[str], batch_size: int = 100) -> List[List[float]]:
-        """
-        Получает embeddings для списка текстов с батчингом
-        
-        Args:
-            texts: Список текстов
-            batch_size: Размер батча
-            
-        Returns:
-            Список векторов
-        """
-        all_embeddings = []
-        
-        for i in range(0, len(texts), batch_size):
-            batch = texts[i:i + batch_size]
-            logger.info(f"Обработка батча {i//batch_size + 1}, текстов: {len(batch)}")
-            
-            for text in batch:
-                embedding = self.get_embedding(text)
-                all_embeddings.append(embedding)
-            
-            # Небольшая задержка между батчами
-            if i + batch_size < len(texts):
-                time.sleep(0.5)
-        
-        logger.info(f"Получены embeddings для {len(all_embeddings)} текстов")
-        return all_embeddings
+            logger.error(f"Ошибка получения embedding: {e}")
+            return [0.0] * 1536
 
 
 class RAGService:
-    """
-    Основной класс RAG-сервиса
-    """
+    """Главный сервис для работы с RAG"""
     
     def __init__(self):
         self.file_reader = FileReader()
-        self.text_chunker = TextChunker(chunk_size=1200, overlap=200)
-        self.embedder = OpenAIEmbedder()
-        self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
+        self.text_chunker = TextChunker(chunk_size=500, overlap=50)
+        self.embedder = OpenAIEmbedder(api_key=settings.OPENAI_API_KEY)
     
     def process_document(self, knowledge_base_id: int, file_path: str) -> int:
-        """
-        Обрабатывает документ: читает, разбивает на чанки, векторизует и сохраняет
-        
-        Args:
-            knowledge_base_id: ID записи KnowledgeBase
-            file_path: Путь к файлу
-            
-        Returns:
-            Количество созданных чанков
-        """
+        """Обрабатывает документ: читает, разбивает, векторизует"""
         from core.models import KnowledgeBase, KnowledgeChunk
+        from django.utils import timezone
         
         try:
-            # Получаем объект KnowledgeBase
             kb = KnowledgeBase.objects.get(id=knowledge_base_id)
             
-            # Читаем файл
+            # Читаем
             logger.info(f"Чтение файла: {file_path}")
             text = self.file_reader.read_file(file_path)
             
-            # Разбиваем на чанки
+            # Чанки
             logger.info("Разбиение на чанки...")
             chunks = self.text_chunker.split_text(text)
             
-            # Удаляем старые чанки для этого документа (если есть)
+            # Удаляем старые
             KnowledgeChunk.objects.filter(knowledge_base=kb).delete()
             
-            # Обрабатываем каждый чанк
+            # Векторизуем
             logger.info(f"Векторизация {len(chunks)} чанков...")
             for idx, chunk_text in enumerate(chunks):
-                # Получаем embedding
                 embedding = self.embedder.get_embedding(chunk_text)
                 
-                # Сохраняем в БД
                 KnowledgeChunk.objects.create(
                     knowledge_base=kb,
                     text=chunk_text,
@@ -399,8 +147,10 @@ class RAGService:
                 if (idx + 1) % 10 == 0:
                     logger.info(f"Обработано {idx + 1}/{len(chunks)} чанков")
             
-            # Обновляем статус в KnowledgeBase
+            # Обновляем статус
             kb.is_indexed = True
+            kb.chunks_count = len(chunks)
+            kb.indexed_at = timezone.now()
             kb.save()
             
             logger.info(f"Документ успешно обработан, создано {len(chunks)} чанков")
@@ -408,7 +158,6 @@ class RAGService:
             
         except Exception as e:
             logger.error(f"Ошибка обработки документа: {str(e)}")
-            # Помечаем документ как проблемный
             try:
                 kb = KnowledgeBase.objects.get(id=knowledge_base_id)
                 kb.is_indexed = False
@@ -417,165 +166,136 @@ class RAGService:
                 pass
             raise
     
-    def search_knowledge_base(self, bot_id: int, query: str, top_k: int = 5) -> List[Dict]:
+    def search_similar_chunks(self, bot_id: int, query: str, top_k: int = 5) -> List[Dict]:
         """
-        Ищет релевантные чанки в базе знаний для указанного бота
+        Ищет похожие чанки для бота
         
-        Args:
-            bot_id: ID бота
-            query: Поисковый запрос
-            top_k: Количество результатов
-            
-        Returns:
-            Список релевантных чанков с метаданными
+        ИСПРАВЛЕНО: Правильный lookup через ManyToMany
         """
         from core.models import KnowledgeChunk
         
         try:
-            # Получаем embedding для запроса
-            logger.info(f"Поиск в базе знаний для бота {bot_id}: {query[:100]}...")
+            logger.info(f"Поиск в базе знаний для бота {bot_id}: {query[:50]}...")
+            
+            # Получаем embedding запроса
             query_embedding = self.embedder.get_embedding(query)
+            query_vector = np.array(query_embedding)
             
-            # Используем pgvector для поиска ближайших векторов
-            # Примечание: требуется установленный pgvector и настроенная БД
-            from django.contrib.postgres.search import SearchVector
-            from pgvector.django import CosineDistance
+            # ========== ИСПРАВЛЕНИЕ 1: Правильный фильтр ==========
+            # БЫЛО (неправильно):
+            # chunks = KnowledgeChunk.objects.filter(knowledge_base__bot=bot_id)
             
-            results = KnowledgeChunk.objects.filter(
-                knowledge_base__bot__id=bot_id,
-                knowledge_base__is_indexed=True
-            ).annotate(
-                distance=CosineDistance('embedding', query_embedding)
-            ).order_by('distance')[:top_k]
+            # СТАЛО (правильно):
+            chunks = KnowledgeChunk.objects.filter(
+                knowledge_base__bots__id=bot_id  # ← через ManyToMany relationship
+            ).select_related('knowledge_base')
             
-            # Формируем результаты
-            formatted_results = []
-            for result in results:
-                formatted_results.append({
-                    'text': result.text,
-                    'distance': float(result.distance),
-                    'source': result.knowledge_base.file.name,
-                    'chunk_index': result.chunk_index
+            if not chunks.exists():
+                logger.warning(f"Нет чанков для бота {bot_id}")
+                return []
+            
+            # Считаем similarity
+            similarities = []
+            for chunk in chunks:
+                chunk_vector = np.array(chunk.embedding)
+                
+                # Cosine similarity
+                similarity = np.dot(query_vector, chunk_vector) / (
+                    np.linalg.norm(query_vector) * np.linalg.norm(chunk_vector)
+                )
+                
+                similarities.append({
+                    'chunk': chunk,
+                    'similarity': float(similarity),
+                    'text': chunk.text,
+                    'source': chunk.knowledge_base.title
                 })
             
-            logger.info(f"Найдено {len(formatted_results)} релевантных чанков")
-            return formatted_results
+            # Сортируем и возвращаем top_k
+            similarities.sort(key=lambda x: x['similarity'], reverse=True)
+            top_results = similarities[:top_k]
+            
+            logger.info(f"Найдено {len(top_results)} релевантных чанков (лучший: {top_results[0]['similarity']:.2f})")
+            
+            return top_results
             
         except Exception as e:
-            logger.error(f"Ошибка поиска в базе знаний: {str(e)}")
-            # Возвращаем пустой список в случае ошибки
+            logger.error(f"Ошибка поиска в базе знаний: {e}")
             return []
-    
-    def generate_answer(
-        self, 
-        query: str, 
-        context_chunks: List[Dict],
-        model: str = "gpt-4o-mini",
-        max_tokens: int = 500
-    ) -> str:
-        """
-        Генерирует ответ на основе найденных чанков
-        
-        Args:
-            query: Вопрос пользователя
-            context_chunks: Список релевантных чанков
-            model: Модель GPT для генерации
-            max_tokens: Максимальное количество токенов в ответе
-            
-        Returns:
-            Сгенерированный ответ
-        """
-        try:
-            # Формируем контекст из чанков
-            context = "\n\n".join([
-                f"[Источник: {chunk['source']}, часть {chunk['chunk_index'] + 1}]\n{chunk['text']}"
-                for chunk in context_chunks
-            ])
-            
-            # Формируем промпт
-            system_prompt = """Ты — ассистент, который отвечает на вопросы СТРОГО на основе предоставленного контекста.
-
-ВАЖНЫЕ ПРАВИЛА:
-1. Используй ТОЛЬКО информацию из предоставленного контекста
-2. Если ответа нет в контексте, честно скажи "В предоставленных документах нет информации по этому вопросу"
-3. Не добавляй свои знания или домыслы
-4. Отвечай четко и по существу
-5. Указывай источник информации, если это уместно"""
-            
-            user_prompt = f"""Контекст из базы знаний:
-{context}
-
-Вопрос пользователя: {query}
-
-Ответь на вопрос на основе предоставленного контекста:"""
-            
-            # Генерируем ответ
-            logger.info("Генерация ответа через GPT...")
-            response = self.client.chat.completions.create(
-                model=model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
-                max_tokens=max_tokens,
-                temperature=0.3  # Низкая температура для более точных ответов
-            )
-            
-            answer = response.choices[0].message.content
-            logger.info("Ответ успешно сгенерирован")
-            return answer
-            
-        except Exception as e:
-            logger.error(f"Ошибка генерации ответа: {str(e)}")
-            return "Извините, произошла ошибка при генерации ответа. Пожалуйста, попробуйте позже."
     
     def answer_question(self, bot_id: int, query: str, top_k: int = 5) -> Dict:
         """
-        Полный цикл: поиск + генерация ответа
+        Отвечает на вопрос используя RAG
         
-        Args:
-            bot_id: ID бота
-            query: Вопрос пользователя
-            top_k: Количество чанков для поиска
-            
         Returns:
-            Словарь с ответом и метаданными
+            {
+                'answer': str,
+                'sources': List[str],
+                'confidence': float
+            }
         """
+        from core.models import BotAgent
+        
         try:
-            # Ищем релевантные чанки
-            context_chunks = self.search_knowledge_base(bot_id, query, top_k)
+            # Поиск релевантных чанков
+            results = self.search_similar_chunks(bot_id, query, top_k)
             
-            # Если ничего не найдено
-            if not context_chunks:
+            if not results:
                 return {
-                    'answer': "К сожалению, я не нашел информации по вашему вопросу в базе знаний.",
+                    'answer': None,
                     'sources': [],
                     'confidence': 0.0
                 }
             
-            # Генерируем ответ
-            answer = self.generate_answer(query, context_chunks)
+            # Формируем контекст
+            context = "\n\n".join([r['text'] for r in results])
+            avg_confidence = sum(r['similarity'] for r in results) / len(results)
             
-            # Формируем метаданные
-            sources = list(set([chunk['source'] for chunk in context_chunks]))
-            avg_distance = sum(chunk['distance'] for chunk in context_chunks) / len(context_chunks)
-            confidence = 1.0 - avg_distance  # Конвертируем distance в confidence
+            # Получаем промпт бота
+            bot = BotAgent.objects.get(id=bot_id)
+            system_prompt = bot.system_prompt or "Ты полезный ассистент."
+            
+            # Генерируем ответ
+            full_prompt = f"""{system_prompt}
+
+Используй следующую информацию из базы знаний для ответа:
+
+{context}
+
+Вопрос пользователя: {query}
+
+Ответь на основе предоставленной информации. Если информации недостаточно, скажи об этом."""
+
+            response = self.embedder.client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": full_prompt}
+                ],
+                temperature=0.3,
+                max_tokens=500
+            )
+            
+            answer = response.choices[0].message.content.strip()
+            sources = list(set([r['source'] for r in results]))
             
             return {
                 'answer': answer,
                 'sources': sources,
-                'confidence': round(confidence, 2),
-                'chunks_used': len(context_chunks)
+                'confidence': avg_confidence
             }
             
         except Exception as e:
-            logger.error(f"Ошибка в answer_question: {str(e)}")
+            logger.error(f"Ошибка генерации ответа: {e}")
             return {
-                'answer': "Произошла ошибка при обработке запроса.",
+                'answer': None,
                 'sources': [],
-                'confidence': 0.0,
-                'error': str(e)
+                'confidence': 0.0
             }
 
 
-rag_service = RAGService()
+# Глобальный экземпляр
+try:
+    rag_service = RAGService()
+except Exception as e:
+    logger.error(f"Не удалось инициализировать RAG service: {e}")
+    rag_service = None
