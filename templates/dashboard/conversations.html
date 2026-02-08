@@ -11,25 +11,47 @@
 </div>
 
 <div class="glass-card">
-    <div class="card-header">
+    <!-- Filters -->
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 24px;">
         <h2 class="card-title">
             <i class="fa-solid fa-filter"></i>
             Фильтр
         </h2>
-        <select 
-            class="form-input" 
-            style="width: auto; min-width: 200px;"
-            onchange="window.location.href='?bot=' + this.value"
-        >
-            <option value="">Все боты</option>
-            {% for bot in bots %}
-                <option value="{{ bot.id }}" {% if selected_bot == bot.id|stringformat:"s" %}selected{% endif %}>
-                    {{ bot.name }}
-                </option>
-            {% endfor %}
-        </select>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <select 
+                class="form-input" 
+                style="width: auto; min-width: 200px;"
+                onchange="window.location.href='?bot=' + this.value + '&is_lead={{ request.GET.is_lead }}'"
+            >
+                <option value="">Все боты</option>
+                {% for bot in bots %}
+                    <option value="{{ bot.id }}" {% if request.GET.bot == bot.id|stringformat:"s" %}selected{% endif %}>
+                        {{ bot.name }}
+                    </option>
+                {% endfor %}
+            </select>
+            
+            <select 
+                class="form-input" 
+                style="width: auto; min-width: 150px;"
+                onchange="window.location.href='?bot={{ request.GET.bot }}&is_lead=' + this.value"
+            >
+                <option value="">Все диалоги</option>
+                <option value="1" {% if request.GET.is_lead == '1' %}selected{% endif %}>Только лиды</option>
+                <option value="0" {% if request.GET.is_lead == '0' %}selected{% endif %}>Без лидов</option>
+            </select>
+            
+            {% if request.GET.bot or request.GET.is_lead %}
+            <a href="{% url 'conversations_list' %}" class="btn btn-secondary">
+                <i class="fa-solid fa-xmark"></i>
+                Сбросить
+            </a>
+            {% endif %}
+        </div>
     </div>
     
+    <!-- Conversations Table -->
+    {% if page_obj %}
     <div class="table-responsive">
         <table class="data-table">
             <thead>
@@ -43,7 +65,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for conv in conversations %}
+                {% for conv in page_obj %}
                 <tr>
                     <td>
                         <div style="display: flex; align-items: center; gap: 12px;">
@@ -56,7 +78,22 @@
                             </div>
                         </div>
                     </td>
-                    <td>{{ conv.bot.name }}</td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            {% if conv.bot.platform == 'telegram' %}
+                                <i class="fa-brands fa-telegram" style="color: #229ED9;"></i>
+                            {% elif conv.bot.platform == 'whatsapp' %}
+                                <i class="fa-brands fa-whatsapp" style="color: #25D366;"></i>
+                            {% elif conv.bot.platform == 'vk' %}
+                                <i class="fa-brands fa-vk" style="color: #0077FF;"></i>
+                            {% elif conv.bot.platform == 'instagram' %}
+                                <i class="fa-brands fa-instagram" style="color: #E4405F;"></i>
+                            {% else %}
+                                <i class="fa-solid fa-robot"></i>
+                            {% endif %}
+                            {{ conv.bot.name }}
+                        </div>
+                    </td>
                     <td style="color: var(--dash-text-muted);">
                         {{ conv.started_at|date:"d.m.Y H:i" }}
                     </td>
@@ -79,23 +116,161 @@
                         </a>
                     </td>
                 </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="6">
-                        <div class="empty-state">
-                            <div class="empty-icon">
-                                <i class="fa-solid fa-comments"></i>
-                            </div>
-                            <h3 class="empty-title">Диалогов пока нет</h3>
-                            <p class="empty-text">
-                                Как только кто-то напишет вашему боту, диалоги появятся здесь
-                            </p>
-                        </div>
-                    </td>
-                </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+    
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--dash-border);">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.bot %}&bot={{ request.GET.bot }}{% endif %}{% if request.GET.is_lead %}&is_lead={{ request.GET.is_lead }}{% endif %}" class="btn btn-secondary">
+            <i class="fa-solid fa-chevron-left"></i>
+            Назад
+        </a>
+        {% endif %}
+        
+        <span style="color: var(--dash-text-muted); font-size: 14px;">
+            Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+            <span style="opacity: 0.6;">(всего {{ page_obj.paginator.count }} диалогов)</span>
+        </span>
+        
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if request.GET.bot %}&bot={{ request.GET.bot }}{% endif %}{% if request.GET.is_lead %}&is_lead={{ request.GET.is_lead }}{% endif %}" class="btn btn-secondary">
+            Вперед
+            <i class="fa-solid fa-chevron-right"></i>
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    {% else %}
+    <!-- Empty State -->
+    <div style="text-align: center; padding: 80px 20px;">
+        <div style="width: 100px; height: 100px; background: rgba(99, 102, 241, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 48px; color: var(--dash-primary);">
+            <i class="fa-solid fa-comments"></i>
+        </div>
+        <h3 style="font-size: 24px; margin: 0 0 12px 0;">Диалогов пока нет</h3>
+        <p style="font-size: 14px; color: var(--dash-text-muted); margin: 0 0 24px 0;">
+            Как только кто-то напишет вашему боту, диалоги появятся здесь
+        </p>
+        {% if bots %}
+        <a href="{% url 'agents_list' %}" class="btn btn-primary">
+            <i class="fa-solid fa-robot"></i>
+            Мои боты
+        </a>
+        {% else %}
+        <a href="{% url 'create_agent' %}" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i>
+            Создать первого бота
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
 </div>
+
+<style>
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-badge.active {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.status-badge.inactive {
+    background: rgba(148, 163, 184, 0.1);
+    color: var(--dash-text-muted);
+    border: 1px solid var(--dash-border);
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table thead {
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 2px solid var(--dash-border);
+}
+
+.data-table th {
+    padding: 16px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--dash-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.data-table tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background 0.2s;
+}
+
+.data-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.data-table td {
+    padding: 16px;
+    font-size: 14px;
+}
+
+.btn-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--dash-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--dash-text);
+    transition: all 0.2s;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-icon:hover {
+    background: rgba(99, 102, 241, 0.1);
+    border-color: var(--dash-primary);
+    color: var(--dash-primary);
+}
+
+.form-input {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--dash-border);
+    border-radius: 10px;
+    padding: 10px 16px;
+    color: var(--dash-text);
+    font-size: 14px;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--dash-primary);
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+</style>
 {% endblock %}

@@ -231,7 +231,7 @@ def bot_detail(request, bot_id):
         bot.temperature = float(request.POST.get('temperature', bot.temperature))
         bot.max_tokens = int(request.POST.get('max_tokens', bot.max_tokens))
         
-        # Чекбоксы возвращают 'on' если включены, или ничего если выключены
+        # Чекбоксы
         bot.status = 'active' if request.POST.get('is_active') else 'paused'
         bot.use_rag = bool(request.POST.get('use_rag'))
         bot.rag_top_k = int(request.POST.get('rag_k', bot.rag_top_k))
@@ -240,12 +240,16 @@ def bot_detail(request, bot_id):
         messages.success(request, 'Настройки бота сохранены')
         return redirect('agent_detail', bot_id=bot.id)
     
-    # Статистика
+    # Статистика с аннотациями
     conversations = Conversation.objects.filter(bot=bot)
     bot.conversations_count = conversations.count()
     bot.leads_count = conversations.filter(is_lead=True).count()
     
-    # ИСПРАВЛЕНИЕ: Получаем файлы базы знаний для этого бота
+    # Подсчет сообщений
+    total_messages = Message.objects.filter(conversation__bot=bot).count()
+    bot.total_messages = total_messages
+    
+    # Получаем файлы базы знаний для этого бота
     knowledge_files = KnowledgeBase.objects.filter(
         bots=bot
     ).prefetch_related('bots').order_by('-created_at')[:5]
@@ -253,13 +257,20 @@ def bot_detail(request, bot_id):
     # Подсчитываем количество файлов
     bot.knowledge_count = KnowledgeBase.objects.filter(bots=bot).count()
     
-    # ИСПРАВЛЕНИЕ: Получаем последние диалоги
-    recent_conversations = conversations.select_related('bot').order_by('-last_message_at')[:10]
+    # Получаем последние диалоги с аннотацией
+    recent_conversations = conversations.select_related('bot').annotate(
+        messages_count=Count('messages')
+    ).order_by('-last_message_at')[:10]
+    
+    # Добавляем последнее сообщение
+    for conv in recent_conversations:
+        last_msg = conv.messages.order_by('-created_at').first()
+        conv.last_message = last_msg.content[:100] if last_msg else ""
     
     # Передаём всё в контекст
     context = {
         'bot': bot,
-        'knowledge_files': knowledge_files,  # ← ДОБАВЛЕНО!
+        'knowledge_files': knowledge_files,
         'recent_conversations': recent_conversations,
     }
     
@@ -312,28 +323,41 @@ def conversations_list(request):
     """Список диалогов"""
     conversations = Conversation.objects.filter(
         bot__user=request.user
-    ).select_related('bot').order_by('-last_message_at')
+    ).select_related('bot').prefetch_related('messages').order_by('-last_message_at')
     
-    # Фильтрация
+    # Фильтрация по боту
     bot_id = request.GET.get('bot')
     if bot_id:
         conversations = conversations.filter(bot_id=bot_id)
     
+    # Фильтрация по лидам
     is_lead = request.GET.get('is_lead')
     if is_lead == '1':
         conversations = conversations.filter(is_lead=True)
+    elif is_lead == '0':
+        conversations = conversations.filter(is_lead=False)
+    
+    # Добавляем аннотацию с количеством сообщений
+    from django.db.models import Count
+    conversations = conversations.annotate(
+        messages_count=Count('messages')
+    )
     
     # Пагинация
     paginator = Paginator(conversations, 20)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
+    # Добавляем последнее сообщение для каждого диалога
+    for conv in page_obj:
+        last_msg = conv.messages.order_by('-created_at').first()
+        conv.last_message = last_msg.content[:100] if last_msg else "Нет сообщений"
+    
     context = {
         'page_obj': page_obj,
         'bots': BotAgent.objects.filter(user=request.user),
     }
     
-    # Исправлено: шаблон conversations.html
     return render(request, 'dashboard/conversations.html', context)
 
 @login_required

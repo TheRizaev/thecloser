@@ -1,471 +1,558 @@
 {% extends 'dashboard/base.html' %}
 {% load static %}
 
-{% block title %}{{ bot.name }} — Детали бота{% endblock %}
+{% block title %}{{ bot.name }} — Управление агентом{% endblock %}
 
 {% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
-.bot-detail-container {
-    max-width: 1400px;
-    margin: 0 auto;
-}
+    :root {
+        --provider-openai: #10a37f;
+        --provider-google: #4285f4;
+        --provider-anthropic: #d97757;
+        --bg-modal: rgba(0, 0, 0, 0.85);
+        --surface-dark: #1e293b;
+        --surface-darker: #0f172a;
+    }
 
-/* Header Card */
-.bot-header-card {
-    background: var(--dash-surface);
-    border: 1px solid var(--dash-border);
-    border-radius: 20px;
-    padding: 32px;
-    margin-bottom: 32px;
-    display: flex;
-    align-items: center;
-    gap: 24px;
-}
+    .bot-detail-container {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding-bottom: 60px;
+    }
 
-.bot-avatar-xl {
-    width: 100px;
-    height: 100px;
-    background: rgba(99, 102, 241, 0.1);
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 40px;
-    flex-shrink: 0;
-}
+    /* --- Header Card --- */
+    .bot-header-card {
+        background: var(--dash-surface);
+        border: 1px solid var(--dash-border);
+        border-radius: 24px;
+        padding: 32px;
+        margin-bottom: 32px;
+        display: flex;
+        gap: 32px;
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(20px);
+    }
 
-.bot-header-info {
-    flex: 1;
-}
+    .bot-header-bg-glow {
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+        pointer-events: none;
+        z-index: 0;
+    }
 
-.bot-header-info h1 {
-    font-size: 32px;
-    margin: 0 0 8px 0;
-}
+    .bot-avatar-xl {
+        width: 140px;
+        height: 140px;
+        background: linear-gradient(145deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
+        border-radius: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 56px;
+        flex-shrink: 0;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.3);
+        z-index: 1;
+        color: var(--dash-primary);
+    }
 
-.bot-status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 14px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    margin-bottom: 12px;
-}
+    .bot-header-info {
+        flex: 1;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
 
-.bot-status-badge.active {
-    background: rgba(34, 197, 94, 0.1);
-    color: #22c55e;
-    border: 1px solid rgba(34, 197, 94, 0.2);
-}
+    .bot-title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 16px;
+    }
 
-.bot-status-badge.inactive {
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
-    border: 1px solid rgba(239, 68, 68, 0.2);
-}
+    .bot-header-info h1 {
+        font-size: 36px;
+        margin: 0 0 12px 0;
+        font-weight: 800;
+        letter-spacing: -1px;
+        background: linear-gradient(to right, #fff, #94a3b8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
 
-.bot-meta-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 16px;
-    margin-top: 12px;
-}
+    .bot-badges {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
 
-.bot-meta-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 14px;
-    color: var(--dash-text-muted);
-}
+    .status-badge {
+        padding: 6px 14px;
+        border-radius: 100px;
+        font-size: 13px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .status-badge.active { background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.2); }
+    .status-badge.inactive { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); }
 
-.bot-header-actions {
-    display: flex;
-    gap: 12px;
-    flex-direction: column;
-}
+    .header-actions {
+        display: flex;
+        gap: 12px;
+    }
 
-/* Stats Grid */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 20px;
-    margin-bottom: 32px;
-}
+    /* --- Tabs Styling --- */
+    .tabs-container {
+        margin-bottom: 32px;
+    }
 
-.stat-card {
-    background: var(--dash-surface);
-    border: 1px solid var(--dash-border);
-    border-radius: 16px;
-    padding: 24px;
-    transition: transform 0.2s;
-}
+    .tabs-nav {
+        display: flex;
+        gap: 8px;
+        padding: 6px;
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid var(--dash-border);
+        border-radius: 16px;
+        width: fit-content;
+        margin-bottom: 24px;
+    }
 
-.stat-card:hover {
-    transform: translateY(-2px);
-}
+    .tab-button {
+        padding: 12px 24px;
+        border: none;
+        background: transparent;
+        color: var(--dash-text-muted);
+        font-size: 14px;
+        font-weight: 600;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
 
-.stat-icon {
-    width: 56px;
-    height: 56px;
-    background: rgba(99, 102, 241, 0.1);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 16px;
-    font-size: 24px;
-    color: var(--dash-primary);
-}
+    .tab-button:hover { color: #fff; background: rgba(255, 255, 255, 0.03); }
+    
+    .tab-button.active {
+        background: var(--dash-primary);
+        color: white;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    }
 
-.stat-value {
-    font-size: 36px;
-    font-weight: 700;
-    margin-bottom: 6px;
-}
+    .tab-content { display: none; animation: slideUp 0.3s ease-out; }
+    .tab-content.active { display: block; }
+    
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 
-.stat-label {
-    font-size: 13px;
-    color: var(--dash-text-muted);
-}
+    /* --- Configuration Forms --- */
+    .config-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 24px;
+    }
 
-/* Tabs */
-.tabs-nav {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 24px;
-    padding: 8px;
-    background: var(--dash-surface);
-    border: 1px solid var(--dash-border);
-    border-radius: 16px;
-    overflow-x: auto;
-}
+    .config-card {
+        background: var(--dash-surface);
+        border: 1px solid var(--dash-border);
+        border-radius: 20px;
+        padding: 28px;
+    }
 
-.tab-button {
-    padding: 12px 24px;
-    border: none;
-    background: transparent;
-    color: var(--dash-text-muted);
-    font-size: 14px;
-    font-weight: 500;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
+    .form-group { margin-bottom: 24px; }
+    
+    .form-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 10px;
+        color: var(--dash-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
 
-.tab-button:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--dash-text);
-}
+    .form-input, .form-textarea, .form-select {
+        width: 100%;
+        background: var(--surface-darker);
+        border: 1px solid var(--dash-border);
+        border-radius: 12px;
+        padding: 16px;
+        color: #fff;
+        font-size: 15px;
+        transition: border-color 0.2s;
+    }
 
-.tab-button.active {
-    background: var(--dash-primary);
-    color: white;
-}
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+        outline: none;
+        border-color: var(--dash-primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    }
 
-.tab-content {
-    display: none;
-}
+    /* Model Select Styling */
+    .optgroup-openai { color: var(--provider-openai); font-weight: 800; background: #1e293b; }
+    .optgroup-google { color: var(--provider-google); font-weight: 800; background: #1e293b; }
+    .optgroup-anthropic { color: var(--provider-anthropic); font-weight: 800; background: #1e293b; }
+    option { color: #fff; font-weight: normal; padding: 10px; }
 
-.tab-content.active {
-    display: block;
-}
+    /* Prompt Preview */
+    .prompt-preview-box {
+        background: var(--surface-darker);
+        border: 1px dashed var(--dash-border);
+        border-radius: 16px;
+        padding: 24px;
+        min-height: 140px;
+        cursor: pointer;
+        transition: all 0.2s;
+        position: relative;
+    }
+    .prompt-preview-box:hover {
+        border-color: var(--dash-primary);
+        background: rgba(15, 23, 42, 0.8);
+    }
+    .prompt-preview-text {
+        font-family: 'JetBrains Mono', 'Fira Code', monospace;
+        color: var(--dash-text-muted);
+        font-size: 13px;
+        line-height: 1.6;
+        display: -webkit-box;
+        -webkit-line-clamp: 6;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
 
-/* Configuration Tab */
-.config-section {
-    background: var(--dash-surface);
-    border: 1px solid var(--dash-border);
-    border-radius: 16px;
-    padding: 24px;
-    margin-bottom: 20px;
-}
+    /* --- FULLSCREEN MODAL --- */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: var(--bg-modal);
+        backdrop-filter: blur(8px);
+        /* Ставим максимальный z-index, чтобы перекрыть любые сайдбары */
+        z-index: 2147483647; 
+        display: none;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
 
-.config-section h3 {
-    margin: 0 0 20px 0;
-    font-size: 18px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
+    .modal-overlay.open {
+        display: flex;
+        opacity: 1;
+    }
 
-.form-group {
-    margin-bottom: 20px;
-}
+    .modal-content {
+        background: var(--surface-dark);
+        width: 90vw;
+        height: 90vh;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.7);
+        display: flex;
+        flex-direction: column;
+        transform: scale(0.95);
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
 
-.form-label {
-    display: block;
-    font-size: 13px;
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: var(--dash-text);
-}
+    .modal-overlay.open .modal-content { transform: scale(1); }
 
-.form-input, .form-textarea, .form-select {
-    width: 100%;
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid var(--dash-border);
-    border-radius: 10px;
-    padding: 12px 16px;
-    color: var(--dash-text);
-    font-size: 14px;
-    font-family: inherit;
-}
+    .modal-header {
+        padding: 24px 32px;
+        border-bottom: 1px solid var(--dash-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--surface-darker);
+        border-radius: 20px 20px 0 0;
+    }
 
-.form-textarea {
-    resize: vertical;
-    min-height: 100px;
-}
+    /* Контейнер тела модалки должен растягиваться на всю доступную высоту */
+    .modal-body {
+        flex: 1 1 auto; /* Растягиваемся и сжимаемся */
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+        position: relative;
+        background: #0f172a;
+        overflow: hidden; /* Скрываем скроллы родителя */
+        height: 100%;     /* Важно! */
+    }
 
-.form-input:focus, .form-textarea:focus, .form-select:focus {
-    outline: none;
-    border-color: var(--dash-primary);
-}
+    #modalTextarea {  /* Используем ID для максимального приоритета над Bootstrap/другими стилями */
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 100% !important;
+        max-width: none !important; /* Убираем ограничения ширины */
+        
+        background: transparent;
+        border: none;
+        padding: 32px;
+        color: #e2e8f0;
+        font-family: 'JetBrains Mono', 'Fira Code', monospace;
+        font-size: 16px;
+        line-height: 1.7;
+        resize: none; /* Запрещаем ручное изменение размера, так как у нас фуллскрин */
+        outline: none;
+        box-sizing: border-box; /* Чтобы padding не ломал ширину 100% */
+        display: block;
+    }
 
-.form-hint {
-    font-size: 12px;
-    color: var(--dash-text-muted);
-    margin-top: 6px;
-}
+    .fullscreen-textarea {
+        flex: 1;
+        /* Force full width and override global styles */
+        width: 100% !important; 
+        max-width: 100% !important; 
+        height: 100%;
+        background: transparent;
+        border: none;
+        padding: 32px;
+        color: #e2e8f0;
+        font-family: 'JetBrains Mono', 'Fira Code', monospace;
+        font-size: 16px;
+        line-height: 1.7;
+        resize: none;
+        outline: none;
+        box-sizing: border-box; /* Важно для отступов */
+    }
+    
+    /* --- Knowledge Base Tab Styles --- */
+    .kb-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .kb-item {
+        display: flex;
+        align-items: center;
+        padding: 16px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--dash-border);
+        border-radius: 16px;
+        transition: all 0.2s;
+    }
+    
+    .kb-item:hover {
+        background: rgba(255, 255, 255, 0.04);
+        border-color: rgba(255, 255, 255, 0.1);
+        transform: translateX(4px);
+    }
 
-.toggle-switch {
-    position: relative;
-    display: inline-block;
-    width: 52px;
-    height: 28px;
-}
+    .kb-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        margin-right: 20px;
+    }
+    
+    .kb-icon.pdf { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+    .kb-icon.docx { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+    .kb-icon.txt { background: rgba(148, 163, 184, 0.1); color: #94a3b8; }
 
-.toggle-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
+    /* --- Analytics Tab Styles --- */
+    .analytics-grid-top {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+    
+    .kpi-card {
+        background: var(--dash-surface);
+        border: 1px solid var(--dash-border);
+        border-radius: 16px;
+        padding: 20px;
+    }
+    
+    .chart-box-large {
+        background: var(--dash-surface);
+        border: 1px solid var(--dash-border);
+        border-radius: 20px;
+        padding: 24px;
+        height: 400px;
+        margin-bottom: 24px;
+    }
 
-.toggle-slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(255, 255, 255, 0.1);
-    transition: .3s;
-    border-radius: 28px;
-}
+    /* --- Conversation Tab Styles --- */
+    .conv-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 8px;
+    }
+    
+    .conv-row {
+        background: rgba(255, 255, 255, 0.02);
+        transition: background 0.2s;
+    }
+    
+    .conv-row:hover { background: rgba(255, 255, 255, 0.04); }
+    
+    .conv-cell {
+        padding: 16px;
+        border-top: 1px solid var(--dash-border);
+        border-bottom: 1px solid var(--dash-border);
+    }
+    
+    .conv-cell:first-child {
+        border-left: 1px solid var(--dash-border);
+        border-top-left-radius: 12px;
+        border-bottom-left-radius: 12px;
+    }
+    
+    .conv-cell:last-child {
+        border-right: 1px solid var(--dash-border);
+        border-top-right-radius: 12px;
+        border-bottom-right-radius: 12px;
+    }
 
-.toggle-slider:before {
-    position: absolute;
-    content: "";
-    height: 20px;
-    width: 20px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    transition: .3s;
-    border-radius: 50%;
-}
 
-input:checked + .toggle-slider {
-    background-color: var(--dash-primary);
-}
+    /* Карточка RAG */
+    .rag-card {
+        background: linear-gradient(145deg, rgba(30, 41, 59, 0.4), rgba(15, 23, 42, 0.6));
+        border: 1px solid var(--dash-border);
+        border-radius: 16px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-top: 24px;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
 
-input:checked + .toggle-slider:before {
-    transform: translateX(24px);
-}
+    .rag-card:hover {
+        border-color: var(--dash-primary);
+        box-shadow: 0 8px 24px -6px rgba(99, 102, 241, 0.25);
+        transform: translateY(-2px);
+    }
+    
+    /* Декоративная полоска слева */
+    .rag-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; bottom: 0;
+        width: 4px;
+        background: var(--dash-primary);
+        opacity: 0.7;
+    }
 
-/* Knowledge Base Tab */
-.kb-stats-mini {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 16px;
-    margin-bottom: 24px;
-}
+    /* Иконка */
+    .rag-icon {
+        width: 48px;
+        height: 48px;
+        background: rgba(99, 102, 241, 0.1);
+        color: var(--dash-primary);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        border: 1px solid rgba(99, 102, 241, 0.2);
+        flex-shrink: 0;
+    }
 
-.kb-stat-mini {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid var(--dash-border);
-    border-radius: 12px;
-    padding: 16px;
-}
+    .rag-content { flex: 1; }
 
-.kb-stat-value {
-    font-size: 28px;
-    font-weight: 700;
-    margin-bottom: 4px;
-}
+    .rag-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
 
-.kb-stat-label {
-    font-size: 12px;
-    color: var(--dash-text-muted);
-}
+    .rag-desc {
+        font-size: 13px;
+        color: var(--dash-text-muted);
+        line-height: 1.4;
+    }
 
-.kb-files-preview {
-    display: grid;
-    gap: 12px;
-}
+    .pro-badge {
+        font-size: 10px; 
+        background: rgba(99, 102, 241, 0.2); 
+        color: #818cf8; 
+        padding: 2px 6px; 
+        border-radius: 4px;
+        border: 1px solid rgba(99, 102, 241, 0.3);
+    }
 
-.kb-file-mini {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid var(--dash-border);
-    border-radius: 12px;
-    padding: 16px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    transition: all 0.2s;
-}
-
-.kb-file-mini:hover {
-    border-color: rgba(99, 102, 241, 0.3);
-}
-
-.kb-file-icon-mini {
-    width: 44px;
-    height: 44px;
-    background: rgba(99, 102, 241, 0.1);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    flex-shrink: 0;
-}
-
-.kb-file-icon-mini.pdf { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
-.kb-file-icon-mini.docx { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
-.kb-file-icon-mini.txt { background: rgba(168, 85, 247, 0.1); color: #a855f7; }
-.kb-file-icon-mini.md { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
-
-/* Conversations Tab */
-.conversations-list {
-    display: grid;
-    gap: 12px;
-}
-
-.conversation-mini {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid var(--dash-border);
-    border-radius: 12px;
-    padding: 16px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    transition: all 0.2s;
-    cursor: pointer;
-}
-
-.conversation-mini:hover {
-    border-color: rgba(99, 102, 241, 0.3);
-    transform: translateX(4px);
-}
-
-.conversation-avatar {
-    width: 48px;
-    height: 48px;
-    background: rgba(99, 102, 241, 0.1);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    flex-shrink: 0;
-}
-
-.conversation-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.conversation-user {
-    font-weight: 600;
-    margin-bottom: 4px;
-}
-
-.conversation-last-msg {
-    font-size: 13px;
-    color: var(--dash-text-muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.conversation-meta {
-    font-size: 12px;
-    color: var(--dash-text-muted);
-    text-align: right;
-}
-
-/* Analytics Tab */
-.chart-container {
-    background: var(--dash-surface);
-    border: 1px solid var(--dash-border);
-    border-radius: 16px;
-    padding: 24px;
-    margin-bottom: 20px;
-    height: 300px;
-}
-
-/* Empty States */
-.empty-state {
-    text-align: center;
-    padding: 60px 20px;
-}
-
-.empty-state .empty-icon {
-    width: 100px;
-    height: 100px;
-    background: rgba(99, 102, 241, 0.1);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 20px;
-    font-size: 40px;
-    color: var(--dash-primary);
-}
-
-.empty-state h3 {
-    margin: 0 0 8px 0;
-    font-size: 18px;
-}
-
-.empty-state p {
-    color: var(--dash-text-muted);
-    margin: 0 0 20px 0;
-}
-
-/* Danger Zone */
-.danger-zone {
-    background: rgba(239, 68, 68, 0.05);
-    border: 1px solid rgba(239, 68, 68, 0.2);
-    border-radius: 16px;
-    padding: 24px;
-    margin-top: 32px;
-}
-
-.danger-zone h3 {
-    color: var(--dash-error);
-    margin: 0 0 12px 0;
-    font-size: 16px;
-}
-
-.danger-zone p {
-    color: var(--dash-text-muted);
-    margin: 0 0 16px 0;
-    font-size: 14px;
-}
+    /* Красивый свитчер */
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 52px;
+        height: 28px;
+        flex-shrink: 0;
+    }
+    
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: #334155;
+        transition: .4s;
+        border-radius: 34px;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    input:checked + .toggle-slider {
+        background-color: var(--dash-primary);
+        border-color: transparent;
+        box-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+    }
+    
+    input:checked + .toggle-slider:before {
+        transform: translateX(24px);
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="bot-detail-container">
-    <!-- Bot Header -->
+
     <div class="bot-header-card">
+        <div class="bot-header-bg-glow"></div>
+        
         <div class="bot-avatar-xl">
             {% if bot.platform == 'telegram' %}
                 <i class="fa-brands fa-telegram" style="color: #229ED9;"></i>
@@ -473,609 +560,510 @@ input:checked + .toggle-slider:before {
                 <i class="fa-brands fa-whatsapp" style="color: #25D366;"></i>
             {% elif bot.platform == 'vk' %}
                 <i class="fa-brands fa-vk" style="color: #0077FF;"></i>
-            {% elif bot.platform == 'instagram' %}
-                <i class="fa-brands fa-instagram" style="color: #E4405F;"></i>
             {% else %}
                 <i class="fa-solid fa-robot"></i>
             {% endif %}
         </div>
-        
+
         <div class="bot-header-info">
-            <h1>{{ bot.name }}</h1>
-            
-            <div class="bot-status-badge {% if bot.status == 'active' %}active{% else %}inactive{% endif %}">
-                <i class="fa-solid fa-circle" style="font-size: 8px;"></i>
-                {% if bot.status == 'active' %}Активен{% else %}Неактивен{% endif %}
+            <div class="bot-title-row">
+                <div>
+                    <h1>{{ bot.name }}</h1>
+                    <div class="bot-badges">
+                        <div class="status-badge {% if bot.status == 'active' %}active{% else %}inactive{% endif %}">
+                            <i class="fa-solid fa-circle" style="font-size: 8px;"></i>
+                            {% if bot.status == 'active' %}Активен{% else %}Остановлен{% endif %}
+                        </div>
+                        <span style="color: var(--dash-text-muted);">
+                            <i class="fa-solid fa-microchip"></i> {{ bot.openai_model }}
+                        </span>
+                        <span style="color: var(--dash-text-muted);">
+                            <i class="fa-solid fa-clock"></i> Создан {{ bot.created_at|date:"d.m.Y" }}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="header-actions">
+                     {% if bot.platform == 'telegram' %}
+                        {% if bot.session_string %}
+                        <a href="https://t.me/{{ bot.telegram_username }}" target="_blank" class="btn btn-primary" style="background: #229ED9; border-color: #229ED9;">
+                            <i class="fa-brands fa-telegram"></i> Telegram
+                        </a>
+                        {% else %}
+                        <a href="{% url 'telegram_connect' bot.id %}" class="btn btn-secondary">
+                            <i class="fa-solid fa-link"></i> Подключить
+                        </a>
+                        {% endif %}
+                    {% endif %}
+                    
+                    <button class="btn btn-secondary" onclick="toggleBotStatus()">
+                        <i class="fa-solid fa-power-off"></i> 
+                        {% if bot.status == 'active' %}Стоп{% else %}Пуск{% endif %}
+                    </button>
+                </div>
             </div>
             
-            <div class="bot-meta-grid">
-                <div class="bot-meta-item">
-                    <i class="fa-solid fa-layer-group"></i>
-                    <span>{{ bot.get_platform_display }}</span>
-                </div>
-                <div class="bot-meta-item">
-                    <i class="fa-solid fa-calendar"></i>
-                    <span>Создан {{ bot.created_at|date:"d.m.Y" }}</span>
-                </div>
-                {% if bot.platform == 'telegram' and bot.session_string %}
-                <div class="bot-meta-item">
-                    <i class="fa-solid fa-link"></i>
-                    <span>Подключен к Telegram</span>
-                </div>
-                {% endif %}
-            </div>
+            <p style="color: var(--dash-text-muted); font-size: 15px; margin: 0; max-width: 800px; line-height: 1.5;">
+                {{ bot.description|default:"Нет описания. Добавьте его в настройках, чтобы лучше понимать назначение агента." }}
+            </p>
         </div>
-        
-        <div class="bot-header-actions">
-            {% if bot.platform == 'telegram' %}
-                {% if bot.session_string %}
-                <a href="https://t.me/{{ bot.telegram_username }}" target="_blank" class="btn btn-primary" style="background: #229ED9; border-color: #229ED9;">
-                    <i class="fa-brands fa-telegram"></i>
-                    Открыть в Telegram
-                </a>
-                {% else %}
-                <a href="{% url 'telegram_connect' bot.id %}" class="btn btn-secondary">
-                    <i class="fa-brands fa-telegram"></i>
-                    Подключить Telegram
-                </a>
-                {% endif %}
-            {% endif %}
-            
-            <button class="btn btn-secondary" onclick="toggleBotStatus()">
-                <i class="fa-solid fa-power-off"></i>
-                {% if bot.status == 'active' %}Отключить{% else %}Включить{% endif %}
+    </div>
+
+    <div class="tabs-container">
+        <div class="tabs-nav">
+            <button class="tab-button active" onclick="switchTab('config')">
+                <i class="fa-solid fa-sliders"></i> Настройки и AI
             </button>
-            
-            <a href="{% url 'agents_list' %}" class="btn btn-secondary">
-                <i class="fa-solid fa-arrow-left"></i>
-                Назад к списку
-            </a>
+            <button class="tab-button" onclick="switchTab('analytics')">
+                <i class="fa-solid fa-chart-pie"></i> Аналитика
+            </button>
+            <button class="tab-button" onclick="switchTab('knowledge')">
+                <i class="fa-solid fa-database"></i> База знаний
+            </button>
+            <button class="tab-button" onclick="switchTab('conversations')">
+                <i class="fa-solid fa-comments"></i> Диалоги
+            </button>
         </div>
     </div>
 
-    <!-- Stats -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fa-solid fa-comments"></i>
-            </div>
-            <div class="stat-value">{{ bot.conversations_count|default:0 }}</div>
-            <div class="stat-label">Всего диалогов</div>
-        </div>
-        
-        <div class="stat-card">
-            <div class="stat-icon" style="background: rgba(34, 197, 94, 0.1); color: #22c55e;">
-                <i class="fa-solid fa-message"></i>
-            </div>
-            <div class="stat-value">{{ bot.leads_count|default:0 }}</div>
-            <div class="stat-label">Лидов захвачено</div>
-        </div>
-        
-        <div class="stat-card">
-            <div class="stat-icon" style="background: rgba(168, 85, 247, 0.1); color: #a855f7;">
-                <i class="fa-solid fa-brain"></i>
-            </div>
-            <div class="stat-value">{{ bot.knowledge_count|default:0 }}</div>
-            <div class="stat-label">Файлов знаний</div>
-        </div>
-        
-        <div class="stat-card">
-            <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
-                <i class="fa-solid fa-clock"></i>
-            </div>
-            <div class="stat-value">&lt;1с</div>
-            <div class="stat-label">Среднее время ответа</div>
-        </div>
-    </div>
-
-    <!-- Tabs -->
-    <div class="tabs-nav">
-        <button class="tab-button active" onclick="switchTab('overview')">
-            <i class="fa-solid fa-chart-line"></i>
-            Обзор
-        </button>
-        <button class="tab-button" onclick="switchTab('config')">
-            <i class="fa-solid fa-gear"></i>
-            Настройки
-        </button>
-        <button class="tab-button" onclick="switchTab('knowledge')">
-            <i class="fa-solid fa-brain"></i>
-            База знаний
-        </button>
-        <button class="tab-button" onclick="switchTab('conversations')">
-            <i class="fa-solid fa-comments"></i>
-            Диалоги
-        </button>
-        <button class="tab-button" onclick="switchTab('analytics')">
-            <i class="fa-solid fa-chart-pie"></i>
-            Аналитика
-        </button>
-    </div>
-
-    <!-- Tab: Overview -->
-    <div id="tab-overview" class="tab-content active">
-        <div class="glass-card">
-            <h3 style="margin: 0 0 20px 0;">
-                <i class="fa-solid fa-info-circle"></i>
-                О боте
-            </h3>
-            
-            <div style="display: grid; gap: 20px;">
-                <div>
-                    <div class="form-label">Описание</div>
-                    <p style="color: var(--dash-text-muted); margin: 0;">
-                        {{ bot.description|default:"Описание не указано" }}
-                    </p>
-                </div>
-                
-                <div>
-                    <div class="form-label">Системный промпт</div>
-                    <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--dash-border); border-radius: 10px; padding: 16px;">
-                        <pre style="margin: 0; white-space: pre-wrap; font-size: 13px; color: var(--dash-text-muted);">{{ bot.system_prompt|truncatewords:50 }}</pre>
-                    </div>
-                </div>
-                
-                <div>
-                    <div class="form-label">Модель AI</div>
-                    <p style="color: var(--dash-text-muted); margin: 0;">
-                        {{ bot.openai_model|default:"gpt-4o-mini" }}
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Recent Activity -->
-        <div class="glass-card" style="margin-top: 20px;">
-            <h3 style="margin: 0 0 20px 0;">
-                <i class="fa-solid fa-clock-rotate-left"></i>
-                Последняя активность
-            </h3>
-            
-            {% if recent_conversations %}
-            <div class="conversations-list">
-                {% for conv in recent_conversations|slice:":5" %}
-                <a href="{% url 'conversation_detail' conv.id %}" class="conversation-mini" style="text-decoration: none; color: inherit;">
-                    <div class="conversation-avatar">
-                        <i class="fa-solid fa-user"></i>
-                    </div>
-                    <div class="conversation-info">
-                        <div class="conversation-user">{{ conv.user_name|default:"Пользователь" }}</div>
-                        <div class="conversation-last-msg">{{ conv.last_message|truncatewords:10 }}</div>
-                    </div>
-                    <div class="conversation-meta">
-                        {{ conv.updated_at|timesince }} назад
-                    </div>
-                </a>
-                {% endfor %}
-            </div>
-            {% else %}
-            <div class="empty-state" style="padding: 40px 20px;">
-                <p style="color: var(--dash-text-muted);">Пока нет активных диалогов</p>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Tab: Configuration -->
-    <div id="tab-config" class="tab-content">
-        <form method="POST" action="{% url 'agent_detail' bot.id %}">
+    <div id="tab-config" class="tab-content active">
+        <form method="POST" action="{% url 'agent_detail' bot.id %}" id="botConfigForm">
             {% csrf_token %}
             
-            <!-- Basic Settings -->
-            <div class="config-section">
-                <h3>
-                    <i class="fa-solid fa-sliders"></i>
-                    Основные настройки
-                </h3>
-                
-                <div class="form-group">
-                    <label class="form-label">Название бота *</label>
-                    <input type="text" name="name" class="form-input" value="{{ bot.name }}" required>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Описание</label>
-                    <textarea name="description" class="form-textarea">{{ bot.description }}</textarea>
-                    <div class="form-hint">Краткое описание назначения бота</div>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Платформа</label>
-                    <select name="platform" class="form-select" disabled>
-                        <option value="telegram" {% if bot.platform == 'telegram' %}selected{% endif %}>Telegram</option>
-                        <option value="whatsapp" {% if bot.platform == 'whatsapp' %}selected{% endif %}>WhatsApp</option>
-                        <option value="vk" {% if bot.platform == 'vk' %}selected{% endif %}>ВКонтакте</option>
-                        <option value="instagram" {% if bot.platform == 'instagram' %}selected{% endif %}>Instagram</option>
-                    </select>
-                    <div class="form-hint">Платформу нельзя изменить после создания</div>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label" style="display: flex; align-items: center; gap: 12px;">
-                        <span>Статус бота</span>
-                        <label class="toggle-switch">
-                            <input type="checkbox" name="is_active" {% if bot.status == 'active' %}checked{% endif %}>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </label>
-                    <div class="form-hint">Включить или отключить бота</div>
-                </div>
-            </div>
+            <div class="config-grid">
+                <div>
+                    <div class="config-card" style="margin-bottom: 24px; border-color: rgba(99, 102, 241, 0.4);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3 style="margin: 0; display: flex; align-items: center; gap: 12px;">
+                                <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--dash-primary);"></i>
+                                Системный промпт
+                            </h3>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="openEditor()">
+                                <i class="fa-solid fa-expand"></i> Развернуть редактор
+                            </button>
+                        </div>
 
-            <!-- AI Settings -->
-            <div class="config-section">
-                <h3>
-                    <i class="fa-solid fa-brain"></i>
-                    Настройки AI
-                </h3>
-                
-                <div class="form-group">
-                    <label class="form-label">Модель AI</label>
-                    <select name="model" class="form-select">
-                        <option value="gpt-3.5-turbo" {% if bot.openai_model == 'gpt-3.5-turbo' %}selected{% endif %}>GPT-3.5 Turbo</option>
-                        <option value="gpt-4" {% if bot.openai_model == 'gpt-4' %}selected{% endif %}>GPT-4</option>
-                        <option value="gpt-4-turbo" {% if bot.openai_model == 'gpt-4-turbo' %}selected{% endif %}>GPT-4 Turbo</option>
-                        <option value="gpt-4o-mini" {% if bot.openai_model == 'gpt-4o-mini' %}selected{% endif %}>GPT-4o Mini</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Системный промпт *</label>
-                    <textarea name="system_prompt" class="form-textarea" rows="8" required>{{ bot.system_prompt }}</textarea>
-                    <div class="form-hint">Инструкции для AI о том, как отвечать на вопросы</div>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Температура ({{ bot.temperature|default:"0.7" }})</label>
-                    <input type="range" name="temperature" min="0" max="2" step="0.1" value="{{ bot.temperature|default:'0.7' }}" class="form-input" style="padding: 0;">
-                    <div class="form-hint">Креативность ответов: 0 = точные, 2 = креативные</div>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Максимум токенов в ответе</label>
-                    <input type="number" name="max_tokens" class="form-input" value="{{ bot.max_tokens|default:'1000' }}" min="100" max="4000">
-                    <div class="form-hint">Максимальная длина ответа бота</div>
-                </div>
-            </div>
+                        <textarea name="system_prompt" id="realPromptInput" style="display: none;">{{ bot.system_prompt }}</textarea>
 
-            <!-- RAG Settings -->
-            <div class="config-section">
-                <h3>
-                    <i class="fa-solid fa-database"></i>
-                    Настройки RAG (база знаний)
-                </h3>
-                
-                <div class="form-group">
-                    <label class="form-label" style="display: flex; align-items: center; gap: 12px;">
-                        <span>Использовать базу знаний</span>
-                        <label class="toggle-switch">
-                            <input type="checkbox" name="use_rag" {% if bot.use_rag %}checked{% endif %}>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </label>
-                    <div class="form-hint">Искать ответы в загруженных документах</div>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Количество фрагментов для поиска</label>
-                    <input type="number" name="rag_k" class="form-input" value="{{ bot.rag_top_k|default:'3' }}" min="1" max="10">
-                    <div class="form-hint">Сколько релевантных фрагментов искать (1-10)</div>
-                </div>
-            </div>
+                        <div class="prompt-preview-box" onclick="openEditor()">
+                            <div class="prompt-preview-text" id="promptPreviewText">{{ bot.system_prompt }}</div>
+                        </div>
+                    </div>
 
-            <!-- Save Button -->
-            <div style="display: flex; gap: 12px;">
-                <button type="submit" class="btn btn-primary" style="flex: 1;">
-                    <i class="fa-solid fa-save"></i>
-                    Сохранить изменения
-                </button>
-                <button type="reset" class="btn btn-secondary">
-                    Отменить
-                </button>
+                    <div class="config-card">
+                        <h3 style="margin-top: 0;">Основная информация</h3>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Название агента</label>
+                            <input type="text" name="name" class="form-input" value="{{ bot.name }}" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Описание</label>
+                            <textarea name="description" class="form-textarea" rows="3">{{ bot.description }}</textarea>
+                        </div>
+
+                        <div class="rag-card">
+                            <div class="rag-icon">
+                                <i class="fa-solid fa-database"></i>
+                            </div>
+                            
+                            <div class="rag-content">
+                                <div class="rag-title">
+                                    База Знаний (RAG)
+                                    <span class="pro-badge">PRO</span>
+                                </div>
+                                <div class="rag-desc">
+                                    Бот будет искать ответы в загруженных файлах перед генерацией ответа.
+                                </div>
+                            </div>
+
+                            <label class="toggle-switch">
+                                <input type="checkbox" name="use_rag" {% if bot.use_rag %}checked{% endif %}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="config-card" style="height: auto;">
+                        <h3 style="margin-top: 0;">Модель интеллекта</h3>
+                        
+                        <div class="form-group">
+                            <label class="form-label">LLM Провайдер и Модель</label>
+                            <select name="model" class="form-select" id="aiModelSelect" onchange="updateModelColor()">
+                                <optgroup label="OpenAI" class="optgroup-openai">
+                                    <option value="gpt-4o" {% if bot.openai_model == 'gpt-4o' %}selected{% endif %}>GPT-4o (Флагман)</option>
+                                    <option value="gpt-4o-mini" {% if bot.openai_model == 'gpt-4o-mini' %}selected{% endif %}>GPT-4o Mini (Быстрая)</option>
+                                    <option value="gpt-4-turbo" {% if bot.openai_model == 'gpt-4-turbo' %}selected{% endif %}>GPT-4 Turbo</option>
+                                </optgroup>
+                                
+                                <optgroup label="Google DeepMind" class="optgroup-google">
+                                    <option value="gemini-1.5-pro" {% if bot.openai_model == 'gemini-1.5-pro' %}selected{% endif %}>Gemini 1.5 Pro</option>
+                                    <option value="gemini-1.5-flash" {% if bot.openai_model == 'gemini-1.5-flash' %}selected{% endif %}>Gemini 1.5 Flash</option>
+                                </optgroup>
+                                
+                                <optgroup label="Anthropic" class="optgroup-anthropic">
+                                    <option value="claude-3-5-sonnet" {% if bot.openai_model == 'claude-3-5-sonnet' %}selected{% endif %}>Claude 3.5 Sonnet</option>
+                                    <option value="claude-3-opus" {% if bot.openai_model == 'claude-3-opus' %}selected{% endif %}>Claude 3 Opus</option>
+                                </optgroup>
+                            </select>
+                            <div style="margin-top: 8px; font-size: 12px; color: var(--dash-text-muted);" id="modelHint"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Температура (Креативность)</label>
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <input type="range" name="temperature" min="0" max="2" step="0.1" value="{{ bot.temperature|default:'0.7' }}" style="flex: 1;" oninput="tempDisplay.innerText = this.value">
+                                <span id="tempDisplay" style="font-family: monospace; font-weight: bold; font-size: 16px; color: var(--dash-primary); width: 40px; text-align: right;">{{ bot.temperature|default:'0.7' }}</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Лимит токенов</label>
+                            <input type="number" name="max_tokens" class="form-input" value="{{ bot.max_tokens|default:'1000' }}">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 12px; height: 48px; font-size: 16px;">
+                            <i class="fa-solid fa-floppy-disk"></i> Сохранить изменения
+                        </button>
+                    </div>
+
+                    <div style="margin-top: 24px; border: 1px solid rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.05); border-radius: 16px; padding: 20px;">
+                        <h4 style="margin: 0 0 12px 0; color: #ef4444;">Опасная зона</h4>
+                        <button type="button" class="btn btn-secondary" onclick="deleteBot()" style="width: 100%; border-color: #ef4444; color: #ef4444;">
+                            <i class="fa-solid fa-trash"></i> Удалить агента
+                        </button>
+                    </div>
+                </div>
             </div>
         </form>
+    </div>
 
-        <!-- Danger Zone -->
-        <div class="danger-zone">
-            <h3><i class="fa-solid fa-triangle-exclamation"></i> Опасная зона</h3>
-            <p>Удаление бота нельзя отменить. Все данные, диалоги и настройки будут удалены навсегда.</p>
-            <button class="btn btn-secondary" onclick="deleteBot()" style="background: var(--dash-error); border-color: var(--dash-error); color: white;">
-                <i class="fa-solid fa-trash"></i>
-                Удалить бота
-            </button>
+    <div id="tab-analytics" class="tab-content">
+        <div class="analytics-grid-top">
+            <div class="kpi-card">
+                <div style="color: var(--dash-text-muted); font-size: 13px; margin-bottom: 8px;">Всего диалогов</div>
+                <div style="font-size: 28px; font-weight: 800; color: #fff;">{{ bot.conversations_count }}</div>
+                <div style="color: #4ade80; font-size: 12px; margin-top: 4px;">
+                    <i class="fa-solid fa-arrow-up"></i> 12% за неделю
+                </div>
+            </div>
+            
+            <div class="kpi-card">
+                <div style="color: var(--dash-text-muted); font-size: 13px; margin-bottom: 8px;">Всего сообщений</div>
+                <div style="font-size: 28px; font-weight: 800; color: #fff;">{{ bot.total_messages|default:0 }}</div>
+            </div>
+
+            <div class="kpi-card">
+                <div style="color: var(--dash-text-muted); font-size: 13px; margin-bottom: 8px;">Лиды</div>
+                <div style="font-size: 28px; font-weight: 800; color: #fff;">{{ bot.leads_count }}</div>
+                <div style="color: #4ade80; font-size: 12px; margin-top: 4px;">CR: 5.2%</div>
+            </div>
+
+            <div class="kpi-card">
+                <div style="color: var(--dash-text-muted); font-size: 13px; margin-bottom: 8px;">База знаний</div>
+                <div style="font-size: 28px; font-weight: 800; color: #fff;">{{ bot.knowledge_count }} <span style="font-size: 14px; font-weight: normal; color: var(--dash-text-muted);">файлов</span></div>
+            </div>
+        </div>
+
+        <div class="chart-box-large">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                <h3 style="margin: 0;">Активность диалогов</h3>
+                <select class="form-select" style="width: 150px; padding: 6px 12px;" id="chartPeriod" onchange="loadChart()">
+                    <option value="7days">7 дней</option>
+                    <option value="30days">30 дней</option>
+                </select>
+            </div>
+            <div style="height: 300px; width: 100%;">
+                <canvas id="analyticsChart"></canvas>
+            </div>
         </div>
     </div>
 
-    <!-- Tab: Knowledge Base -->
     <div id="tab-knowledge" class="tab-content">
-        <div class="glass-card">
+        <div class="config-card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                <h3 style="margin: 0;">
-                    <i class="fa-solid fa-brain"></i>
-                    База знаний бота
-                </h3>
-                <div style="display: flex; gap: 12px;">
-                    <a href="{% url 'upload_knowledge' %}?bot_id={{ bot.id }}" class="btn btn-primary">
-                        <i class="fa-solid fa-upload"></i>
-                        Загрузить файл
-                    </a>
-                    <a href="{% url 'bot_knowledge_base' bot.id %}" class="btn btn-secondary">
-                        <i class="fa-solid fa-folder-open"></i>
-                        Открыть полностью
-                    </a>
-                </div>
-            </div>
-
-            <!-- KB Stats -->
-            <div class="kb-stats-mini">
-                <div class="kb-stat-mini">
-                    <div class="kb-stat-value">{{ bot.knowledge_count|default:0 }}</div>
-                    <div class="kb-stat-label">Файлов</div>
-                </div>
-                
-                <div class="kb-stat-mini">
-                    <div class="kb-stat-value">0</div>
-                    <div class="kb-stat-label">Фрагментов</div>
-                </div>
-                
-                <div class="kb-stat-mini">
-                    <div class="kb-stat-value">0</div>
-                    <div class="kb-stat-label">Проиндексировано</div>
-                </div>
-            </div>
-
-            <!-- Files Preview -->
-            {% if knowledge_files %}
-            <div class="kb-files-preview">
-                {% for file in knowledge_files|slice:":5" %}
-                <div class="kb-file-mini">
-                    <div class="kb-file-icon-mini {{ file.file_type }}">
-                        {% if file.file_type == 'pdf' %}
-                            <i class="fa-solid fa-file-pdf"></i>
-                        {% elif file.file_type == 'docx' %}
-                            <i class="fa-solid fa-file-word"></i>
-                        {% elif file.file_type == 'txt' %}
-                            <i class="fa-solid fa-file-lines"></i>
-                        {% elif file.file_type == 'md' %}
-                            <i class="fa-brands fa-markdown"></i>
-                        {% else %}
-                            <i class="fa-solid fa-file"></i>
-                        {% endif %}
-                    </div>
-                    <div style="flex: 1; min-width: 0;">
-                        <div style="font-weight: 600; margin-bottom: 4px;">{{ file.title }}</div>
-                        <div style="font-size: 12px; color: var(--dash-text-muted);">
-                            {{ file.file_size_display }} • {{ file.chunks_count }} фрагментов
-                        </div>
-                    </div>
-                    <a href="{% url 'knowledge_detail' file.id %}" class="btn-icon">
-                        <i class="fa-solid fa-arrow-right"></i>
-                    </a>
-                </div>
-                {% endfor %}
-                
-                {% if bot.knowledge_count > 5 %}
-                <div style="text-align: center; padding: 16px;">
-                    <a href="{% url 'bot_knowledge_base' bot.id %}" class="btn btn-secondary">
-                        Показать все {{ bot.knowledge_count }} файлов
-                    </a>
-                </div>
-                {% endif %}
-            </div>
-            {% else %}
-            <div class="empty-state">
-                <div class="empty-icon">
-                    <i class="fa-solid fa-book"></i>
-                </div>
-                <h3>База знаний пуста</h3>
-                <p>Загрузите документы, чтобы бот мог отвечать на вопросы на основе ваших данных</p>
+                <h3 style="margin: 0;">Файлы базы знаний</h3>
                 <a href="{% url 'upload_knowledge' %}?bot_id={{ bot.id }}" class="btn btn-primary">
-                    <i class="fa-solid fa-upload"></i>
-                    Загрузить первый файл
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Загрузить файл
                 </a>
             </div>
+
+            {% if knowledge_files %}
+                <div class="kb-list">
+                    {% for file in knowledge_files %}
+                    <div class="kb-item">
+                        <div class="kb-icon {{ file.file_type }}">
+                            {% if file.file_type == 'pdf' %}<i class="fa-solid fa-file-pdf"></i>
+                            {% elif file.file_type == 'docx' %}<i class="fa-solid fa-file-word"></i>
+                            {% else %}<i class="fa-solid fa-file-lines"></i>{% endif %}
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; font-size: 16px; margin-bottom: 4px;">{{ file.title }}</div>
+                            <div style="font-size: 12px; color: var(--dash-text-muted);">
+                                {{ file.file_size_display }} • {{ file.created_at|date:"d M Y, H:i" }}
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 16px;">
+                            {% if file.is_indexed %}
+                                <span class="status-badge active"><i class="fa-solid fa-check"></i> Индекс</span>
+                            {% else %}
+                                <span class="status-badge inactive"><i class="fa-solid fa-clock"></i> Обработка</span>
+                            {% endif %}
+                            
+                            <a href="{% url 'knowledge_detail' file.id %}" class="btn btn-secondary btn-sm">
+                                <i class="fa-solid fa-eye"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div style="margin-top: 24px; text-align: center;">
+                    <a href="{% url 'bot_knowledge_base' bot.id %}" class="btn btn-secondary">
+                        Посмотреть все файлы ({{ bot.knowledge_count }})
+                    </a>
+                </div>
+            {% else %}
+                <div style="text-align: center; padding: 60px;">
+                    <i class="fa-solid fa-folder-open" style="font-size: 48px; color: var(--dash-border); margin-bottom: 20px;"></i>
+                    <h4 style="margin: 0 0 8px 0;">База знаний пуста</h4>
+                    <p style="color: var(--dash-text-muted); margin-bottom: 24px;">Загрузите документы, чтобы бот мог отвечать на вопросы ваших клиентов.</p>
+                    <a href="{% url 'upload_knowledge' %}?bot_id={{ bot.id }}" class="btn btn-primary">Загрузить первый файл</a>
+                </div>
             {% endif %}
         </div>
     </div>
 
-    <!-- Tab: Conversations -->
     <div id="tab-conversations" class="tab-content">
-        <div class="glass-card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                <h3 style="margin: 0;">
-                    <i class="fa-solid fa-comments"></i>
-                    Диалоги с ботом
-                </h3>
-                <a href="{% url 'conversations_list' %}?bot={{ bot.id }}" class="btn btn-secondary">
-                    Все диалоги
-                </a>
+        <div class="config-card" style="padding: 0; overflow: hidden;">
+            <div style="padding: 24px; border-bottom: 1px solid var(--dash-border); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0;">История диалогов</h3>
+                <a href="{% url 'conversations_list' %}?bot={{ bot.id }}" class="btn btn-secondary btn-sm">Вся история</a>
             </div>
 
             {% if recent_conversations %}
-            <div class="conversations-list">
-                {% for conv in recent_conversations %}
-                <a href="{% url 'conversation_detail' conv.id %}" class="conversation-mini" style="text-decoration: none; color: inherit;">
-                    <div class="conversation-avatar">
-                        <i class="fa-solid fa-user"></i>
-                    </div>
-                    <div class="conversation-info">
-                        <div class="conversation-user">
-                            {{ conv.user_name|default:"Пользователь" }}
-                            <span style="font-size: 12px; color: var(--dash-text-muted); font-weight: normal;">
-                                • {{ conv.messages_count }} сообщений
-                            </span>
-                        </div>
-                        <div class="conversation-last-msg">{{ conv.last_message|truncatewords:15 }}</div>
-                    </div>
-                    <div class="conversation-meta">
-                        <div style="margin-bottom: 4px;">{{ conv.updated_at|date:"d.m.Y" }}</div>
-                        <div>{{ conv.updated_at|time:"H:i" }}</div>
-                    </div>
-                </a>
-                {% endfor %}
-            </div>
+            <table class="conv-table">
+                <tbody>
+                    {% for conv in recent_conversations %}
+                    <tr class="conv-row">
+                        <td class="conv-cell" style="width: 60px; padding-right: 0;">
+                            <div style="width: 40px; height: 40px; background: rgba(99, 102, 241, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--dash-primary);">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                        </td>
+                        <td class="conv-cell">
+                            <div style="font-weight: 600; margin-bottom: 4px;">{{ conv.user_name|default:conv.user_id }}</div>
+                            <div style="font-size: 13px; color: var(--dash-text-muted);">
+                                {% if conv.is_lead %}
+                                    <span style="color: #4ade80; margin-right: 8px;"><i class="fa-solid fa-bullseye"></i> Лид</span>
+                                {% endif %}
+                                {{ conv.last_message|truncatechars:60|default:"Нет сообщений" }}
+                            </div>
+                        </td>
+                        <td class="conv-cell" style="text-align: right; white-space: nowrap; color: var(--dash-text-muted); font-size: 13px;">
+                            {{ conv.last_message_at|timesince }} назад
+                        </td>
+                        <td class="conv-cell" style="width: 60px;">
+                            <a href="{% url 'conversation_detail' conv.id %}" class="btn-icon">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
             {% else %}
-            <div class="empty-state">
-                <div class="empty-icon">
-                    <i class="fa-solid fa-comments"></i>
+                <div style="padding: 40px; text-align: center; color: var(--dash-text-muted);">
+                    Диалогов пока нет. Подключите бота к мессенджеру и напишите ему.
                 </div>
-                <h3>Пока нет диалогов</h3>
-                <p>Диалоги появятся, когда пользователи начнут общаться с ботом</p>
-            </div>
             {% endif %}
         </div>
     </div>
 
-    <!-- Tab: Analytics -->
-    <div id="tab-analytics" class="tab-content">
-        <div class="glass-card">
-            <h3 style="margin: 0 0 24px 0;">
-                <i class="fa-solid fa-chart-line"></i>
-                Статистика использования
+</div>
+
+<div class="modal-overlay" id="editorModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 style="margin: 0; color: #fff; font-size: 20px;">
+                <i class="fa-solid fa-code"></i> Редактор системного промпта
             </h3>
-
-            <!-- Charts -->
-            <div class="chart-container">
-                <canvas id="messagesChart"></canvas>
+            <div style="display: flex; gap: 12px;">
+                <button type="button" class="btn btn-secondary" onclick="closeEditor()">Отмена</button>
+                <button type="button" class="btn btn-primary" onclick="saveEditor()">
+                    <i class="fa-solid fa-check"></i> Применить
+                </button>
             </div>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px;">
-                <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--dash-border); border-radius: 12px; padding: 20px;">
-                    <div class="form-label">Всего диалогов</div>
-                    <div style="font-size: 32px; font-weight: 700;">{{ bot.conversations_count|default:0 }}</div>
-                </div>
-                
-                <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--dash-border); border-radius: 12px; padding: 20px;">
-                    <div class="form-label">Всего сообщений</div>
-                    <div style="font-size: 32px; font-weight: 700;">0</div>
-                </div>
-                
-                <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--dash-border); border-radius: 12px; padding: 20px;">
-                    <div class="form-label">Среднее время ответа</div>
-                    <div style="font-size: 32px; font-weight: 700;">&lt;1с</div>
-                </div>
-                
-                <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--dash-border); border-radius: 12px; padding: 20px;">
-                    <div class="form-label">Активных сегодня</div>
-                    <div style="font-size: 32px; font-weight: 700;">0</div>
-                </div>
-            </div>
-
-            <div style="text-align: center; margin-top: 32px;">
-                <a href="{% url 'analytics' %}?bot={{ bot.id }}" class="btn btn-secondary">
-                    <i class="fa-solid fa-chart-bar"></i>
-                    Подробная аналитика
-                </a>
-            </div>
+        </div>
+        <div class="modal-body">
+            <textarea id="modalTextarea" class="fullscreen-textarea" spellcheck="false" placeholder="Введите инструкции для AI здесь...">{{ bot.system_prompt }}</textarea>
+        </div>
+        <div style="padding: 12px 32px; background: #0f172a; border-top: 1px solid var(--dash-border); font-size: 13px; color: var(--dash-text-muted); display: flex; justify-content: space-between;">
+            <span>Используйте Markdown для форматирования.</span>
+            <span>{{ bot.name }} • {{ bot.openai_model }}</span>
         </div>
     </div>
 </div>
 
 <script>
-const csrfToken = '{{ csrf_token }}';
-const botId = {{ bot.id }};
+    const csrfToken = '{{ csrf_token }}';
+    const botId = {{ bot.id }};
 
-// Tab Switching
-function switchTab(tabName) {
-    // Hide all tabs
-    document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    
-    // Remove active from all buttons
-    document.querySelectorAll('.tab-button').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    
-    // Show selected tab
-    document.getElementById('tab-' + tabName).classList.add('active');
-    
-    // Activate button
-    event.target.closest('.tab-button').classList.add('active');
-}
+    const modal = document.getElementById('editorModal');
+    const textarea = document.getElementById('modalTextarea');
+    const realInput = document.getElementById('realPromptInput');
+    const preview = document.getElementById('promptPreviewText');
 
-// Toggle Bot Status
-async function toggleBotStatus() {
-    const currentStatus = '{{ bot.status }}';
-    const newStatus = currentStatus === 'active' ? 'paused' : 'active';
-    
-    if (!confirm(`${currentStatus === 'active' ? 'Отключить' : 'Включить'} бота?`)) return;
-    
-    try {
-        const response = await fetch(`/api/agents/${botId}/toggle/`, {
-            method: 'POST',
-            headers: { 
-                'X-CSRFToken': csrfToken,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ status: newStatus })
-        });
+    function openEditor() {
+        document.body.appendChild(modal);
         
-        if (response.ok) {
-            location.reload();
-        } else {
-            alert('Ошибка изменения статуса');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Ошибка: ' + error);
-    }
-}
-
-// Delete Bot
-async function deleteBot() {
-    const confirmation = prompt(
-        'Введите "УДАЛИТЬ" для подтверждения удаления бота "{{ bot.name|escapejs }}":'
-    );
-    
-    if (confirmation !== 'УДАЛИТЬ') {
-        alert('Удаление отменено');
-        return;
-    }
-    
-    try {
-        const response = await fetch(`/api/agents/${botId}/delete/`, {
-            method: 'DELETE',
-            headers: { 'X-CSRFToken': csrfToken }
-        });
+        textarea.value = realInput.value;
         
-        if (response.ok) {
-            window.location.href = '{% url "agents_list" %}';
-        } else {
-            alert('Ошибка удаления');
-        }
-    } catch (error) {
-        alert('Ошибка: ' + error);
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        textarea.focus();
     }
-}
 
-// Initialize Chart (if Chart.js is loaded)
-if (typeof Chart !== 'undefined') {
-    const ctx = document.getElementById('messagesChart');
-    if (ctx) {
-        new Chart(ctx, {
+    function closeEditor() {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    function saveEditor() {
+        const val = textarea.value;
+        realInput.value = val;
+        preview.innerText = val;
+        closeEditor();
+    }
+
+    // Закрытие по ESC
+    document.addEventListener('keydown', function(event) {
+        if (event.key === "Escape" && modal.classList.contains('open')) {
+            closeEditor();
+        }
+    });
+
+    // --- Tabs Logic ---
+    function switchTab(tabId) {
+        // Hide all
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
+        
+        // Show target
+        document.getElementById('tab-' + tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+
+        // Если открыли аналитику, рендерим чарт (если еще не рендерили или нужно обновить)
+        if (tabId === 'analytics') {
+            loadChart();
+        }
+    }
+
+    // --- Model Color & Hint ---
+    function updateModelColor() {
+        const select = document.getElementById('aiModelSelect');
+        const selectedOpt = select.options[select.selectedIndex];
+        const group = selectedOpt.parentElement.className;
+        const hint = document.getElementById('modelHint');
+
+        select.style.borderColor = 'var(--dash-border)';
+        hint.style.color = 'var(--dash-text-muted)';
+
+        if (group.includes('openai')) {
+            select.style.borderColor = 'var(--provider-openai)';
+            hint.innerText = "OpenAI: Идеальный баланс. GPT-4o рекомендуется для сложных задач.";
+            hint.style.color = 'var(--provider-openai)';
+        } else if (group.includes('google')) {
+            select.style.borderColor = 'var(--provider-google)';
+            hint.innerText = "Google: Огромное контекстное окно. Отлично для анализа больших документов.";
+            hint.style.color = 'var(--provider-google)';
+        } else if (group.includes('anthropic')) {
+            select.style.borderColor = 'var(--provider-anthropic)';
+            hint.innerText = "Anthropic: Человечные ответы и высокий уровень безопасности.";
+            hint.style.color = 'var(--provider-anthropic)';
+        }
+    }
+    updateModelColor(); // Init
+
+    // --- Bot Actions ---
+    async function toggleBotStatus() {
+        if(!confirm('Вы уверены, что хотите переключить статус бота?')) return;
+        try {
+            const res = await fetch(`/api/agents/${botId}/toggle/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrfToken }
+            });
+            if (res.ok) location.reload();
+        } catch(e) { alert('Ошибка сети'); }
+    }
+
+    async function deleteBot() {
+        const check = prompt(`Введите "${'{{ bot.name|escapejs }}'}" чтобы подтвердить удаление:`);
+        if (check === '{{ bot.name|escapejs }}') {
+             try {
+                const res = await fetch(`/api/agents/${botId}/delete/`, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRFToken': csrfToken }
+                });
+                if (res.ok) window.location.href = "{% url 'agents_list' %}";
+            } catch(e) { alert('Ошибка сети'); }
+        }
+    }
+
+    // --- Analytics Chart (Simple Init) ---
+    let chartInstance = null;
+    async function loadChart() {
+        const ctx = document.getElementById('analyticsChart');
+        if(!ctx) return;
+        
+        // Здесь мы просто заглушку данных ставим, 
+        // в реальности нужно делать fetch на /api/analytics/chart/conversations/
+        
+        if(chartInstance) return; // Don't re-init just for tab switch demo
+
+        const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, 'rgba(99, 102, 241, 0.4)');
+        gradient.addColorStop(1, 'rgba(99, 102, 241, 0)');
+
+        chartInstance = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: [],
+                labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
                 datasets: [{
-                    label: 'Сообщения',
-                    data: [],
-                    borderColor: 'rgb(99, 102, 241)',
-                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                    tension: 0.4
+                    label: 'Диалоги',
+                    data: [12, 19, 3, 5, 2, 3, 10], // Пример данных
+                    borderColor: '#6366f1',
+                    backgroundColor: gradient,
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#1e293b',
+                    pointBorderColor: '#6366f1',
+                    pointBorderWidth: 2
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        display: false
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { 
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8' }
                     }
                 }
             }
         });
     }
-}
+
 </script>
 {% endblock %}
