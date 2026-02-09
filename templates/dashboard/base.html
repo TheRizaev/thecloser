@@ -15,25 +15,20 @@
 </head>
 <body>
 
-    <!-- Background -->
     <div class="dashboard-bg">
         <div class="grid-overlay"></div>
     </div>
 
-    <!-- Layout -->
     <div class="dashboard-layout">
         
-        <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
-            <!-- Logo -->
-            <a href="{% url 'home' %}" class="sidebar-logo">
+            <a href="{% url 'dashboard' %}" class="sidebar-logo">
                 <div class="sidebar-logo-icon">
                     <i class="fa-solid fa-brain"></i>
                 </div>
                 <span class="sidebar-logo-text">The Closer</span>
             </a>
 
-            <!-- User Profile -->
             <div class="sidebar-header">
                 <div class="user-profile">
                     <div class="user-avatar">
@@ -46,7 +41,6 @@
                 </div>
             </div>
             
-            <!-- Navigation -->
             <nav class="sidebar-menu">
                 <div class="menu-section">
                     <div class="menu-section-title">Overview</div>
@@ -93,8 +87,12 @@
                 </div>
             </nav>
 
-            <!-- Footer -->
             <div class="sidebar-footer">
+                <a href="{% url 'home' %}" class="menu-link">
+                    <i class="fa-solid fa-globe"></i>
+                    <span>На сайт</span>
+                </a>
+                
                 <a href="{% url 'account_logout' %}" class="menu-link" style="color: var(--dash-error);">
                     <i class="fa-solid fa-arrow-right-from-bracket"></i>
                     <span>Выйти</span>
@@ -102,14 +100,12 @@
             </div>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
             {% block content %}{% endblock %}
         </main>
 
     </div>
 
-    <!-- Mobile Menu Button -->
     <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleSidebar()">
         <i class="fa-solid fa-bars"></i>
     </button>

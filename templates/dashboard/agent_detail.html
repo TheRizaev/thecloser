@@ -34,6 +34,7 @@
         position: relative;
         overflow: hidden;
         backdrop-filter: blur(20px);
+        align-items: flex-start;
     }
 
     .bot-header-bg-glow {
@@ -69,6 +70,7 @@
         display: flex;
         flex-direction: column;
         justify-content: center;
+        min-width: 0; /* Fix flex overflow */
     }
 
     .bot-title-row {
@@ -76,6 +78,8 @@
         justify-content: space-between;
         align-items: flex-start;
         margin-bottom: 16px;
+        gap: 20px;
+        flex-wrap: wrap;
     }
 
     .bot-header-info h1 {
@@ -86,12 +90,14 @@
         background: linear-gradient(to right, #fff, #94a3b8);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        line-height: 1.2;
     }
 
     .bot-badges {
         display: flex;
         gap: 12px;
         align-items: center;
+        flex-wrap: wrap;
     }
 
     .status-badge {
@@ -104,6 +110,7 @@
         gap: 8px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        white-space: nowrap;
     }
     
     .status-badge.active { background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.2); }
@@ -112,11 +119,15 @@
     .header-actions {
         display: flex;
         gap: 12px;
+        flex-wrap: wrap;
     }
 
     /* --- Tabs Styling --- */
     .tabs-container {
         margin-bottom: 32px;
+        overflow-x: auto; /* Scroll on mobile */
+        padding-bottom: 4px; /* Space for scrollbar */
+        -webkit-overflow-scrolling: touch;
     }
 
     .tabs-nav {
@@ -127,7 +138,7 @@
         border: 1px solid var(--dash-border);
         border-radius: 16px;
         width: fit-content;
-        margin-bottom: 24px;
+        min-width: min-content; /* Ensure tabs don't shrink too much */
     }
 
     .tab-button {
@@ -143,6 +154,7 @@
         display: flex;
         align-items: center;
         gap: 10px;
+        white-space: nowrap;
     }
 
     .tab-button:hover { color: #fff; background: rgba(255, 255, 255, 0.03); }
@@ -173,6 +185,7 @@
         border: 1px solid var(--dash-border);
         border-radius: 20px;
         padding: 28px;
+        margin-bottom: 24px;
     }
 
     .form-group { margin-bottom: 24px; }
@@ -196,6 +209,7 @@
         color: #fff;
         font-size: 15px;
         transition: border-color 0.2s;
+        max-width: 100%;
     }
 
     .form-input:focus, .form-textarea:focus, .form-select:focus {
@@ -239,13 +253,9 @@
     /* --- FULLSCREEN MODAL --- */
     .modal-overlay {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
+        top: 0; left: 0; width: 100vw; height: 100vh;
         background: var(--bg-modal);
         backdrop-filter: blur(8px);
-        /* Ставим максимальный z-index, чтобы перекрыть любые сайдбары */
         z-index: 2147483647; 
         display: none;
         align-items: center;
@@ -254,20 +264,15 @@
         transition: opacity 0.3s ease;
     }
 
-    .modal-overlay.open {
-        display: flex;
-        opacity: 1;
-    }
+    .modal-overlay.open { display: flex; opacity: 1; }
 
     .modal-content {
         background: var(--surface-dark);
-        width: 90vw;
-        height: 90vh;
+        width: 90vw; height: 90vh;
         border-radius: 20px;
         border: 1px solid rgba(255, 255, 255, 0.1);
         box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.7);
-        display: flex;
-        flex-direction: column;
+        display: flex; flex-direction: column;
         transform: scale(0.95);
         transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
@@ -277,77 +282,35 @@
     .modal-header {
         padding: 24px 32px;
         border-bottom: 1px solid var(--dash-border);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        display: flex; justify-content: space-between; align-items: center;
         background: var(--surface-darker);
         border-radius: 20px 20px 0 0;
     }
 
-    /* Контейнер тела модалки должен растягиваться на всю доступную высоту */
     .modal-body {
-        flex: 1 1 auto; /* Растягиваемся и сжимаемся */
-        display: flex;
-        flex-direction: column;
-        padding: 0;
-        position: relative;
+        flex: 1 1 auto;
+        display: flex; flex-direction: column;
+        padding: 0; position: relative;
         background: #0f172a;
-        overflow: hidden; /* Скрываем скроллы родителя */
-        height: 100%;     /* Важно! */
-    }
-
-    #modalTextarea {  /* Используем ID для максимального приоритета над Bootstrap/другими стилями */
-        width: 100% !important;
-        height: 100% !important;
-        min-height: 100% !important;
-        max-width: none !important; /* Убираем ограничения ширины */
-        
-        background: transparent;
-        border: none;
-        padding: 32px;
-        color: #e2e8f0;
-        font-family: 'JetBrains Mono', 'Fira Code', monospace;
-        font-size: 16px;
-        line-height: 1.7;
-        resize: none; /* Запрещаем ручное изменение размера, так как у нас фуллскрин */
-        outline: none;
-        box-sizing: border-box; /* Чтобы padding не ломал ширину 100% */
-        display: block;
+        overflow: hidden; height: 100%;
     }
 
     .fullscreen-textarea {
-        flex: 1;
-        /* Force full width and override global styles */
-        width: 100% !important; 
-        max-width: 100% !important; 
-        height: 100%;
-        background: transparent;
-        border: none;
-        padding: 32px;
-        color: #e2e8f0;
-        font-family: 'JetBrains Mono', 'Fira Code', monospace;
-        font-size: 16px;
-        line-height: 1.7;
-        resize: none;
-        outline: none;
-        box-sizing: border-box; /* Важно для отступов */
+        flex: 1; width: 100% !important; max-width: 100% !important; height: 100%;
+        background: transparent; border: none; padding: 32px;
+        color: #e2e8f0; font-family: 'JetBrains Mono', 'Fira Code', monospace;
+        font-size: 16px; line-height: 1.7; resize: none; outline: none;
+        box-sizing: border-box;
     }
     
     /* --- Knowledge Base Tab Styles --- */
-    .kb-list {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
+    .kb-list { display: flex; flex-direction: column; gap: 12px; }
     
     .kb-item {
-        display: flex;
-        align-items: center;
-        padding: 16px;
+        display: flex; align-items: center; padding: 16px;
         background: rgba(255, 255, 255, 0.02);
         border: 1px solid var(--dash-border);
-        border-radius: 16px;
-        transition: all 0.2s;
+        border-radius: 16px; transition: all 0.2s;
     }
     
     .kb-item:hover {
@@ -357,14 +320,9 @@
     }
 
     .kb-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
-        margin-right: 20px;
+        width: 48px; height: 48px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 20px; margin-right: 20px; flex-shrink: 0;
     }
     
     .kb-icon.pdf { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
@@ -373,40 +331,26 @@
 
     /* --- Analytics Tab Styles --- */
     .analytics-grid-top {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 20px;
-        margin-bottom: 24px;
+        display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 24px;
     }
     
     .kpi-card {
         background: var(--dash-surface);
         border: 1px solid var(--dash-border);
-        border-radius: 16px;
-        padding: 20px;
+        border-radius: 16px; padding: 20px;
     }
     
     .chart-box-large {
         background: var(--dash-surface);
         border: 1px solid var(--dash-border);
-        border-radius: 20px;
-        padding: 24px;
-        height: 400px;
-        margin-bottom: 24px;
+        border-radius: 20px; padding: 24px;
+        height: 400px; margin-bottom: 24px;
     }
 
     /* --- Conversation Tab Styles --- */
-    .conv-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0 8px;
-    }
+    .conv-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
     
-    .conv-row {
-        background: rgba(255, 255, 255, 0.02);
-        transition: background 0.2s;
-    }
-    
+    .conv-row { background: rgba(255, 255, 255, 0.02); transition: background 0.2s; }
     .conv-row:hover { background: rgba(255, 255, 255, 0.04); }
     
     .conv-cell {
@@ -417,29 +361,21 @@
     
     .conv-cell:first-child {
         border-left: 1px solid var(--dash-border);
-        border-top-left-radius: 12px;
-        border-bottom-left-radius: 12px;
+        border-top-left-radius: 12px; border-bottom-left-radius: 12px;
     }
     
     .conv-cell:last-child {
         border-right: 1px solid var(--dash-border);
-        border-top-right-radius: 12px;
-        border-bottom-right-radius: 12px;
+        border-top-right-radius: 12px; border-bottom-right-radius: 12px;
     }
 
-
-    /* Карточка RAG */
+    /* RAG Card */
     .rag-card {
         background: linear-gradient(145deg, rgba(30, 41, 59, 0.4), rgba(15, 23, 42, 0.6));
         border: 1px solid var(--dash-border);
-        border-radius: 16px;
-        padding: 20px;
-        display: flex;
-        align-items: center;
-        gap: 20px;
-        margin-top: 24px;
-        position: relative;
-        overflow: hidden;
+        border-radius: 16px; padding: 20px;
+        display: flex; align-items: center; gap: 20px;
+        margin-top: 24px; position: relative; overflow: hidden;
         transition: all 0.3s ease;
     }
 
@@ -449,100 +385,160 @@
         transform: translateY(-2px);
     }
     
-    /* Декоративная полоска слева */
     .rag-card::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; bottom: 0;
-        width: 4px;
-        background: var(--dash-primary);
-        opacity: 0.7;
+        content: ''; position: absolute; top: 0; left: 0; bottom: 0;
+        width: 4px; background: var(--dash-primary); opacity: 0.7;
     }
 
-    /* Иконка */
     .rag-icon {
-        width: 48px;
-        height: 48px;
-        background: rgba(99, 102, 241, 0.1);
-        color: var(--dash-primary);
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
-        border: 1px solid rgba(99, 102, 241, 0.2);
-        flex-shrink: 0;
+        width: 48px; height: 48px;
+        background: rgba(99, 102, 241, 0.1); color: var(--dash-primary);
+        border-radius: 12px; display: flex; align-items: center; justify-content: center;
+        font-size: 20px; border: 1px solid rgba(99, 102, 241, 0.2); flex-shrink: 0;
     }
 
-    .rag-content { flex: 1; }
+    .rag-content { flex: 1; min-width: 0; }
 
     .rag-title {
-        font-size: 15px;
-        font-weight: 700;
-        color: #fff;
-        margin-bottom: 4px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
+        font-size: 15px; font-weight: 700; color: #fff;
+        margin-bottom: 4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
     }
 
-    .rag-desc {
-        font-size: 13px;
-        color: var(--dash-text-muted);
-        line-height: 1.4;
-    }
+    .rag-desc { font-size: 13px; color: var(--dash-text-muted); line-height: 1.4; }
 
     .pro-badge {
-        font-size: 10px; 
-        background: rgba(99, 102, 241, 0.2); 
-        color: #818cf8; 
-        padding: 2px 6px; 
-        border-radius: 4px;
+        font-size: 10px; background: rgba(99, 102, 241, 0.2); 
+        color: #818cf8; padding: 2px 6px; border-radius: 4px;
         border: 1px solid rgba(99, 102, 241, 0.3);
     }
 
-    /* Красивый свитчер */
+    /* Toggle Switch */
     .toggle-switch {
-        position: relative;
-        display: inline-block;
-        width: 52px;
-        height: 28px;
-        flex-shrink: 0;
+        position: relative; display: inline-block; width: 52px; height: 28px; flex-shrink: 0;
     }
     
     .toggle-switch input { opacity: 0; width: 0; height: 0; }
     
     .toggle-slider {
-        position: absolute;
-        cursor: pointer;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background-color: #334155;
-        transition: .4s;
-        border-radius: 34px;
+        position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+        background-color: #334155; transition: .4s; border-radius: 34px;
         border: 1px solid rgba(255,255,255,0.1);
     }
     
     .toggle-slider:before {
-        position: absolute;
-        content: "";
-        height: 20px;
-        width: 20px;
-        left: 3px;
-        bottom: 3px;
-        background-color: white;
+        position: absolute; content: ""; height: 20px; width: 20px;
+        left: 3px; bottom: 3px; background-color: white;
         transition: .4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        border-radius: 50%;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
     
     input:checked + .toggle-slider {
-        background-color: var(--dash-primary);
-        border-color: transparent;
+        background-color: var(--dash-primary); border-color: transparent;
         box-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
     }
     
-    input:checked + .toggle-slider:before {
-        transform: translateX(24px);
+    input:checked + .toggle-slider:before { transform: translateX(24px); }
+
+    /* --- RESPONSIVE MEDIA QUERIES --- */
+    @media (max-width: 1024px) {
+        .config-grid { grid-template-columns: 1fr; }
+        .analytics-grid-top { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+        .bot-header-card {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 24px;
+        }
+
+        .bot-avatar-xl {
+            width: 100px;
+            height: 100px;
+            font-size: 40px;
+        }
+
+        .bot-title-row {
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-actions {
+            justify-content: center;
+            width: 100%;
+        }
+        
+        .header-actions .btn {
+            flex: 1; /* Кнопки на всю ширину внутри flex */
+            justify-content: center;
+        }
+
+        .bot-badges {
+            justify-content: center;
+        }
+
+        .bot-header-info h1 {
+            font-size: 28px;
+        }
+
+        .tabs-nav {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .analytics-grid-top {
+            grid-template-columns: 1fr;
+        }
+
+        .modal-content {
+            width: 100vw;
+            height: 100vh;
+            border-radius: 0;
+        }
+        
+        .modal-header {
+            padding: 16px 20px;
+        }
+        
+        .modal-header h3 {
+            font-size: 16px;
+        }
+        
+        .modal-header .btn {
+            padding: 8px 12px;
+            font-size: 13px;
+        }
+        
+        .fullscreen-textarea {
+            padding: 20px;
+            font-size: 14px;
+        }
+        
+        /* Таблица диалогов на мобильных */
+        .conv-table, .conv-table tbody, .conv-table tr, .conv-table td {
+            display: block;
+            width: 100%;
+        }
+        
+        .conv-row {
+            margin-bottom: 16px;
+            border: 1px solid var(--dash-border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        
+        .conv-cell {
+            border: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 12px 16px;
+        }
+        
+        .conv-cell:first-child { border: none; padding-bottom: 0; }
+        .conv-cell:last-child { border: none; text-align: center; background: rgba(0,0,0,0.2); }
+        
+        /* Скрываем пустые ячейки если нужно или меняем их вид */
     }
 </style>
 {% endblock %}
@@ -574,11 +570,11 @@
                             <i class="fa-solid fa-circle" style="font-size: 8px;"></i>
                             {% if bot.status == 'active' %}Активен{% else %}Остановлен{% endif %}
                         </div>
-                        <span style="color: var(--dash-text-muted);">
+                        <span style="color: var(--dash-text-muted); font-size: 13px;">
                             <i class="fa-solid fa-microchip"></i> {{ bot.openai_model }}
                         </span>
-                        <span style="color: var(--dash-text-muted);">
-                            <i class="fa-solid fa-clock"></i> Создан {{ bot.created_at|date:"d.m.Y" }}
+                        <span style="color: var(--dash-text-muted); font-size: 13px;">
+                            <i class="fa-solid fa-clock"></i> {{ bot.created_at|date:"d.m.Y" }}
                         </span>
                     </div>
                 </div>
@@ -634,12 +630,12 @@
                 <div>
                     <div class="config-card" style="margin-bottom: 24px; border-color: rgba(99, 102, 241, 0.4);">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                            <h3 style="margin: 0; display: flex; align-items: center; gap: 12px;">
+                            <h3 style="margin: 0; display: flex; align-items: center; gap: 12px; font-size: 18px;">
                                 <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--dash-primary);"></i>
                                 Системный промпт
                             </h3>
                             <button type="button" class="btn btn-secondary btn-sm" onclick="openEditor()">
-                                <i class="fa-solid fa-expand"></i> Развернуть редактор
+                                <i class="fa-solid fa-expand"></i> <span class="hide-mobile">Развернуть</span>
                             </button>
                         </div>
 
@@ -674,7 +670,7 @@
                                     <span class="pro-badge">PRO</span>
                                 </div>
                                 <div class="rag-desc">
-                                    Бот будет искать ответы в загруженных файлах перед генерацией ответа.
+                                    Искать ответы в файлах перед генерацией.
                                 </div>
                             </div>
 
@@ -709,14 +705,14 @@
                                     <option value="claude-3-opus" {% if bot.openai_model == 'claude-3-opus' %}selected{% endif %}>Claude 3 Opus</option>
                                 </optgroup>
                             </select>
-                            <div style="margin-top: 8px; font-size: 12px; color: var(--dash-text-muted);" id="modelHint"></div>
+                            <div style="margin-top: 8px; font-size: 12px; color: var(--dash-text-muted); line-height: 1.4;" id="modelHint"></div>
                         </div>
 
                         <div class="form-group">
                             <label class="form-label">Температура (Креативность)</label>
                             <div style="display: flex; align-items: center; gap: 16px;">
                                 <input type="range" name="temperature" min="0" max="2" step="0.1" value="{{ bot.temperature|default:'0.7' }}" style="flex: 1;" oninput="tempDisplay.innerText = this.value">
-                                <span id="tempDisplay" style="font-family: monospace; font-weight: bold; font-size: 16px; color: var(--dash-primary); width: 40px; text-align: right;">{{ bot.temperature|default:'0.7' }}</span>
+                                <span id="tempDisplay" style="font-family: monospace; font-weight: bold; font-size: 16px; color: var(--dash-primary); width: 30px; text-align: right;">{{ bot.temperature|default:'0.7' }}</span>
                             </div>
                         </div>
 
@@ -726,7 +722,7 @@
                         </div>
 
                         <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 12px; height: 48px; font-size: 16px;">
-                            <i class="fa-solid fa-floppy-disk"></i> Сохранить изменения
+                            <i class="fa-solid fa-floppy-disk"></i> Сохранить
                         </button>
                     </div>
 
@@ -771,12 +767,12 @@
         <div class="chart-box-large">
             <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
                 <h3 style="margin: 0;">Активность диалогов</h3>
-                <select class="form-select" style="width: 150px; padding: 6px 12px;" id="chartPeriod" onchange="loadChart()">
+                <select class="form-select" style="width: auto; padding: 6px 12px; min-width: 120px;" id="chartPeriod" onchange="loadChart()">
                     <option value="7days">7 дней</option>
                     <option value="30days">30 дней</option>
                 </select>
             </div>
-            <div style="height: 300px; width: 100%;">
+            <div style="height: 300px; width: 100%; position: relative;">
                 <canvas id="analyticsChart"></canvas>
             </div>
         </div>
@@ -787,7 +783,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                 <h3 style="margin: 0;">Файлы базы знаний</h3>
                 <a href="{% url 'upload_knowledge' %}?bot_id={{ bot.id }}" class="btn btn-primary">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> Загрузить файл
+                    <i class="fa-solid fa-cloud-arrow-up"></i> <span class="hide-mobile">Загрузить файл</span>
                 </a>
             </div>
 
@@ -800,20 +796,20 @@
                             {% elif file.file_type == 'docx' %}<i class="fa-solid fa-file-word"></i>
                             {% else %}<i class="fa-solid fa-file-lines"></i>{% endif %}
                         </div>
-                        <div style="flex: 1;">
-                            <div style="font-weight: 600; font-size: 16px; margin-bottom: 4px;">{{ file.title }}</div>
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="font-weight: 600; font-size: 16px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ file.title }}</div>
                             <div style="font-size: 12px; color: var(--dash-text-muted);">
-                                {{ file.file_size_display }} • {{ file.created_at|date:"d M Y, H:i" }}
+                                {{ file.file_size_display }} • {{ file.created_at|date:"d M, H:i" }}
                             </div>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 16px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
                             {% if file.is_indexed %}
-                                <span class="status-badge active"><i class="fa-solid fa-check"></i> Индекс</span>
+                                <span class="status-badge active hide-mobile"><i class="fa-solid fa-check"></i> Индекс</span>
                             {% else %}
-                                <span class="status-badge inactive"><i class="fa-solid fa-clock"></i> Обработка</span>
+                                <span class="status-badge inactive hide-mobile"><i class="fa-solid fa-clock"></i></span>
                             {% endif %}
                             
-                            <a href="{% url 'knowledge_detail' file.id %}" class="btn btn-secondary btn-sm">
+                            <a href="{% url 'knowledge_detail' file.id %}" class="btn btn-secondary btn-sm" style="width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center;">
                                 <i class="fa-solid fa-eye"></i>
                             </a>
                         </div>
@@ -822,15 +818,15 @@
                 </div>
                 
                 <div style="margin-top: 24px; text-align: center;">
-                    <a href="{% url 'bot_knowledge_base' bot.id %}" class="btn btn-secondary">
+                    <a href="{% url 'knowledge_base_list' %}" class="btn btn-secondary">
                         Посмотреть все файлы ({{ bot.knowledge_count }})
                     </a>
                 </div>
             {% else %}
-                <div style="text-align: center; padding: 60px;">
+                <div style="text-align: center; padding: 60px 20px;">
                     <i class="fa-solid fa-folder-open" style="font-size: 48px; color: var(--dash-border); margin-bottom: 20px;"></i>
                     <h4 style="margin: 0 0 8px 0;">База знаний пуста</h4>
-                    <p style="color: var(--dash-text-muted); margin-bottom: 24px;">Загрузите документы, чтобы бот мог отвечать на вопросы ваших клиентов.</p>
+                    <p style="color: var(--dash-text-muted); margin-bottom: 24px; max-width: 400px; margin-left: auto; margin-right: auto;">Загрузите документы, чтобы бот мог отвечать на вопросы ваших клиентов.</p>
                     <a href="{% url 'upload_knowledge' %}?bot_id={{ bot.id }}" class="btn btn-primary">Загрузить первый файл</a>
                 </div>
             {% endif %}
@@ -845,36 +841,38 @@
             </div>
 
             {% if recent_conversations %}
-            <table class="conv-table">
-                <tbody>
-                    {% for conv in recent_conversations %}
-                    <tr class="conv-row">
-                        <td class="conv-cell" style="width: 60px; padding-right: 0;">
-                            <div style="width: 40px; height: 40px; background: rgba(99, 102, 241, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--dash-primary);">
-                                <i class="fa-solid fa-user"></i>
-                            </div>
-                        </td>
-                        <td class="conv-cell">
-                            <div style="font-weight: 600; margin-bottom: 4px;">{{ conv.user_name|default:conv.user_id }}</div>
-                            <div style="font-size: 13px; color: var(--dash-text-muted);">
-                                {% if conv.is_lead %}
-                                    <span style="color: #4ade80; margin-right: 8px;"><i class="fa-solid fa-bullseye"></i> Лид</span>
-                                {% endif %}
-                                {{ conv.last_message|truncatechars:60|default:"Нет сообщений" }}
-                            </div>
-                        </td>
-                        <td class="conv-cell" style="text-align: right; white-space: nowrap; color: var(--dash-text-muted); font-size: 13px;">
-                            {{ conv.last_message_at|timesince }} назад
-                        </td>
-                        <td class="conv-cell" style="width: 60px;">
-                            <a href="{% url 'conversation_detail' conv.id %}" class="btn-icon">
-                                <i class="fa-solid fa-chevron-right"></i>
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div style="overflow-x: auto;">
+                <table class="conv-table">
+                    <tbody>
+                        {% for conv in recent_conversations %}
+                        <tr class="conv-row">
+                            <td class="conv-cell" style="width: 60px; padding-right: 0;">
+                                <div style="width: 40px; height: 40px; background: rgba(99, 102, 241, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--dash-primary);">
+                                    <i class="fa-solid fa-user"></i>
+                                </div>
+                            </td>
+                            <td class="conv-cell">
+                                <div style="font-weight: 600; margin-bottom: 4px;">{{ conv.user_name|default:conv.user_id|truncatechars:20 }}</div>
+                                <div style="font-size: 13px; color: var(--dash-text-muted);">
+                                    {% if conv.is_lead %}
+                                        <span style="color: #4ade80; margin-right: 8px;"><i class="fa-solid fa-bullseye"></i> Лид</span>
+                                    {% endif %}
+                                    {{ conv.last_message|truncatechars:40|default:"Нет сообщений" }}
+                                </div>
+                            </td>
+                            <td class="conv-cell" style="text-align: right; white-space: nowrap; color: var(--dash-text-muted); font-size: 13px;">
+                                {{ conv.last_message_at|timesince }} назад
+                            </td>
+                            <td class="conv-cell" style="width: 60px;">
+                                <a href="{% url 'conversation_detail' conv.id %}" class="btn-icon" style="text-decoration: none;">
+                                    <i class="fa-solid fa-chevron-right"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
             {% else %}
                 <div style="padding: 40px; text-align: center; color: var(--dash-text-muted);">
                     Диалогов пока нет. Подключите бота к мессенджеру и напишите ему.
@@ -888,22 +886,22 @@
 <div class="modal-overlay" id="editorModal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3 style="margin: 0; color: #fff; font-size: 20px;">
-                <i class="fa-solid fa-code"></i> Редактор системного промпта
+            <h3 style="margin: 0; color: #fff; font-size: 18px;">
+                <i class="fa-solid fa-code" style="margin-right: 8px;"></i> Редактор промпта
             </h3>
-            <div style="display: flex; gap: 12px;">
-                <button type="button" class="btn btn-secondary" onclick="closeEditor()">Отмена</button>
-                <button type="button" class="btn btn-primary" onclick="saveEditor()">
-                    <i class="fa-solid fa-check"></i> Применить
+            <div style="display: flex; gap: 8px;">
+                <button type="button" class="btn btn-secondary" onclick="closeEditor()" style="padding: 8px 16px;">Отмена</button>
+                <button type="button" class="btn btn-primary" onclick="saveEditor()" style="padding: 8px 16px;">
+                    <i class="fa-solid fa-check"></i>
                 </button>
             </div>
         </div>
         <div class="modal-body">
             <textarea id="modalTextarea" class="fullscreen-textarea" spellcheck="false" placeholder="Введите инструкции для AI здесь...">{{ bot.system_prompt }}</textarea>
         </div>
-        <div style="padding: 12px 32px; background: #0f172a; border-top: 1px solid var(--dash-border); font-size: 13px; color: var(--dash-text-muted); display: flex; justify-content: space-between;">
-            <span>Используйте Markdown для форматирования.</span>
-            <span>{{ bot.name }} • {{ bot.openai_model }}</span>
+        <div style="padding: 12px 20px; background: #0f172a; border-top: 1px solid var(--dash-border); font-size: 12px; color: var(--dash-text-muted); display: flex; justify-content: space-between;">
+            <span>Markdown поддерживается</span>
+            <span>{{ bot.name }}</span>
         </div>
     </div>
 </div>
@@ -919,12 +917,12 @@
 
     function openEditor() {
         document.body.appendChild(modal);
-        
         textarea.value = realInput.value;
-        
         modal.classList.add('open');
         document.body.style.overflow = 'hidden';
-        textarea.focus();
+        
+        // Фокус с небольшой задержкой для мобильных
+        setTimeout(() => textarea.focus(), 100);
     }
 
     function closeEditor() {
@@ -939,30 +937,25 @@
         closeEditor();
     }
 
-    // Закрытие по ESC
-    document.addEventListener('keydown', function(event) {
-        if (event.key === "Escape" && modal.classList.contains('open')) {
-            closeEditor();
-        }
-    });
-
-    // --- Tabs Logic ---
+    // Tabs Logic
     function switchTab(tabId) {
-        // Hide all
         document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
         
-        // Show target
         document.getElementById('tab-' + tabId).classList.add('active');
-        event.currentTarget.classList.add('active');
+        // Находим кнопку по тексту или иконке, так как event.currentTarget может быть не доступен если вызов программный
+        const btns = document.querySelectorAll('.tab-button');
+        // Простая логика для демо:
+        if (event && event.currentTarget) {
+            event.currentTarget.classList.add('active');
+        }
 
-        // Если открыли аналитику, рендерим чарт (если еще не рендерили или нужно обновить)
         if (tabId === 'analytics') {
-            loadChart();
+            setTimeout(loadChart, 100); // Даем время на отрисовку DOM
         }
     }
 
-    // --- Model Color & Hint ---
+    // Model Color Logic
     function updateModelColor() {
         const select = document.getElementById('aiModelSelect');
         const selectedOpt = select.options[select.selectedIndex];
@@ -974,23 +967,23 @@
 
         if (group.includes('openai')) {
             select.style.borderColor = 'var(--provider-openai)';
-            hint.innerText = "OpenAI: Идеальный баланс. GPT-4o рекомендуется для сложных задач.";
+            hint.innerText = "OpenAI: Идеальный баланс скорости и качества.";
             hint.style.color = 'var(--provider-openai)';
         } else if (group.includes('google')) {
             select.style.borderColor = 'var(--provider-google)';
-            hint.innerText = "Google: Огромное контекстное окно. Отлично для анализа больших документов.";
+            hint.innerText = "Google: Большое контекстное окно для длинных документов.";
             hint.style.color = 'var(--provider-google)';
         } else if (group.includes('anthropic')) {
             select.style.borderColor = 'var(--provider-anthropic)';
-            hint.innerText = "Anthropic: Человечные ответы и высокий уровень безопасности.";
+            hint.innerText = "Anthropic: Естественные и безопасные ответы.";
             hint.style.color = 'var(--provider-anthropic)';
         }
     }
-    updateModelColor(); // Init
+    updateModelColor();
 
-    // --- Bot Actions ---
+    // Bot Actions
     async function toggleBotStatus() {
-        if(!confirm('Вы уверены, что хотите переключить статус бота?')) return;
+        if(!confirm('Переключить статус бота?')) return;
         try {
             const res = await fetch(`/api/agents/${botId}/toggle/`, {
                 method: 'POST',
@@ -1001,7 +994,7 @@
     }
 
     async function deleteBot() {
-        const check = prompt(`Введите "${'{{ bot.name|escapejs }}'}" чтобы подтвердить удаление:`);
+        const check = prompt(`Введите "${'{{ bot.name|escapejs }}'}" для удаления:`);
         if (check === '{{ bot.name|escapejs }}') {
              try {
                 const res = await fetch(`/api/agents/${botId}/delete/`, {
@@ -1013,16 +1006,11 @@
         }
     }
 
-    // --- Analytics Chart (Simple Init) ---
+    // Chart Init
     let chartInstance = null;
-    async function loadChart() {
+    function loadChart() {
         const ctx = document.getElementById('analyticsChart');
-        if(!ctx) return;
-        
-        // Здесь мы просто заглушку данных ставим, 
-        // в реальности нужно делать fetch на /api/analytics/chart/conversations/
-        
-        if(chartInstance) return; // Don't re-init just for tab switch demo
+        if(!ctx || chartInstance) return;
 
         const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 300);
         gradient.addColorStop(0, 'rgba(99, 102, 241, 0.4)');
@@ -1034,7 +1022,7 @@
                 labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
                 datasets: [{
                     label: 'Диалоги',
-                    data: [12, 19, 3, 5, 2, 3, 10], // Пример данных
+                    data: [12, 19, 3, 5, 2, 3, 10], 
                     borderColor: '#6366f1',
                     backgroundColor: gradient,
                     borderWidth: 2,
@@ -1048,22 +1036,13 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
+                plugins: { legend: { display: false } },
                 scales: {
-                    y: { 
-                        grid: { color: 'rgba(255,255,255,0.05)' },
-                        ticks: { color: '#94a3b8' }
-                    },
-                    x: {
-                        grid: { display: false },
-                        ticks: { color: '#94a3b8' }
-                    }
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
                 }
             }
         });
     }
-
 </script>
 {% endblock %}

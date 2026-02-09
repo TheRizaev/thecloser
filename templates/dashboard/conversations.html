@@ -3,18 +3,199 @@
 {% block title %}Диалоги{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div>
-        <h1 class="page-title">💬 Диалоги</h1>
-        <p class="page-subtitle">Все беседы ваших ботов с клиентами</p>
+<style>
+    /* Стили для шапки (как на главной) */
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 40px;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .header-icon-box {
+        width: 60px;
+        height: 60px;
+        background: rgba(99, 102, 241, 0.1);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        color: #818cf8;
+        box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+    }
+
+    .page-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin: 0;
+        line-height: 1.1;
+        letter-spacing: -0.5px;
+        color: white;
+    }
+
+    .page-subtitle {
+        color: #94a3b8;
+        font-size: 1.05rem;
+        margin-top: 6px;
+        font-weight: 400;
+    }
+
+    /* Стили для таблицы и фильтров */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .status-badge.active {
+        background: rgba(34, 197, 94, 0.1);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+
+    .status-badge.inactive {
+        background: rgba(148, 163, 184, 0.1);
+        color: var(--dash-text-muted);
+        border: 1px solid var(--dash-border);
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .data-table thead {
+        background: rgba(255, 255, 255, 0.02);
+        border-bottom: 2px solid var(--dash-border);
+    }
+
+    .data-table th {
+        padding: 16px;
+        text-align: left;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--dash-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .data-table tbody tr {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        transition: background 0.2s;
+    }
+
+    .data-table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .data-table td {
+        padding: 16px;
+        font-size: 14px;
+        vertical-align: middle;
+    }
+
+    .btn-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--dash-border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--dash-text);
+        transition: all 0.2s;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .btn-icon:hover {
+        background: rgba(99, 102, 241, 0.1);
+        border-color: var(--dash-primary);
+        color: var(--dash-primary);
+        transform: translateY(-2px);
+    }
+
+    .form-input {
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid var(--dash-border);
+        border-radius: 10px;
+        padding: 10px 16px;
+        color: var(--dash-text);
+        font-size: 14px;
+        cursor: pointer;
+        transition: border-color 0.2s;
+    }
+
+    .form-input:hover {
+        border-color: rgba(99, 102, 241, 0.5);
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: var(--dash-primary);
+        background: rgba(15, 23, 42, 0.8);
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    /* Адаптив заголовка */
+    @media (max-width: 600px) {
+        .dashboard-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 20px;
+        }
+        .header-icon-box {
+            width: 50px;
+            height: 50px;
+            font-size: 1.4rem;
+        }
+        .page-title {
+            font-size: 1.8rem;
+        }
+    }
+</style>
+
+<div class="dashboard-header">
+    <div class="header-left">
+        <div class="header-icon-box">
+            <i class="fa-solid fa-comments"></i>
+        </div>
+        <div>
+            <h1 class="page-title">Диалоги</h1>
+            <p class="page-subtitle">Все беседы ваших ботов с клиентами</p>
+        </div>
     </div>
 </div>
 
 <div class="glass-card">
-    <!-- Filters -->
-    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 24px;">
-        <h2 class="card-title">
-            <i class="fa-solid fa-filter"></i>
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; border-bottom: none; padding-bottom: 0;">
+        <h2 class="card-title" style="margin: 0; font-size: 1.25rem;">
+            <i class="fa-solid fa-filter" style="color: var(--dash-primary); margin-right: 8px;"></i>
             Фильтр
         </h2>
         <div style="display: flex; gap: 12px; flex-wrap: wrap;">
@@ -42,7 +223,7 @@
             </select>
             
             {% if request.GET.bot or request.GET.is_lead %}
-            <a href="{% url 'conversations_list' %}" class="btn btn-secondary">
+            <a href="{% url 'conversations_list' %}" class="btn btn-secondary" style="height: 42px; display: flex; align-items: center; gap: 8px;">
                 <i class="fa-solid fa-xmark"></i>
                 Сбросить
             </a>
@@ -50,9 +231,8 @@
         </div>
     </div>
     
-    <!-- Conversations Table -->
     {% if page_obj %}
-    <div class="table-responsive">
+    <div class="table-responsive" style="margin-top: 20px;">
         <table class="data-table">
             <thead>
                 <tr>
@@ -69,27 +249,27 @@
                 <tr>
                     <td>
                         <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="width: 36px; height: 36px; background: rgba(99, 102, 241, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--dash-primary);">
+                            <div style="width: 40px; height: 40px; background: rgba(99, 102, 241, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--dash-primary); font-size: 1.1rem;">
                                 <i class="fa-solid fa-user"></i>
                             </div>
                             <div>
-                                <div style="font-weight: 500;">{{ conv.user_name|default:"Гость" }}</div>
-                                <div style="font-size: 12px; color: var(--dash-text-muted);">{{ conv.user_id|truncatechars:20 }}</div>
+                                <div style="font-weight: 600; color: white;">{{ conv.user_name|default:"Гость" }}</div>
+                                <div style="font-size: 12px; color: var(--dash-text-muted); margin-top: 2px;">{{ conv.user_id|truncatechars:20 }}</div>
                             </div>
                         </div>
                     </td>
                     <td>
-                        <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px; font-weight: 500;">
                             {% if conv.bot.platform == 'telegram' %}
-                                <i class="fa-brands fa-telegram" style="color: #229ED9;"></i>
+                                <i class="fa-brands fa-telegram" style="color: #229ED9; font-size: 1.1rem;"></i>
                             {% elif conv.bot.platform == 'whatsapp' %}
-                                <i class="fa-brands fa-whatsapp" style="color: #25D366;"></i>
+                                <i class="fa-brands fa-whatsapp" style="color: #25D366; font-size: 1.1rem;"></i>
                             {% elif conv.bot.platform == 'vk' %}
-                                <i class="fa-brands fa-vk" style="color: #0077FF;"></i>
+                                <i class="fa-brands fa-vk" style="color: #0077FF; font-size: 1.1rem;"></i>
                             {% elif conv.bot.platform == 'instagram' %}
-                                <i class="fa-brands fa-instagram" style="color: #E4405F;"></i>
+                                <i class="fa-brands fa-instagram" style="color: #E4405F; font-size: 1.1rem;"></i>
                             {% else %}
-                                <i class="fa-solid fa-robot"></i>
+                                <i class="fa-solid fa-robot" style="color: var(--dash-text-muted);"></i>
                             {% endif %}
                             {{ conv.bot.name }}
                         </div>
@@ -111,7 +291,7 @@
                         {% endif %}
                     </td>
                     <td>
-                        <a href="{% url 'conversation_detail' conv.id %}" class="btn-icon">
+                        <a href="{% url 'conversation_detail' conv.id %}" class="btn-icon" title="Открыть диалог">
                             <i class="fa-solid fa-arrow-right"></i>
                         </a>
                     </td>
@@ -121,7 +301,6 @@
         </table>
     </div>
     
-    <!-- Pagination -->
     {% if page_obj.has_other_pages %}
     <div style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--dash-border);">
         {% if page_obj.has_previous %}
@@ -133,7 +312,6 @@
         
         <span style="color: var(--dash-text-muted); font-size: 14px;">
             Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
-            <span style="opacity: 0.6;">(всего {{ page_obj.paginator.count }} диалогов)</span>
         </span>
         
         {% if page_obj.has_next %}
@@ -146,22 +324,21 @@
     {% endif %}
     
     {% else %}
-    <!-- Empty State -->
     <div style="text-align: center; padding: 80px 20px;">
-        <div style="width: 100px; height: 100px; background: rgba(99, 102, 241, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 48px; color: var(--dash-primary);">
+        <div style="width: 100px; height: 100px; background: rgba(99, 102, 241, 0.05); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 40px; color: var(--dash-primary); border: 1px solid rgba(99, 102, 241, 0.2);">
             <i class="fa-solid fa-comments"></i>
         </div>
-        <h3 style="font-size: 24px; margin: 0 0 12px 0;">Диалогов пока нет</h3>
-        <p style="font-size: 14px; color: var(--dash-text-muted); margin: 0 0 24px 0;">
-            Как только кто-то напишет вашему боту, диалоги появятся здесь
+        <h3 style="font-size: 24px; margin: 0 0 12px 0; color: white;">Диалогов пока нет</h3>
+        <p style="font-size: 15px; color: var(--dash-text-muted); margin: 0 0 30px 0; max-width: 400px; margin-left: auto; margin-right: auto;">
+            Здесь будут отображаться все переписки ваших ботов с клиентами в реальном времени.
         </p>
         {% if bots %}
-        <a href="{% url 'agents_list' %}" class="btn btn-primary">
+        <a href="{% url 'agents_list' %}" class="btn btn-primary" style="padding: 12px 24px;">
             <i class="fa-solid fa-robot"></i>
-            Мои боты
+            Перейти к ботам
         </a>
         {% else %}
-        <a href="{% url 'create_agent' %}" class="btn btn-primary">
+        <a href="{% url 'create_agent' %}" class="btn btn-primary" style="padding: 12px 24px;">
             <i class="fa-solid fa-plus"></i>
             Создать первого бота
         </a>
@@ -169,108 +346,4 @@
     </div>
     {% endif %}
 </div>
-
-<style>
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.status-badge.active {
-    background: rgba(34, 197, 94, 0.1);
-    color: #22c55e;
-    border: 1px solid rgba(34, 197, 94, 0.2);
-}
-
-.status-badge.inactive {
-    background: rgba(148, 163, 184, 0.1);
-    color: var(--dash-text-muted);
-    border: 1px solid var(--dash-border);
-}
-
-.status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: currentColor;
-}
-
-.data-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.data-table thead {
-    background: rgba(255, 255, 255, 0.02);
-    border-bottom: 2px solid var(--dash-border);
-}
-
-.data-table th {
-    padding: 16px;
-    text-align: left;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--dash-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.data-table tbody tr {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    transition: background 0.2s;
-}
-
-.data-table tbody tr:hover {
-    background: rgba(255, 255, 255, 0.02);
-}
-
-.data-table td {
-    padding: 16px;
-    font-size: 14px;
-}
-
-.btn-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--dash-border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--dash-text);
-    transition: all 0.2s;
-    cursor: pointer;
-    text-decoration: none;
-}
-
-.btn-icon:hover {
-    background: rgba(99, 102, 241, 0.1);
-    border-color: var(--dash-primary);
-    color: var(--dash-primary);
-}
-
-.form-input {
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid var(--dash-border);
-    border-radius: 10px;
-    padding: 10px 16px;
-    color: var(--dash-text);
-    font-size: 14px;
-}
-
-.form-input:focus {
-    outline: none;
-    border-color: var(--dash-primary);
-}
-
-.table-responsive {
-    overflow-x: auto;
-}
-</style>
 {% endblock %}

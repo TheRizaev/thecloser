@@ -19,8 +19,15 @@
                 Создавай умных ботов для Telegram и WhatsApp за 5 минут. Загрузи базу знаний, и AI сам ответит клиентам.
             </p>
             <div class="cta-group">
-                <a href="{% url 'account_login' %}" class="btn-primary">Попробовать бесплатно</a>
-                <a href="#" class="btn-secondary"><i class="fa-solid fa-play"></i> Демо</a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}" class="btn-primary">
+                        <i class="fa-solid fa-gauge-high"></i> 
+                        Перейти в кабинет
+                    </a>
+                {% else %}
+                    <a href="{% url 'account_signup' %}" class="btn-primary">Попробовать бесплатно</a>
+                    <a href="#" class="btn-secondary"><i class="fa-solid fa-play"></i> Демо</a>
+                {% endif %}
             </div>
         </div>
 
@@ -152,17 +159,56 @@
 
     <section class="integrations-section">
         <p class="logos-title">Интегрируется с вашим стеком</p>
+        
         <div class="marquee-container">
-            <div class="marquee-track">
-                <div class="logo-item"><i class="fa-brands fa-google"></i> Sheets</div>
-                <div class="logo-item"><i class="fa-brands fa-stripe"></i> Stripe</div>
-                <div class="logo-item"><i class="fa-brands fa-bitbucket"></i> Bitrix24</div>
-                <div class="logo-item"><i class="fa-solid fa-a"></i> AmoCRM</div>
-                <div class="logo-item"><i class="fa-brands fa-slack"></i> Slack</div>
-                <div class="logo-item"><i class="fa-brands fa-google"></i> Sheets</div>
-                <div class="logo-item"><i class="fa-brands fa-stripe"></i> Stripe</div>
-                <div class="logo-item"><i class="fa-brands fa-bitbucket"></i> Bitrix24</div>
-                <div class="logo-item"><i class="fa-solid fa-a"></i> AmoCRM</div>
+            <div class="marquee-track scroll-left">
+                <div class="logo-item"><i class="fa-brands fa-whatsapp" style="color: #25D366;"></i> WhatsApp</div>
+                <div class="logo-item"><i class="fa-brands fa-telegram" style="color: #229ED9;"></i> Telegram</div>
+                <div class="logo-item"><i class="fa-brands fa-instagram" style="color: #E4405F;"></i> Instagram</div>
+                <div class="logo-item"><i class="fa-brands fa-slack" style="color: #E01E5A;"></i> Slack</div>
+                <div class="logo-item"><i class="fa-brands fa-discord" style="color: #5865F2;"></i> Discord</div>
+                <div class="logo-item"><i class="fa-brands fa-facebook-messenger" style="color: #00B2FF;"></i> Messenger</div>
+                <div class="logo-item"><i class="fa-solid fa-envelope" style="color: #EA4335;"></i> Gmail</div>
+                <div class="logo-item"><i class="fa-solid fa-video" style="color: #2D8CFF;"></i> Zoom</div>
+                <div class="logo-item"><i class="fa-brands fa-viber" style="color: #7360f2;"></i> Viber</div>
+                <div class="logo-item"><i class="fa-brands fa-vk" style="color: #0077FF;"></i> VKontakte</div>
+
+                <div class="logo-item"><i class="fa-brands fa-whatsapp" style="color: #25D366;"></i> WhatsApp</div>
+                <div class="logo-item"><i class="fa-brands fa-telegram" style="color: #229ED9;"></i> Telegram</div>
+                <div class="logo-item"><i class="fa-brands fa-instagram" style="color: #E4405F;"></i> Instagram</div>
+                <div class="logo-item"><i class="fa-brands fa-slack" style="color: #E01E5A;"></i> Slack</div>
+                <div class="logo-item"><i class="fa-brands fa-discord" style="color: #5865F2;"></i> Discord</div>
+                <div class="logo-item"><i class="fa-brands fa-facebook-messenger" style="color: #00B2FF;"></i> Messenger</div>
+                <div class="logo-item"><i class="fa-solid fa-envelope" style="color: #EA4335;"></i> Gmail</div>
+                <div class="logo-item"><i class="fa-solid fa-video" style="color: #2D8CFF;"></i> Zoom</div>
+                <div class="logo-item"><i class="fa-brands fa-viber" style="color: #7360f2;"></i> Viber</div>
+                <div class="logo-item"><i class="fa-brands fa-vk" style="color: #0077FF;"></i> VKontakte</div>
+            </div>
+            <div class="fade-overlay left"></div><div class="fade-overlay right"></div>
+        </div>
+
+        <div class="marquee-container" style="margin-top: 40px;"> <div class="marquee-track scroll-right">
+                <div class="logo-item"><i class="fa-brands fa-google" style="color: #34A853;"></i> Sheets</div>
+                <div class="logo-item"><i class="fa-brands fa-bitbucket" style="color: #0052CC;"></i> Bitrix24</div>
+                <div class="logo-item"><i class="fa-solid fa-a" style="color: #2D9CDB;"></i> AmoCRM</div>
+                <div class="logo-item"><i class="fa-brands fa-hubspot" style="color: #FF7A59;"></i> HubSpot</div>
+                <div class="logo-item"><i class="fa-brands fa-salesforce" style="color: #00A1E0;"></i> Salesforce</div>
+                <div class="logo-item"><i class="fa-solid fa-n" style="color: #ffffff;"></i> Notion</div>
+                <div class="logo-item"><i class="fa-brands fa-trello" style="color: #0079BF;"></i> Trello</div>
+                <div class="logo-item"><i class="fa-brands fa-stripe" style="color: #635BFF;"></i> Stripe</div>
+                <div class="logo-item"><i class="fa-brands fa-jira" style="color: #0052CC;"></i> Jira</div>
+                <div class="logo-item"><i class="fa-brands fa-microsoft" style="color: #00A4EF;"></i> Dynamics</div>
+
+                <div class="logo-item"><i class="fa-brands fa-google" style="color: #34A853;"></i> Sheets</div>
+                <div class="logo-item"><i class="fa-brands fa-bitbucket" style="color: #0052CC;"></i> Bitrix24</div>
+                <div class="logo-item"><i class="fa-solid fa-a" style="color: #2D9CDB;"></i> AmoCRM</div>
+                <div class="logo-item"><i class="fa-brands fa-hubspot" style="color: #FF7A59;"></i> HubSpot</div>
+                <div class="logo-item"><i class="fa-brands fa-salesforce" style="color: #00A1E0;"></i> Salesforce</div>
+                <div class="logo-item"><i class="fa-solid fa-n" style="color: #ffffff;"></i> Notion</div>
+                <div class="logo-item"><i class="fa-brands fa-trello" style="color: #0079BF;"></i> Trello</div>
+                <div class="logo-item"><i class="fa-brands fa-stripe" style="color: #635BFF;"></i> Stripe</div>
+                <div class="logo-item"><i class="fa-brands fa-jira" style="color: #0052CC;"></i> Jira</div>
+                <div class="logo-item"><i class="fa-brands fa-microsoft" style="color: #00A4EF;"></i> Dynamics</div>
             </div>
             <div class="fade-overlay left"></div><div class="fade-overlay right"></div>
         </div>

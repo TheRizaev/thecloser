@@ -5,219 +5,327 @@
 
 {% block extra_css %}
 <style>
-.bot-header-card {
-    background: var(--dash-surface);
-    border: 1px solid var(--dash-border);
-    border-radius: 16px;
-    padding: 24px;
-    margin-bottom: 32px;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
+    /* --- Header Styles (Shared with Agent Detail) --- */
+    .bot-header-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--dash-border);
+        border-radius: 24px;
+        padding: 32px;
+        margin-bottom: 32px;
+        display: flex;
+        gap: 32px;
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(20px);
+        align-items: center;
+    }
 
-.bot-avatar-large {
-    width: 64px;
-    height: 64px;
-    background: rgba(99, 102, 241, 0.1);
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    flex-shrink: 0;
-}
+    .bot-header-bg-glow {
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+        pointer-events: none;
+        z-index: 0;
+    }
 
-.bot-header-info {
-    flex: 1;
-}
+    .bot-avatar-xl {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(145deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 36px;
+        flex-shrink: 0;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.3);
+        z-index: 1;
+        color: var(--dash-primary);
+    }
 
-.bot-header-info h2 {
-    font-size: 20px;
-    margin: 0 0 6px 0;
-}
+    .bot-header-info {
+        flex: 1;
+        z-index: 1;
+    }
 
-.bot-header-info p {
-    font-size: 13px;
-    color: var(--dash-text-muted);
-    margin: 0;
-}
+    .bot-header-info h1 {
+        font-size: 24px;
+        margin: 0 0 8px 0;
+        font-weight: 800;
+        color: white;
+    }
 
-.knowledge-stats-mini {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 16px;
-    margin-bottom: 24px;
-}
+    .bot-header-info p {
+        color: var(--dash-text-muted);
+        font-size: 14px;
+        margin: 0;
+    }
 
-.stat-mini {
-    background: var(--dash-surface);
-    border: 1px solid var(--dash-border);
-    border-radius: 12px;
-    padding: 16px;
-}
+    .header-actions {
+        display: flex;
+        gap: 12px;
+        z-index: 1;
+    }
 
-.stat-mini-value {
-    font-size: 24px;
-    font-weight: 700;
-    margin-bottom: 4px;
-}
+    /* --- Stats --- */
+    .knowledge-stats-mini {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 20px;
+        margin-bottom: 32px;
+    }
 
-.stat-mini-label {
-    font-size: 12px;
-    color: var(--dash-text-muted);
-}
+    .stat-mini {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--dash-border);
+        border-radius: 16px;
+        padding: 20px;
+        transition: transform 0.2s;
+    }
 
-.filters-bar-simple {
-    background: var(--dash-surface);
-    border: 1px solid var(--dash-border);
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 24px;
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    align-items: center;
-}
+    .stat-mini:hover {
+        transform: translateY(-2px);
+        background: rgba(255, 255, 255, 0.04);
+    }
 
-.filter-select, .search-input {
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid var(--dash-border);
-    border-radius: 8px;
-    padding: 8px 12px;
-    color: var(--dash-text);
-    font-size: 13px;
-}
+    .stat-mini-value {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 4px;
+        color: white;
+    }
 
-.search-input {
-    flex: 1;
-    min-width: 250px;
-    font-size: 14px;
-}
+    .stat-mini-label {
+        font-size: 13px;
+        color: var(--dash-text-muted);
+    }
 
-.files-grid {
-    display: grid;
-    gap: 16px;
-}
+    /* --- Filters --- */
+    .filters-bar-simple {
+        background: rgba(15, 23, 42, 0.4);
+        border: 1px solid var(--dash-border);
+        border-radius: 16px;
+        padding: 16px;
+        margin-bottom: 24px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+        backdrop-filter: blur(10px);
+    }
 
-.file-card {
-    background: var(--dash-surface);
-    border: 1px solid var(--dash-border);
-    border-radius: 16px;
-    padding: 20px;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
+    .filter-select, .search-input {
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid var(--dash-border);
+        border-radius: 10px;
+        padding: 10px 14px;
+        color: white;
+        font-size: 14px;
+        transition: border-color 0.2s;
+    }
 
-.file-card:hover {
-    border-color: rgba(99, 102, 241, 0.3);
-    transform: translateX(4px);
-}
+    .filter-select:focus, .search-input:focus {
+        outline: none;
+        border-color: var(--dash-primary);
+    }
 
-.file-icon {
-    width: 56px;
-    height: 56px;
-    background: rgba(99, 102, 241, 0.1);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    color: var(--dash-primary);
-    flex-shrink: 0;
-}
+    .search-input {
+        flex: 1;
+        min-width: 200px;
+        padding-left: 36px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: 10px center;
+        background-size: 16px;
+    }
 
-.file-icon.pdf { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
-.file-icon.docx { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
-.file-icon.txt { background: rgba(168, 85, 247, 0.1); color: #a855f7; }
-.file-icon.md { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
+    /* --- Files Grid --- */
+    .files-grid {
+        display: grid;
+        gap: 16px;
+    }
 
-.file-info {
-    flex: 1;
-    min-width: 0;
-}
+    .file-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--dash-border);
+        border-radius: 16px;
+        padding: 20px;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
 
-.file-title {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 6px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
+    .file-card:hover {
+        border-color: rgba(99, 102, 241, 0.3);
+        background: rgba(255, 255, 255, 0.04);
+        transform: translateX(4px);
+    }
 
-.file-meta {
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-    font-size: 13px;
-    color: var(--dash-text-muted);
-}
+    .file-icon {
+        width: 56px;
+        height: 56px;
+        background: rgba(99, 102, 241, 0.1);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: var(--dash-primary);
+        flex-shrink: 0;
+    }
 
-.file-meta-item {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
+    .file-icon.pdf { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+    .file-icon.docx { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+    .file-icon.txt { background: rgba(168, 85, 247, 0.1); color: #a855f7; }
+    .file-icon.md { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
 
-.file-badges {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
+    .file-info {
+        flex: 1;
+        min-width: 0;
+    }
 
-.file-badge {
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
+    .file-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: white;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 
-.file-badge.indexed {
-    background: rgba(34, 197, 94, 0.1);
-    color: #22c55e;
-    border: 1px solid rgba(34, 197, 94, 0.2);
-}
+    .file-meta {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        font-size: 13px;
+        color: var(--dash-text-muted);
+    }
 
-.file-badge.pending {
-    background: rgba(245, 158, 11, 0.1);
-    color: #f59e0b;
-    border: 1px solid rgba(245, 158, 11, 0.2);
-}
+    .file-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
 
-.file-actions {
-    display: flex;
-    gap: 8px;
-}
+    .file-badges {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
 
-.empty-state-kb {
-    text-align: center;
-    padding: 80px 20px;
-}
+    .file-badge {
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
 
-.empty-state-kb .empty-icon {
-    width: 120px;
-    height: 120px;
-    background: rgba(99, 102, 241, 0.1);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 24px;
-    font-size: 48px;
-    color: var(--dash-primary);
-}
+    .file-badge.indexed { background: rgba(34, 197, 94, 0.1); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.2); }
+    .file-badge.pending { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2); }
+
+    .file-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--dash-border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--dash-text);
+        transition: all 0.2s;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .btn-icon:hover {
+        background: rgba(99, 102, 241, 0.1);
+        border-color: var(--dash-primary);
+        color: var(--dash-primary);
+    }
+
+    .btn-icon.btn-danger:hover {
+        background: rgba(239, 68, 68, 0.1);
+        border-color: #ef4444;
+        color: #ef4444;
+    }
+
+    /* --- Empty State --- */
+    .empty-state-kb {
+        text-align: center;
+        padding: 80px 20px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--dash-border);
+        border-radius: 20px;
+    }
+
+    .empty-state-kb .empty-icon {
+        width: 100px;
+        height: 100px;
+        background: rgba(99, 102, 241, 0.05);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 24px;
+        font-size: 40px;
+        color: var(--dash-primary);
+        border: 1px solid rgba(99, 102, 241, 0.2);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .bot-header-card {
+            flex-direction: column;
+            text-align: center;
+            padding: 24px;
+        }
+        
+        .header-actions {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .header-actions .btn {
+            flex: 1;
+            justify-content: center;
+        }
+
+        .file-card {
+            flex-direction: column;
+            align-items: flex-start;
+            position: relative;
+            padding-bottom: 60px;
+        }
+
+        .file-icon { margin-bottom: 12px; }
+        .file-info { width: 100%; margin-bottom: 12px; }
+        .file-actions { position: absolute; bottom: 20px; right: 20px; }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Bot Header -->
 <div class="bot-header-card">
-    <div class="bot-avatar-large">
+    <div class="bot-header-bg-glow"></div>
+    
+    <div class="bot-avatar-xl">
         {% if bot.platform == 'telegram' %}
             <i class="fa-brands fa-telegram" style="color: #229ED9;"></i>
         {% elif bot.platform == 'whatsapp' %}
@@ -232,27 +340,29 @@
     </div>
     
     <div class="bot-header-info">
-        <h2>{{ bot.name }}</h2>
-        <p>База знаний бота · {{ bot.get_platform_display }}</p>
+        <h1>{{ bot.name }}</h1>
+        <p>
+            <i class="fa-solid fa-database" style="color: var(--dash-primary); margin-right: 6px;"></i>
+            Управление базой знаний
+        </p>
     </div>
     
-    <div style="display: flex; gap: 12px;">
+    <div class="header-actions">
         <a href="{% url 'upload_knowledge' %}?bot_id={{ bot.id }}" class="btn btn-primary">
-            <i class="fa-solid fa-upload"></i>
-            Загрузить файл
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <span class="hide-mobile">Загрузить</span>
         </a>
         <a href="{% url 'agent_detail' bot.id %}" class="btn btn-secondary">
             <i class="fa-solid fa-arrow-left"></i>
-            К боту
+            <span class="hide-mobile">Назад к боту</span>
         </a>
     </div>
 </div>
 
-<!-- Stats -->
 <div class="knowledge-stats-mini">
     <div class="stat-mini">
         <div class="stat-mini-value">{{ total_files }}</div>
-        <div class="stat-mini-label">Файлов</div>
+        <div class="stat-mini-label">Файлов подключено</div>
     </div>
     
     <div class="stat-mini">
@@ -262,11 +372,10 @@
     
     <div class="stat-mini">
         <div class="stat-mini-value">{{ total_chunks|default:0 }}</div>
-        <div class="stat-mini-label">Фрагментов</div>
+        <div class="stat-mini-label">Фрагментов знаний</div>
     </div>
 </div>
 
-<!-- Filters -->
 <form method="GET" id="filters-form">
     <div class="filters-bar-simple">
         <select name="file_type" class="filter-select" onchange="document.getElementById('filters-form').submit()">
@@ -278,8 +387,8 @@
         </select>
         
         <select name="sort" class="filter-select" onchange="document.getElementById('filters-form').submit()">
-            <option value="-created_at" {% if current_filters.sort == '-created_at' %}selected{% endif %}>Новые первые</option>
-            <option value="created_at" {% if current_filters.sort == 'created_at' %}selected{% endif %}>Старые первые</option>
+            <option value="-created_at" {% if current_filters.sort == '-created_at' %}selected{% endif %}>Сначала новые</option>
+            <option value="created_at" {% if current_filters.sort == 'created_at' %}selected{% endif %}>Сначала старые</option>
             <option value="title" {% if current_filters.sort == 'title' %}selected{% endif %}>По названию</option>
         </select>
         
@@ -287,20 +396,18 @@
             type="search" 
             name="search" 
             class="search-input" 
-            placeholder="🔍 Поиск..."
+            placeholder="Поиск по документам..."
             value="{{ current_filters.search }}"
         >
         
         {% if current_filters.search or current_filters.file_type != 'all' %}
-        <a href="{% url 'bot_knowledge_base' bot.id %}" class="btn btn-secondary">
+        <a href="{% url 'bot_knowledge_base' bot.id %}" class="btn btn-secondary" title="Сбросить фильтры">
             <i class="fa-solid fa-xmark"></i>
-            Сбросить
         </a>
         {% endif %}
     </div>
 </form>
 
-<!-- Files List -->
 {% if page_obj %}
 <div class="glass-card">
     <div class="files-grid">
@@ -321,7 +428,7 @@
             </div>
             
             <div class="file-info">
-                <div class="file-title">{{ file.title }}</div>
+                <div class="file-title" title="{{ file.title }}">{{ file.title }}</div>
                 <div class="file-meta">
                     <div class="file-meta-item">
                         <i class="fa-solid fa-calendar"></i>
@@ -333,7 +440,7 @@
                     </div>
                     <div class="file-meta-item">
                         <i class="fa-solid fa-puzzle-piece"></i>
-                        {{ file.chunks_count }} фрагментов
+                        {{ file.chunks_count }}
                     </div>
                 </div>
             </div>
@@ -341,11 +448,11 @@
             <div class="file-badges">
                 {% if file.is_indexed %}
                     <span class="file-badge indexed">
-                        <i class="fa-solid fa-check"></i> Indexed
+                        <i class="fa-solid fa-check"></i> Индекс
                     </span>
                 {% else %}
                     <span class="file-badge pending">
-                        <i class="fa-solid fa-clock"></i> Pending
+                        <i class="fa-solid fa-arrows-rotate fa-spin"></i> Обработка
                     </span>
                 {% endif %}
             </div>
@@ -355,9 +462,9 @@
                     <i class="fa-solid fa-eye"></i>
                 </a>
                 <button class="btn-icon" onclick="reindexFile({{ file.id }})" title="Переиндексировать">
-                    <i class="fa-solid fa-sync"></i>
+                    <i class="fa-solid fa-rotate"></i>
                 </button>
-                <button class="btn-icon btn-danger" onclick="removeFromBot({{ file.id }}, '{{ file.title|escapejs }}')" title="Убрать из бота">
+                <button class="btn-icon btn-danger" onclick="removeFromBot({{ file.id }}, '{{ file.title|escapejs }}')" title="Отвязать от бота">
                     <i class="fa-solid fa-unlink"></i>
                 </button>
             </div>
@@ -365,12 +472,11 @@
         {% endfor %}
     </div>
     
-    <!-- Pagination -->
     {% if page_obj.has_other_pages %}
-    <div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 32px;">
+    <div style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--dash-border);">
         {% if page_obj.has_previous %}
         <a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}" class="btn btn-secondary">
-            <i class="fa-solid fa-chevron-left"></i>
+            <i class="fa-solid fa-chevron-left"></i> Назад
         </a>
         {% endif %}
         
@@ -380,32 +486,30 @@
         
         {% if page_obj.has_next %}
         <a href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}" class="btn btn-secondary">
-            <i class="fa-solid fa-chevron-right"></i>
+            Вперед <i class="fa-solid fa-chevron-right"></i>
         </a>
         {% endif %}
     </div>
     {% endif %}
 </div>
 {% else %}
-<div class="glass-card">
-    <div class="empty-state-kb">
-        <div class="empty-icon">
-            <i class="fa-solid fa-book"></i>
-        </div>
-        <h3 style="margin: 0 0 12px 0;">База знаний пуста</h3>
-        <p style="color: var(--dash-text-muted); margin: 0 0 24px 0;">
-            Загрузите документы для этого бота или назначьте существующие из общей базы знаний
-        </p>
-        <div style="display: flex; gap: 12px; justify-content: center;">
-            <a href="{% url 'upload_knowledge' %}?bot_id={{ bot.id }}" class="btn btn-primary">
-                <i class="fa-solid fa-upload"></i>
-                Загрузить файл
-            </a>
-            <a href="{% url 'knowledge_base_list' %}" class="btn btn-secondary">
-                <i class="fa-solid fa-folder"></i>
-                К общей базе знаний
-            </a>
-        </div>
+<div class="empty-state-kb">
+    <div class="empty-icon">
+        <i class="fa-solid fa-box-open"></i>
+    </div>
+    <h3 style="margin: 0 0 12px 0; color: white;">База знаний пуста</h3>
+    <p style="color: var(--dash-text-muted); margin: 0 0 24px 0; max-width: 400px; margin-left: auto; margin-right: auto;">
+        У этого бота пока нет подключенных документов. Загрузите файлы или выберите из общей базы.
+    </p>
+    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+        <a href="{% url 'upload_knowledge' %}?bot_id={{ bot.id }}" class="btn btn-primary">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            Загрузить файл
+        </a>
+        <a href="{% url 'knowledge_base_list' %}" class="btn btn-secondary">
+            <i class="fa-solid fa-folder"></i>
+            Выбрать из общих
+        </a>
     </div>
 </div>
 {% endif %}
@@ -432,15 +536,15 @@ async function reindexFile(fileId) {
             alert('❌ ' + data.error);
         }
     } catch (error) {
-        alert('Ошибка: ' + error);
+        alert('Ошибка соединения');
     }
 }
 
 async function removeFromBot(fileId, fileName) {
-    if (!confirm(`Убрать файл "${fileName}" из этого бота?\n\nФайл останется в общей базе знаний.`)) return;
+    if (!confirm(`Отвязать файл "${fileName}" от этого бота?\n\nФайл останется в общей базе знаний.`)) return;
     
     try {
-        // Получаем текущее назначение и убираем этого бота
+        // Логика удаления связи (endpoint должен поддерживать remove_bot_id)
         const response = await fetch(`/api/knowledge/${fileId}/assign-bots/`, {
             method: 'POST',
             headers: {
@@ -448,8 +552,7 @@ async function removeFromBot(fileId, fileName) {
                 'X-CSRFToken': csrfToken
             },
             body: JSON.stringify({ 
-                bot_ids: [],  // Пустой массив = убрать от всех ботов
-                remove_bot_id: botId  // Или можно добавить отдельный эндпоинт
+                remove_bot_id: botId 
             })
         });
         
@@ -458,10 +561,10 @@ async function removeFromBot(fileId, fileName) {
         if (data.success) {
             location.reload();
         } else {
-            alert('❌ ' + data.error);
+            alert('❌ ' + (data.error || 'Ошибка при отвязке'));
         }
     } catch (error) {
-        alert('Ошибка: ' + error);
+        alert('Ошибка соединения');
     }
 }
 </script>

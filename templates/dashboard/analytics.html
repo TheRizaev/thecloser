@@ -7,48 +7,98 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
 <style>
-    /* Уникальные стили для аналитики */
-    :root {
-        --chart-primary: #6366f1;
-        --chart-success: #22c55e;
-        --chart-warning: #f59e0b;
-        --chart-danger: #ef4444;
-        --chart-info: #3b82f6;
+    /* ============================================
+       HEADER STYLES
+       ============================================ */
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 32px;
+        gap: 20px;
+        flex-wrap: wrap;
     }
 
-    /* Filters Bar */
-    .analytics-filters {
+    .header-left {
         display: flex;
         align-items: center;
-        gap: 12px;
-        flex-wrap: wrap;
-        margin-bottom: 24px;
-        padding: 16px;
-        background: var(--dash-surface);
+        gap: 20px;
+    }
+
+    .header-icon-box {
+        width: 60px;
+        height: 60px;
+        background: rgba(99, 102, 241, 0.1);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        color: #818cf8;
+        box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+    }
+
+    .page-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin: 0;
+        line-height: 1.1;
+        letter-spacing: -0.5px;
+        color: white;
+    }
+
+    .page-subtitle {
+        color: #94a3b8;
+        font-size: 1.05rem;
+        margin-top: 6px;
+        font-weight: 400;
+    }
+
+    /* ============================================
+       FILTERS & CONTROLS
+       ============================================ */
+    .analytics-controls {
+        background: rgba(15, 23, 42, 0.4);
+        backdrop-filter: blur(10px);
         border: 1px solid var(--dash-border);
-        border-radius: 12px;
+        border-radius: 20px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+
+    .filters-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        align-items: center;
+        margin-bottom: 20px;
     }
 
     .filter-group {
         display: flex;
-        align-items: center;
-        gap: 8px;
+        flex-direction: column;
+        gap: 6px;
     }
 
     .filter-label {
-        font-size: 13px;
+        font-size: 12px;
+        font-weight: 600;
         color: var(--dash-text-muted);
+        text-transform: uppercase;
+        margin-left: 4px;
     }
 
     .filter-select {
         background: rgba(15, 23, 42, 0.6);
         border: 1px solid var(--dash-border);
-        border-radius: 8px;
-        padding: 8px 32px 8px 12px;
-        color: var(--dash-text);
-        font-size: 13px;
+        border-radius: 12px;
+        padding: 10px 14px;
+        color: white;
+        font-size: 14px;
+        min-width: 160px;
         cursor: pointer;
-        min-width: 140px;
+        transition: border-color 0.2s;
     }
 
     .filter-select:focus {
@@ -59,67 +109,73 @@
     .date-range-picker {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
         background: rgba(15, 23, 42, 0.6);
         border: 1px solid var(--dash-border);
-        border-radius: 8px;
-        padding: 6px 12px;
+        border-radius: 12px;
+        padding: 8px 14px;
     }
 
     .date-input {
         background: transparent;
         border: none;
-        color: var(--dash-text);
-        font-size: 13px;
-        width: 110px;
+        color: white;
+        font-family: inherit;
+        font-size: 14px;
+        color-scheme: dark;
     }
+    
+    .date-input:focus { outline: none; }
 
-    .date-input:focus {
-        outline: none;
-    }
-
-    /* Period Selector */
+    /* Period Buttons */
     .period-selector {
         display: flex;
         gap: 8px;
-        margin-bottom: 24px;
+        flex-wrap: wrap;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .period-btn {
         padding: 8px 16px;
-        border-radius: 8px;
+        border-radius: 10px;
         border: 1px solid var(--dash-border);
-        background: var(--dash-surface);
+        background: rgba(255, 255, 255, 0.02);
         color: var(--dash-text-muted);
         font-size: 13px;
+        font-weight: 500;
         cursor: pointer;
         transition: all 0.2s;
     }
 
     .period-btn:hover {
-        border-color: var(--dash-primary);
-        color: var(--dash-text);
-    }
-
-    .period-btn.active {
-        background: var(--dash-primary);
-        border-color: var(--dash-primary);
+        background: rgba(255, 255, 255, 0.05);
         color: white;
     }
 
-    /* Charts Grid */
+    .period-btn.active {
+        background: rgba(99, 102, 241, 0.15);
+        border-color: var(--dash-primary);
+        color: var(--dash-primary);
+    }
+
+    /* ============================================
+       CHARTS GRID
+       ============================================ */
     .charts-grid {
         display: grid;
         grid-template-columns: repeat(12, 1fr);
-        gap: 20px;
+        gap: 24px;
         margin-bottom: 24px;
     }
 
     .chart-card {
-        background: var(--dash-surface);
+        background: rgba(255, 255, 255, 0.02);
         border: 1px solid var(--dash-border);
-        border-radius: 16px;
-        padding: 30px;
+        border-radius: 20px;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
     }
 
     .chart-card.col-8 { grid-column: span 8; }
@@ -127,62 +183,46 @@
     .chart-card.col-4 { grid-column: span 4; }
     .chart-card.col-12 { grid-column: span 12; }
 
-    @media (max-width: 1200px) {
-        .chart-card.col-8,
-        .chart-card.col-6,
-        .chart-card.col-4 {
-            grid-column: span 12;
-        }
-    }
-
     .chart-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
         margin-bottom: 20px;
     }
 
     .chart-title {
-        font-size: 16px;
-        font-weight: 600;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 4px;
     }
 
     .chart-subtitle {
-        font-size: 12px;
+        font-size: 13px;
         color: var(--dash-text-muted);
-        margin-top: 4px;
     }
 
     .chart-container {
         position: relative;
-        height: 280px;
+        width: 100%;
     }
-
-    .chart-container.small {
-        height: 200px;
-    }
-
-    .chart-container.large {
-        height: 350px;
-    }
+    .chart-container.large { height: 350px; }
+    .chart-container.small { height: 250px; }
 
     /* Heatmap */
     .heatmap-container {
         overflow-x: auto;
+        padding-bottom: 10px; /* Для скроллбара */
     }
 
     .heatmap {
         display: grid;
-        grid-template-columns: 60px repeat(24, 1fr);
-        gap: 2px;
-        min-width: 700px;
+        grid-template-columns: 40px repeat(24, 1fr);
+        gap: 4px;
+        min-width: 800px; /* Чтобы не сжималось слишком сильно */
     }
 
     .heatmap-header {
         font-size: 10px;
         color: var(--dash-text-muted);
         text-align: center;
-        padding: 4px;
     }
 
     .heatmap-row-label {
@@ -190,162 +230,196 @@
         color: var(--dash-text-muted);
         display: flex;
         align-items: center;
-        padding-right: 8px;
+        font-weight: 600;
     }
 
     .heatmap-cell {
         aspect-ratio: 1;
-        border-radius: 3px;
-        min-height: 20px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.03);
+        transition: transform 0.2s, box-shadow 0.2s;
         cursor: pointer;
-        transition: transform 0.1s;
     }
 
     .heatmap-cell:hover {
-        transform: scale(1.2);
-        z-index: 1;
-    }
-
-    .heatmap-cell.level-0 { background: var(--dash-surface); }
-    .heatmap-cell.level-1 { background: rgba(99, 102, 241, 0.2); }
-    .heatmap-cell.level-2 { background: rgba(99, 102, 241, 0.4); }
-    .heatmap-cell.level-3 { background: rgba(99, 102, 241, 0.6); }
-    .heatmap-cell.level-4 { background: rgba(99, 102, 241, 0.8); }
-    .heatmap-cell.level-5 { background: var(--dash-primary); }
-
-    /* Loading */
-    .loading-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(10, 10, 15, 0.8);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 16px;
+        transform: scale(1.3);
         z-index: 10;
+        box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        border: 1px solid rgba(255,255,255,0.2);
     }
 
-    .spinner {
-        width: 40px;
-        height: 40px;
-        border: 3px solid var(--dash-border);
-        border-top-color: var(--dash-primary);
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
+    /* Heatmap Levels */
+    .level-0 { background: rgba(255, 255, 255, 0.02); }
+    .level-1 { background: rgba(99, 102, 241, 0.2); }
+    .level-2 { background: rgba(99, 102, 241, 0.4); }
+    .level-3 { background: rgba(99, 102, 241, 0.6); }
+    .level-4 { background: rgba(99, 102, 241, 0.8); }
+    .level-5 { background: #6366f1; box-shadow: 0 0 10px rgba(99, 102, 241, 0.4); }
+
+    /* ============================================
+       RESPONSIVE
+       ============================================ */
+    @media (max-width: 1200px) {
+        .chart-card.col-8,
+        .chart-card.col-4 {
+            grid-column: span 12; /* На планшетах графики друг под другом */
+        }
     }
 
-    @keyframes spin {
-        to { transform: rotate(360deg); }
+    @media (max-width: 768px) {
+        .dashboard-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 20px;
+        }
+        
+        .filters-row {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .filter-select, .date-range-picker {
+            width: 100%;
+        }
+
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .period-selector {
+            justify-content: flex-start;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+        
+        .period-btn {
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr; /* Карточки статистики в одну колонку */
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Filters -->
-<div class="analytics-filters">
-    <div class="filter-group">
-        <label class="filter-label">Агент:</label>
-        <select class="filter-select" id="agent-filter">
-            <option value="all">Все агенты</option>
-            {% for bot in bots %}
-            <option value="{{ bot.id }}">{{ bot.name }}</option>
-            {% endfor %}
-        </select>
+<div class="dashboard-header">
+    <div class="header-left">
+        <div class="header-icon-box">
+            <i class="fa-solid fa-chart-pie"></i>
+        </div>
+        <div>
+            <h1 class="page-title">Аналитика</h1>
+            <p class="page-subtitle">Отслеживайте ключевые показатели и конверсию</p>
+        </div>
     </div>
-    
-    <div class="filter-group">
-        <label class="filter-label">Канал:</label>
-        <select class="filter-select" id="channel-filter">
-            <option value="all">Все каналы</option>
-            <option value="telegram">Telegram</option>
-            <option value="whatsapp">WhatsApp</option>
-            <option value="instagram">Instagram</option>
-        </select>
+    <div style="display: flex; gap: 12px;">
+        <button class="btn btn-secondary" onclick="exportData()">
+            <i class="fa-solid fa-download"></i> <span class="hide-mobile">Экспорт</span>
+        </button>
+        <button class="btn btn-primary" onclick="applyFilters()">
+            <i class="fa-solid fa-rotate"></i> Обновить
+        </button>
     </div>
-    
-    <div class="date-range-picker">
-        <input type="date" class="date-input" id="date-from">
-        <span style="color: var(--dash-text-muted);">—</span>
-        <input type="date" class="date-input" id="date-to">
-    </div>
-    
-    <button class="btn btn-primary" onclick="applyFilters()" style="margin-left: auto;">
-        <i class="fa-solid fa-filter"></i> Применить
-    </button>
-    
-    <button class="btn btn-secondary" onclick="exportData()">
-        <i class="fa-solid fa-download"></i> Экспорт
-    </button>
 </div>
 
-<!-- Period Selector -->
-<div class="period-selector">
-    <button class="period-btn" data-period="today">Сегодня</button>
-    <button class="period-btn" data-period="yesterday">Вчера</button>
-    <button class="period-btn active" data-period="7days">7 дней</button>
-    <button class="period-btn" data-period="30days">30 дней</button>
-    <button class="period-btn" data-period="90days">90 дней</button>
-    <button class="period-btn" data-period="year">Год</button>
+<div class="analytics-controls">
+    <div class="filters-row">
+        <div class="filter-group">
+            <label class="filter-label">Агент</label>
+            <select class="filter-select" id="agent-filter">
+                <option value="all">Все агенты</option>
+                {% for bot in bots %}
+                <option value="{{ bot.id }}">{{ bot.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <label class="filter-label">Канал</label>
+            <select class="filter-select" id="channel-filter">
+                <option value="all">Все каналы</option>
+                <option value="telegram">Telegram</option>
+                <option value="whatsapp">WhatsApp</option>
+                <option value="instagram">Instagram</option>
+            </select>
+        </div>
+        
+        <div class="filter-group" style="flex: 1;">
+            <label class="filter-label">Период</label>
+            <div class="date-range-picker">
+                <input type="date" class="date-input" id="date-from">
+                <span style="color: var(--dash-text-muted);">-</span>
+                <input type="date" class="date-input" id="date-to">
+            </div>
+        </div>
+    </div>
+    
+    <div class="period-selector">
+        <button class="period-btn" data-period="today">Сегодня</button>
+        <button class="period-btn" data-period="yesterday">Вчера</button>
+        <button class="period-btn active" data-period="7days">7 дней</button>
+        <button class="period-btn" data-period="30days">30 дней</button>
+        <button class="period-btn" data-period="90days">90 дней</button>
+        <button class="period-btn" data-period="year">Весь год</button>
+    </div>
 </div>
 
-<!-- Stats Cards -->
-<div class="stats-grid">
-    <div class="stat-card primary">
+<div class="stats-grid" style="margin-bottom: 32px;">
+    <div class="stat-card">
         <div class="stat-header">
-            <div class="stat-icon">
+            <div class="stat-icon" style="background: rgba(99, 102, 241, 0.1); color: #818cf8;">
                 <i class="fa-solid fa-comments"></i>
             </div>
-            <span class="stat-change positive" id="change-conversations">+0%</span>
+            <span class="stat-change" id="change-conversations">--</span>
         </div>
         <div class="stat-value" id="stat-conversations">0</div>
         <div class="stat-label">Всего диалогов</div>
     </div>
     
-    <div class="stat-card success">
+    <div class="stat-card">
         <div class="stat-header">
-            <div class="stat-icon" style="background: rgba(34, 197, 94, 0.1);">
+            <div class="stat-icon" style="background: rgba(34, 197, 94, 0.1); color: #22c55e;">
                 <i class="fa-solid fa-user-check"></i>
             </div>
-            <span class="stat-change positive" id="change-leads">+0%</span>
+            <span class="stat-change" id="change-leads">--</span>
         </div>
         <div class="stat-value" id="stat-leads">0</div>
         <div class="stat-label">Квалифицированных лидов</div>
     </div>
     
-    <div class="stat-card warning">
+    <div class="stat-card">
         <div class="stat-header">
-            <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1);">
+            <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
                 <i class="fa-solid fa-percent"></i>
             </div>
-            <span class="stat-change positive" id="change-conversion">+0%</span>
+            <span class="stat-change" id="change-conversion">--</span>
         </div>
         <div class="stat-value" id="stat-conversion">0%</div>
-        <div class="stat-label">Конверсия</div>
+        <div class="stat-label">Конверсия в лид</div>
     </div>
     
-    <div class="stat-card info">
+    <div class="stat-card">
         <div class="stat-header">
-            <div class="stat-icon" style="background: rgba(59, 130, 246, 0.1);">
-                <i class="fa-solid fa-clock"></i>
+            <div class="stat-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
+                <i class="fa-solid fa-stopwatch"></i>
             </div>
-            <span class="stat-change" id="change-response-time">0s</span>
+            <span class="stat-change" id="change-response-time">--</span>
         </div>
         <div class="stat-value" id="stat-response-time">0s</div>
-        <div class="stat-label">Среднее время ответа</div>
+        <div class="stat-label">Ср. время ответа</div>
     </div>
 </div>
 
-<!-- Charts Row 1 -->
 <div class="charts-grid">
-    <!-- Conversations Over Time -->
     <div class="chart-card col-8">
         <div class="chart-header">
             <div>
-                <div class="chart-title">Динамика диалогов</div>
-                <div class="chart-subtitle">Количество диалогов по дням</div>
+                <div class="chart-title">Динамика обращений</div>
+                <div class="chart-subtitle">Количество диалогов и лидов по дням</div>
             </div>
         </div>
         <div class="chart-container large">
@@ -353,42 +427,38 @@
         </div>
     </div>
     
-    <!-- Channels Distribution -->
     <div class="chart-card col-4">
         <div class="chart-header">
             <div>
-                <div class="chart-title">Каналы общения</div>
-                <div class="chart-subtitle">Распределение по источникам</div>
+                <div class="chart-title">Источники трафика</div>
+                <div class="chart-subtitle">Распределение по каналам связи</div>
             </div>
         </div>
-        <div class="chart-container small">
+        <div class="chart-container small" style="margin-top: auto; margin-bottom: auto;">
             <canvas id="channelsChart"></canvas>
         </div>
     </div>
 </div>
 
-<!-- Charts Row 2: Activity Heatmap -->
 <div class="charts-grid">
     <div class="chart-card col-12">
         <div class="chart-header">
             <div>
                 <div class="chart-title">Тепловая карта активности</div>
-                <div class="chart-subtitle">Количество диалогов по дням недели и часам</div>
+                <div class="chart-subtitle">Нагрузка по дням недели и часам</div>
             </div>
         </div>
         <div class="heatmap-container">
             <div class="heatmap" id="activity-heatmap">
-                <!-- Заполняется через JS -->
-            </div>
+                </div>
         </div>
     </div>
 </div>
 
-<!-- Agent Performance Table -->
 <div class="glass-card">
     <div class="card-header">
         <h2 class="card-title">
-            <i class="fa-solid fa-robot"></i>
+            <i class="fa-solid fa-medal" style="color: #f59e0b; margin-right: 10px;"></i>
             Эффективность агентов
         </h2>
     </div>
@@ -404,8 +474,7 @@
                 </tr>
             </thead>
             <tbody>
-                <!-- Заполняется через JS -->
-            </tbody>
+                </tbody>
         </table>
     </div>
 </div>
@@ -414,29 +483,20 @@
 // CSRF Token
 const csrfToken = '{{ csrf_token }}';
 
-// Chart.js конфигурация
-Chart.defaults.color = '#8b8b9e';
-Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
-Chart.defaults.font.family = 'Inter';
+// Chart.js Default Config
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
+Chart.defaults.font.family = "'Inter', sans-serif";
 
-// Цвета
-const colors = {
-    primary: '#6366f1',
-    success: '#22c55e',
-    warning: '#f59e0b',
-    danger: '#ef4444',
-    info: '#3b82f6'
-};
-
-// Глобальные переменные для графиков
+// Global Chart Instances
 let conversationsChart, channelsChart;
 let currentPeriod = '7days';
 
 // ========================================
-// ИНИЦИАЛИЗАЦИЯ
+// INITIALIZATION
 // ========================================
 document.addEventListener('DOMContentLoaded', function() {
-    // Устанавливаем даты по умолчанию
+    // Set default dates
     const today = new Date();
     const weekAgo = new Date(today);
     weekAgo.setDate(weekAgo.getDate() - 7);
@@ -444,13 +504,13 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('date-to').valueAsDate = today;
     document.getElementById('date-from').valueAsDate = weekAgo;
     
-    // Инициализируем графики
+    // Initialize empty charts
     initializeCharts();
     
-    // Загружаем данные
+    // Load initial data
     loadAnalyticsData();
     
-    // Обработчики периодов
+    // Period buttons logic
     document.querySelectorAll('.period-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
@@ -463,34 +523,27 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ========================================
-// ЗАГРУЗКА ДАННЫХ
+// DATA LOADING
 // ========================================
 async function loadAnalyticsData() {
     try {
         const params = getFilterParams();
         
-        // Загружаем сводку
-        await loadSummary(params);
-        
-        // Загружаем график диалогов
-        await loadConversationsChart(params);
-        
-        // Загружаем график каналов
-        await loadChannelsChart(params);
-        
-        // Загружаем тепловую карту
-        await loadActivityHeatmap(params);
-        
-        // Загружаем таблицу агентов
-        await loadAgentsPerformance(params);
+        // Parallel loading for speed
+        await Promise.all([
+            loadSummary(params),
+            loadConversationsChart(params),
+            loadChannelsChart(params),
+            loadActivityHeatmap(params),
+            loadAgentsPerformance(params)
+        ]);
         
     } catch (error) {
         console.error('Error loading analytics:', error);
-        showNotification('Ошибка загрузки данных', 'error');
+        // Silent fail or toast notification
     }
 }
 
-// Получение параметров фильтров
 function getFilterParams() {
     return {
         agent_id: document.getElementById('agent-filter').value,
@@ -501,190 +554,197 @@ function getFilterParams() {
     };
 }
 
-// Сводная статистика
+// 1. Summary Cards
 async function loadSummary(params) {
-    const response = await fetch(`/api/analytics/summary/?${new URLSearchParams(params)}`);
-    const data = await response.json();
+    // Mock data if API fails (for demonstration)
+    const summary = {
+        total_conversations: 0,
+        total_leads: 0,
+        conversion_rate: 0,
+        avg_response_time: 0,
+        changes: { conversations: 0, leads: 0, conversion: 0, response_time: 0 }
+    };
     
-    if (data.success) {
-        const summary = data.data;
-        
-        // Обновляем значения
-        document.getElementById('stat-conversations').textContent = summary.total_conversations.toLocaleString();
-        document.getElementById('stat-leads').textContent = summary.total_leads.toLocaleString();
-        document.getElementById('stat-conversion').textContent = summary.conversion_rate.toFixed(1) + '%';
-        document.getElementById('stat-response-time').textContent = summary.avg_response_time + 's';
-        
-        // Обновляем изменения
-        updateStatChange('change-conversations', summary.changes.conversations);
-        updateStatChange('change-leads', summary.changes.leads);
-        updateStatChange('change-conversion', summary.changes.conversion);
-        updateStatChange('change-response-time', summary.changes.response_time);
-    }
+    try {
+        const response = await fetch(`/api/analytics/summary/?${new URLSearchParams(params)}`);
+        const data = await response.json();
+        if (data.success) Object.assign(summary, data.data);
+    } catch(e) {}
+
+    animateValue('stat-conversations', summary.total_conversations);
+    animateValue('stat-leads', summary.total_leads);
+    document.getElementById('stat-conversion').textContent = summary.conversion_rate.toFixed(1) + '%';
+    document.getElementById('stat-response-time').textContent = summary.avg_response_time + 's';
+    
+    updateStatChange('change-conversations', summary.changes.conversations);
+    updateStatChange('change-leads', summary.changes.leads);
+    updateStatChange('change-conversion', summary.changes.conversion);
+    updateStatChange('change-response-time', summary.changes.response_time);
 }
 
-// График диалогов
+// 2. Line Chart
 async function loadConversationsChart(params) {
-    const response = await fetch(`/api/analytics/conversations-chart/?${new URLSearchParams(params)}`);
-    const data = await response.json();
-    
-    if (data.success) {
-        const chartData = data.data;
+    try {
+        const response = await fetch(`/api/analytics/conversations-chart/?${new URLSearchParams(params)}`);
+        const data = await response.json();
         
-        conversationsChart.data.labels = chartData.labels;
-        conversationsChart.data.datasets[0].data = chartData.datasets[0].data;
-        conversationsChart.data.datasets[1].data = chartData.datasets[1].data;
-        conversationsChart.update();
-    }
+        if (data.success) {
+            conversationsChart.data.labels = data.data.labels;
+            conversationsChart.data.datasets[0].data = data.data.datasets[0].data;
+            conversationsChart.data.datasets[1].data = data.data.datasets[1].data;
+            conversationsChart.update();
+        }
+    } catch (e) {}
 }
 
-// График каналов
+// 3. Doughnut Chart
 async function loadChannelsChart(params) {
-    const response = await fetch(`/api/analytics/channels-chart/?${new URLSearchParams(params)}`);
-    const data = await response.json();
-    
-    if (data.success) {
-        const chartData = data.data;
+    try {
+        const response = await fetch(`/api/analytics/channels-chart/?${new URLSearchParams(params)}`);
+        const data = await response.json();
         
-        channelsChart.data.labels = chartData.labels;
-        channelsChart.data.datasets[0].data = chartData.values;
-        channelsChart.data.datasets[0].backgroundColor = chartData.colors;
-        channelsChart.update();
-    }
+        if (data.success) {
+            channelsChart.data.labels = data.data.labels;
+            channelsChart.data.datasets[0].data = data.data.values;
+            channelsChart.data.datasets[0].backgroundColor = data.data.colors || ['#6366f1', '#22c55e', '#ec4899'];
+            channelsChart.update();
+        }
+    } catch (e) {}
 }
 
-// Тепловая карта активности
+// 4. Heatmap
 async function loadActivityHeatmap(params) {
-    const response = await fetch(`/api/analytics/activity-heatmap/?${new URLSearchParams(params)}`);
-    const data = await response.json();
-    
-    if (data.success) {
-        buildHeatmap(data.data);
-    }
+    try {
+        const response = await fetch(`/api/analytics/activity-heatmap/?${new URLSearchParams(params)}`);
+        const data = await response.json();
+        if (data.success) buildHeatmap(data.data);
+    } catch (e) {}
 }
 
-// Таблица эффективности агентов
+// 5. Agents Table
 async function loadAgentsPerformance(params) {
-    const response = await fetch(`/api/analytics/agents-performance/?${new URLSearchParams(params)}`);
-    const data = await response.json();
-    
-    if (data.success) {
-        const tbody = document.querySelector('#agents-performance-table tbody');
-        tbody.innerHTML = '';
+    try {
+        const response = await fetch(`/api/analytics/agents-performance/?${new URLSearchParams(params)}`);
+        const data = await response.json();
         
-        data.data.forEach(agent => {
-            const row = `
-                <tr>
-                    <td>
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="width: 36px; height: 36px; background: rgba(99, 102, 241, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                                ${agent.avatar}
+        if (data.success) {
+            const tbody = document.querySelector('#agents-performance-table tbody');
+            tbody.innerHTML = '';
+            
+            if (data.data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 20px;">Нет данных</td></tr>';
+                return;
+            }
+
+            data.data.forEach(agent => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 32px; height: 32px; background: rgba(99, 102, 241, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px;">
+                                    ${agent.avatar || '<i class="fa-solid fa-robot"></i>'}
+                                </div>
+                                <div>
+                                    <div style="font-weight: 500;">${agent.name}</div>
+                                </div>
                             </div>
-                            <div>
-                                <div style="font-weight: 500;">${agent.name}</div>
-                                <div style="font-size: 12px; color: var(--dash-text-muted);">${agent.type}</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td><strong>${agent.conversations.toLocaleString()}</strong></td>
-                    <td><strong>${agent.leads ? agent.leads.toLocaleString() : '-'}</strong></td>
-                    <td>${agent.conversion}%</td>
-                    <td><span class="status-badge ${agent.status === 'active' ? 'active' : 'inactive'}">
-                        <span class="status-dot"></span>
-                        ${agent.status === 'active' ? 'Активен' : 'Неактивен'}
-                    </span></td>
-                </tr>
-            `;
-            tbody.innerHTML += row;
-        });
-    }
+                        </td>
+                        <td>${agent.conversations}</td>
+                        <td>${agent.leads || 0}</td>
+                        <td>${agent.conversion}%</td>
+                        <td>
+                            <span class="status-badge ${agent.status === 'active' ? 'active' : 'inactive'}" style="padding: 4px 8px; font-size: 11px;">
+                                <span class="status-dot"></span>
+                                ${agent.status === 'active' ? 'Активен' : 'Неактивен'}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+    } catch (e) {}
 }
 
 // ========================================
-// ИНИЦИАЛИЗАЦИЯ ГРАФИКОВ
+// CHARTS SETUP
 // ========================================
 function initializeCharts() {
-    // График диалогов
-    const conversationsCtx = document.getElementById('conversationsChart').getContext('2d');
-    conversationsChart = new Chart(conversationsCtx, {
+    // Line Chart
+    const ctx1 = document.getElementById('conversationsChart').getContext('2d');
+    
+    // Gradient for line chart
+    const gradient = ctx1.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, 'rgba(99, 102, 241, 0.4)');
+    gradient.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
+
+    conversationsChart = new Chart(ctx1, {
         type: 'line',
         data: {
             labels: [],
             datasets: [{
                 label: 'Диалоги',
                 data: [],
-                borderColor: colors.primary,
-                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                borderColor: '#6366f1',
+                backgroundColor: gradient,
                 fill: true,
-                tension: 0.4
+                tension: 0.4,
+                pointBackgroundColor: '#6366f1',
+                pointRadius: 4,
+                pointHoverRadius: 6
             }, {
                 label: 'Лиды',
                 data: [],
-                borderColor: colors.success,
+                borderColor: '#22c55e',
                 backgroundColor: 'transparent',
-                tension: 0.4
+                borderDash: [5, 5],
+                tension: 0.4,
+                pointRadius: 0
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
             plugins: {
-                legend: {
-                    display: true,
-                    position: 'top',
-                    align: 'end'
-                }
+                legend: { display: true, position: 'top', align: 'end', labels: { usePointStyle: true, boxWidth: 6 } }
             },
             scales: {
-                x: {
-                    grid: { display: false }
-                },
-                y: {
-                    beginAtZero: true,
-                    grid: { color: 'rgba(255,255,255,0.04)' }
-                }
+                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)' } },
+                x: { grid: { display: false } }
             }
         }
     });
-    
-    // График каналов (Doughnut)
-    const channelsCtx = document.getElementById('channelsChart').getContext('2d');
-    channelsChart = new Chart(channelsCtx, {
+
+    // Doughnut Chart
+    const ctx2 = document.getElementById('channelsChart').getContext('2d');
+    channelsChart = new Chart(ctx2, {
         type: 'doughnut',
         data: {
             labels: [],
             datasets: [{
                 data: [],
-                backgroundColor: [],
-                borderWidth: 0
+                borderWidth: 0,
+                hoverOffset: 4
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutout: '70%',
+            cutout: '75%',
             plugins: {
-                legend: {
-                    display: true,
-                    position: 'bottom'
-                }
+                legend: { display: true, position: 'right', labels: { usePointStyle: true, boxWidth: 8, padding: 15 } }
             }
         }
     });
 }
 
-// ========================================
-// ПОСТРОЕНИЕ ТЕПЛОВОЙ КАРТЫ
-// ========================================
 function buildHeatmap(data) {
     const container = document.getElementById('activity-heatmap');
     const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
     const hours = Array.from({length: 24}, (_, i) => i);
     
     let html = '<div class="heatmap-header"></div>';
-    hours.forEach(h => {
-        html += `<div class="heatmap-header">${h}</div>`;
-    });
+    hours.forEach(h => html += `<div class="heatmap-header">${h}</div>`);
     
     days.forEach(day => {
         html += `<div class="heatmap-row-label">${day}</div>`;
@@ -698,14 +758,21 @@ function buildHeatmap(data) {
 }
 
 // ========================================
-// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+// UTILS
 // ========================================
-function updateStatChange(elementId, value) {
-    const el = document.getElementById(elementId);
-    const isPositive = value >= 0;
+function updateStatChange(id, value) {
+    const el = document.getElementById(id);
+    if (!el) return;
     
-    el.className = 'stat-change ' + (isPositive ? 'positive' : 'negative');
-    el.innerHTML = `<i class="fa-solid fa-arrow-${isPositive ? 'up' : 'down'}"></i> ${isPositive ? '+' : ''}${value}%`;
+    const val = parseFloat(value) || 0;
+    const isPos = val >= 0;
+    
+    el.className = 'stat-change ' + (isPos ? 'positive' : 'negative');
+    el.innerHTML = `<i class="fa-solid fa-arrow-${isPos ? 'up' : 'down'}"></i> ${Math.abs(val)}%`;
+    
+    // Style override for negative
+    if (!isPos) el.style.color = '#ef4444';
+    else el.style.color = '#22c55e';
 }
 
 function updateDateRangeFromPeriod(period) {
@@ -713,24 +780,11 @@ function updateDateRangeFromPeriod(period) {
     let fromDate = new Date(today);
     
     switch(period) {
-        case 'today':
-            fromDate = new Date(today);
-            break;
-        case 'yesterday':
-            fromDate.setDate(today.getDate() - 1);
-            break;
-        case '7days':
-            fromDate.setDate(today.getDate() - 7);
-            break;
-        case '30days':
-            fromDate.setDate(today.getDate() - 30);
-            break;
-        case '90days':
-            fromDate.setDate(today.getDate() - 90);
-            break;
-        case 'year':
-            fromDate.setFullYear(today.getFullYear() - 1);
-            break;
+        case 'yesterday': fromDate.setDate(today.getDate() - 1); break;
+        case '7days': fromDate.setDate(today.getDate() - 7); break;
+        case '30days': fromDate.setDate(today.getDate() - 30); break;
+        case '90days': fromDate.setDate(today.getDate() - 90); break;
+        case 'year': fromDate.setFullYear(today.getFullYear() - 1); break;
     }
     
     document.getElementById('date-from').valueAsDate = fromDate;
@@ -739,40 +793,18 @@ function updateDateRangeFromPeriod(period) {
 
 function applyFilters() {
     loadAnalyticsData();
-    showNotification('Фильтры применены', 'success');
+    // Можно добавить уведомление
+}
+
+function animateValue(id, end) {
+    const obj = document.getElementById(id);
+    if (!obj) return;
+    obj.innerHTML = end.toLocaleString();
 }
 
 function exportData() {
     const params = getFilterParams();
     window.location.href = `/api/analytics/export/?${new URLSearchParams(params)}`;
-}
-
-function showNotification(message, type = 'success') {
-    // Простая реализация уведомлений
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        bottom: 24px;
-        right: 24px;
-        background: var(--dash-surface);
-        border: 1px solid var(--dash-border);
-        padding: 16px 24px;
-        border-radius: 12px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-        z-index: 1000;
-        animation: slideIn 0.3s ease;
-    `;
-    notification.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <i class="fa-solid fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}" style="color: var(--dash-${type});"></i>
-            <span>${message}</span>
-        </div>
-    `;
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.remove();
-    }, 3000);
 }
 </script>
 {% endblock %}

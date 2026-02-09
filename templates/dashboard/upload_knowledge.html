@@ -5,25 +5,80 @@
 
 {% block extra_css %}
 <style>
+/* ============================================
+   HEADER STYLES
+   ============================================ */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.header-icon-box {
+    width: 60px;
+    height: 60px;
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    color: #818cf8;
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+}
+
+.page-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin: 0;
+    line-height: 1.1;
+    letter-spacing: -0.5px;
+    color: white;
+}
+
+.page-subtitle {
+    color: #94a3b8;
+    font-size: 1.05rem;
+    margin-top: 6px;
+    font-weight: 400;
+}
+
+/* ============================================
+   UPLOAD PAGE STYLES
+   ============================================ */
 .upload-container {
     max-width: 800px;
     margin: 0 auto;
 }
 
+/* Upload Zone */
 .upload-zone {
     border: 2px dashed var(--dash-border);
-    border-radius: 20px;
+    border-radius: 24px;
     padding: 60px 40px;
     text-align: center;
-    background: var(--dash-surface);
-    transition: all 0.3s;
+    background: rgba(255, 255, 255, 0.02);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
     margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
 }
 
 .upload-zone:hover {
     border-color: var(--dash-primary);
     background: rgba(99, 102, 241, 0.05);
+    transform: translateY(-2px);
 }
 
 .upload-zone.dragover {
@@ -33,35 +88,46 @@
 }
 
 .upload-icon-large {
-    width: 100px;
-    height: 100px;
+    width: 80px;
+    height: 80px;
     background: rgba(99, 102, 241, 0.1);
     border-radius: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 24px;
-    font-size: 40px;
+    font-size: 32px;
     color: var(--dash-primary);
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.2);
+    transition: transform 0.3s;
+}
+
+.upload-zone:hover .upload-icon-large {
+    transform: scale(1.1) rotate(-5deg);
 }
 
 .upload-zone h3 {
     margin: 0 0 8px 0;
-    font-size: 20px;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: white;
 }
 
 .upload-zone p {
     color: var(--dash-text-muted);
-    margin: 0 0 8px 0;
+    margin: 0;
+    font-size: 0.95rem;
 }
 
+/* File Selected State */
 .file-selected {
     display: none;
     background: rgba(34, 197, 94, 0.1);
     border: 1px solid rgba(34, 197, 94, 0.2);
-    border-radius: 12px;
-    padding: 16px;
+    border-radius: 16px;
+    padding: 20px;
     margin-bottom: 24px;
+    animation: slideDown 0.3s ease;
 }
 
 .file-selected.active {
@@ -70,48 +136,102 @@
     gap: 16px;
 }
 
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 .file-selected-icon {
-    width: 48px;
-    height: 48px;
+    width: 50px;
+    height: 50px;
     background: rgba(34, 197, 94, 0.2);
-    border-radius: 10px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
+    font-size: 24px;
     color: #22c55e;
 }
 
 .file-selected-info {
     flex: 1;
+    min-width: 0; /* For truncate */
 }
 
 .file-selected-name {
     font-weight: 600;
     margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: white;
 }
 
 .file-selected-size {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--dash-text-muted);
 }
 
-.bots-selection {
-    background: var(--dash-surface);
-    border: 1px solid var(--dash-border);
+/* Info Box */
+.info-box {
+    background: rgba(99, 102, 241, 0.05);
+    border: 1px solid rgba(99, 102, 241, 0.2);
     border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.info-box h4 {
+    margin: 0 0 12px 0;
+    font-size: 15px;
+    color: var(--dash-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+}
+
+.info-item {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--dash-text-muted);
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.info-item strong {
+    display: block;
+    color: white;
+    margin-bottom: 4px;
+}
+
+/* Bots Selection */
+.bots-selection {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--dash-border);
+    border-radius: 20px;
     padding: 24px;
     margin-bottom: 24px;
 }
 
 .bots-selection h3 {
-    font-size: 16px;
-    margin: 0 0 16px 0;
+    font-size: 1.1rem;
+    margin: 0 0 8px 0;
+    color: white;
 }
 
 .bots-grid {
     display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 12px;
+    margin-top: 16px;
 }
 
 .bot-select-item {
@@ -119,139 +239,191 @@
     align-items: center;
     gap: 12px;
     padding: 12px;
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--dash-border);
-    border-radius: 10px;
+    border-radius: 12px;
     cursor: pointer;
     transition: all 0.2s;
 }
 
 .bot-select-item:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.06);
     border-color: var(--dash-primary);
 }
 
 .bot-select-item input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     cursor: pointer;
     accent-color: var(--dash-primary);
-}
-
-.bot-select-label {
-    flex: 1;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 10px;
 }
 
 .bot-select-avatar {
     width: 36px;
     height: 36px;
     background: rgba(99, 102, 241, 0.1);
-    border-radius: 8px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 16px;
 }
 
-.info-box {
-    background: rgba(99, 102, 241, 0.05);
-    border: 1px solid rgba(99, 102, 241, 0.2);
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 24px;
-}
-
-.info-box h4 {
-    margin: 0 0 8px 0;
-    font-size: 14px;
-    color: var(--dash-primary);
-}
-
-.info-box ul {
-    margin: 0;
-    padding-left: 20px;
-    font-size: 13px;
-    color: var(--dash-text-muted);
-    line-height: 1.8;
-}
-
+/* Progress Bar */
 .progress-section {
     display: none;
-    background: rgba(99, 102, 241, 0.1);
-    border: 1px solid rgba(99, 102, 241, 0.2);
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 24px;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--dash-border);
+    border-radius: 16px;
+    padding: 24px;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 350px;
+    z-index: 100;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    animation: slideInRight 0.3s ease;
 }
 
-.progress-section.active {
-    display: block;
+@keyframes slideInRight {
+    from { opacity: 0; transform: translateX(50px); }
+    to { opacity: 1; transform: translateX(0); }
 }
 
-.progress-bar {
-    height: 8px;
+.progress-section.active { display: block; }
+
+.progress-bar-bg {
+    height: 6px;
     background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
+    border-radius: 3px;
     overflow: hidden;
     margin-top: 12px;
 }
 
 .progress-fill {
     height: 100%;
-    background: var(--dash-primary);
+    background: linear-gradient(90deg, var(--dash-primary), #a855f7);
     width: 0%;
-    transition: width 0.3s;
+    transition: width 0.3s ease;
+}
+
+/* Form Styles */
+.form-group { margin-bottom: 20px; }
+.form-label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--dash-text-muted); font-size: 0.9rem; }
+.form-input, .form-textarea {
+    width: 100%;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--dash-border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: white;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+.form-input:focus, .form-textarea:focus {
+    outline: none;
+    border-color: var(--dash-primary);
+    background: rgba(15, 23, 42, 0.8);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 16px;
+    margin-top: 32px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+    }
+    
+    .header-icon-box {
+        width: 50px;
+        height: 50px;
+        font-size: 1.4rem;
+    }
+    
+    .page-title { font-size: 1.8rem; }
+    
+    .upload-zone { padding: 40px 20px; }
+    
+    .bots-grid { grid-template-columns: 1fr; }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .btn { width: 100%; justify-content: center; }
+    
+    .progress-section {
+        width: calc(100% - 40px);
+        left: 20px;
+        right: 20px;
+    }
 }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="upload-container">
-    <div class="page-header">
-        <div>
-            <h1 class="page-title">📤 Загрузить файл</h1>
-            <p class="page-subtitle">Добавьте документ в базу знаний</p>
+    <div class="dashboard-header">
+        <div class="header-left">
+            <div class="header-icon-box">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+            </div>
+            <div>
+                <h1 class="page-title">Загрузить файл</h1>
+                <p class="page-subtitle">Добавьте знания для ваших AI агентов</p>
+            </div>
         </div>
         <a href="{% url 'knowledge_base_list' %}" class="btn btn-secondary">
             <i class="fa-solid fa-arrow-left"></i>
-            Назад
+            <span class="hide-mobile">Назад к базе</span>
         </a>
     </div>
 
-    <!-- Info Box -->
     <div class="info-box">
-        <h4><i class="fa-solid fa-circle-info"></i> Поддерживаемые форматы</h4>
-        <ul>
-            <li><strong>PDF</strong> — документы, инструкции, брошюры</li>
-            <li><strong>Word (DOCX)</strong> — текстовые документы</li>
-            <li><strong>Text (TXT)</strong> — простые текстовые файлы</li>
-            <li><strong>Markdown (MD)</strong> — форматированный текст</li>
-        </ul>
-        <p style="margin: 12px 0 0 0; font-size: 13px; color: var(--dash-text-muted);">
+        <h4><i class="fa-solid fa-circle-info"></i> Что можно загрузить?</h4>
+        <div class="info-grid">
+            <div class="info-item">
+                <strong>PDF</strong>
+                Инструкции
+            </div>
+            <div class="info-item">
+                <strong>DOCX</strong>
+                Договоры
+            </div>
+            <div class="info-item">
+                <strong>TXT</strong>
+                Заметки
+            </div>
+            <div class="info-item">
+                <strong>MD</strong>
+                Документация
+            </div>
+        </div>
+        <div style="margin-top: 12px; font-size: 13px; color: var(--dash-text-muted); text-align: center;">
             Максимальный размер файла: <strong>50 МБ</strong>
-        </p>
+        </div>
     </div>
 
     <form method="POST" enctype="multipart/form-data" id="uploadForm">
         {% csrf_token %}
         
-        <!-- Hidden input for redirect -->
         {% if redirect_bot_id %}
         <input type="hidden" name="redirect_bot_id" value="{{ redirect_bot_id }}">
         {% endif %}
         
-        <!-- Upload Zone -->
         <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
             <div class="upload-icon-large">
-                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <i class="fa-solid fa-file-import"></i>
             </div>
             <h3>Перетащите файл сюда</h3>
-            <p>или кликните для выбора</p>
-            <p style="font-size: 12px;">PDF, DOCX, TXT, MD • До 50 МБ</p>
+            <p>или нажмите, чтобы выбрать на устройстве</p>
         </div>
         
         <input 
@@ -263,51 +435,49 @@
             required
         >
         
-        <!-- File Selected -->
         <div class="file-selected" id="fileSelected">
             <div class="file-selected-icon">
-                <i class="fa-solid fa-file"></i>
+                <i class="fa-solid fa-check"></i>
             </div>
             <div class="file-selected-info">
-                <div class="file-selected-name" id="fileName"></div>
-                <div class="file-selected-size" id="fileSize"></div>
+                <div class="file-selected-name" id="fileName">document.pdf</div>
+                <div class="file-selected-size" id="fileSize">2.4 MB</div>
             </div>
-            <button type="button" class="btn-icon btn-danger" onclick="clearFile()">
+            <button type="button" class="btn-icon btn-danger" onclick="clearFile()" title="Удалить">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
         
-        <div class="glass-card">
-            <!-- Title -->
-            <div class="form-group">
-                <label class="form-label">Название файла *</label>
-                <input 
-                    type="text" 
-                    name="title" 
-                    id="titleInput"
-                    class="form-input" 
-                    placeholder="Например: Инструкция пользователя"
-                    required
-                >
-            </div>
-            
-            <!-- Description -->
-            <div class="form-group">
-                <label class="form-label">Описание (необязательно)</label>
-                <textarea 
-                    name="description" 
-                    class="form-textarea" 
-                    rows="3"
-                    placeholder="Краткое описание содержимого документа..."
-                ></textarea>
+        <div class="glass-card" style="margin-bottom: 24px;">
+            <div class="card-body" style="padding: 24px;">
+                <div class="form-group">
+                    <label class="form-label">Название документа</label>
+                    <input 
+                        type="text" 
+                        name="title" 
+                        id="titleInput"
+                        class="form-input" 
+                        placeholder="Например: Прайс-лист 2024"
+                        required
+                    >
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Описание (опционально)</label>
+                    <textarea 
+                        name="description" 
+                        class="form-textarea" 
+                        rows="3"
+                        placeholder="О чем этот документ? Это поможет AI лучше понять контекст."
+                    ></textarea>
+                </div>
             </div>
         </div>
         
-        <!-- Bots Selection -->
         <div class="bots-selection">
-            <h3>Назначить ботам</h3>
-            <p style="font-size: 13px; color: var(--dash-text-muted); margin: 0 0 16px 0;">
-                Выберите ботов, которые смогут использовать этот файл для ответов
+            <h3><i class="fa-solid fa-link" style="color: var(--dash-primary); margin-right: 8px;"></i> Назначить ботам</h3>
+            <p style="font-size: 13px; color: var(--dash-text-muted);">
+                Выберите ботов, которые получат доступ к этим знаниям сразу после индексации.
             </p>
             
             <div class="bots-grid">
@@ -319,7 +489,7 @@
                         value="{{ bot.id }}"
                         {% if redirect_bot_id == bot.id|stringformat:"s" %}checked{% endif %}
                     >
-                    <div class="bot-select-label">
+                    <div class="bot-select-label" style="display: flex; align-items: center; gap: 10px;">
                         <div class="bot-select-avatar">
                             {% if bot.platform == 'telegram' %}
                                 <i class="fa-brands fa-telegram" style="color: #229ED9;"></i>
@@ -332,48 +502,45 @@
                             {% endif %}
                         </div>
                         <div>
-                            <div style="font-weight: 500;">{{ bot.name }}</div>
-                            <div style="font-size: 11px; color: var(--dash-text-muted);">
-                                {{ bot.get_platform_display }}
-                            </div>
+                            <div style="font-weight: 500; font-size: 14px;">{{ bot.name }}</div>
+                            <div style="font-size: 11px; color: var(--dash-text-muted);">{{ bot.get_platform_display }}</div>
                         </div>
                     </div>
                 </label>
                 {% empty %}
-                <div style="text-align: center; padding: 20px; color: var(--dash-text-muted);">
-                    У вас пока нет ботов. <a href="{% url 'create_agent' %}">Создать бота</a>
+                <div style="grid-column: 1/-1; text-align: center; padding: 20px; color: var(--dash-text-muted);">
+                    У вас пока нет активных ботов. <a href="{% url 'create_agent' %}" style="color: var(--dash-primary);">Создать бота</a>
                 </div>
                 {% endfor %}
             </div>
         </div>
         
-        <!-- Progress Section -->
-        <div class="progress-section" id="progressSection">
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                <i class="fa-solid fa-spinner fa-spin" style="font-size: 20px; color: var(--dash-primary);"></i>
-                <div>
-                    <strong>Загрузка и индексация...</strong>
-                    <p style="margin: 4px 0 0 0; font-size: 13px; color: var(--dash-text-muted);">
-                        Это может занять несколько минут
-                    </p>
-                </div>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
-            </div>
-        </div>
-        
-        <!-- Actions -->
-        <div style="display: flex; gap: 12px;">
-            <button type="submit" class="btn btn-primary" style="flex: 1;" id="submitBtn">
-                <i class="fa-solid fa-upload"></i>
-                Загрузить и проиндексировать
+        <div class="action-buttons">
+            <button type="submit" class="btn btn-primary" id="submitBtn" style="flex: 2; padding: 16px; font-size: 1.1rem;">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                Загрузить и Обработать
             </button>
-            <a href="{% url 'knowledge_base_list' %}" class="btn btn-secondary">
+            <a href="{% url 'knowledge_base_list' %}" class="btn btn-secondary" style="flex: 1; justify-content: center;">
                 Отмена
             </a>
         </div>
     </form>
+</div>
+
+<div class="progress-section" id="progressSection">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-gear fa-spin" style="color: var(--dash-primary);"></i>
+            <span style="font-weight: 600; font-size: 14px;">Обработка файла...</span>
+        </div>
+        <span id="progressPercent" style="font-size: 12px; color: var(--dash-text-muted);">0%</span>
+    </div>
+    <div class="progress-bar-bg">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <p style="margin: 8px 0 0 0; font-size: 11px; color: var(--dash-text-muted);">
+        Не закрывайте страницу, пока идет загрузка. AI читает документ.
+    </p>
 </div>
 
 <script>
@@ -385,60 +552,70 @@ const submitBtn = document.getElementById('submitBtn');
 const progressSection = document.getElementById('progressSection');
 const uploadForm = document.getElementById('uploadForm');
 
-// Drag & Drop
-uploadZone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    uploadZone.classList.add('dragover');
+// Drag & Drop Logic
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    uploadZone.addEventListener(eventName, preventDefaults, false);
 });
 
-uploadZone.addEventListener('dragleave', () => {
-    uploadZone.classList.remove('dragover');
+function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+}
+
+['dragenter', 'dragover'].forEach(eventName => {
+    uploadZone.addEventListener(eventName, () => uploadZone.classList.add('dragover'), false);
 });
 
-uploadZone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    uploadZone.classList.remove('dragover');
-    
-    const files = e.dataTransfer.files;
+['dragleave', 'drop'].forEach(eventName => {
+    uploadZone.addEventListener(eventName, () => uploadZone.classList.remove('dragover'), false);
+});
+
+uploadZone.addEventListener('drop', handleDrop, false);
+
+function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
     if (files.length > 0) {
         fileInput.files = files;
         handleFileSelect();
     }
-});
+}
 
-// File Select
+// File Selection
 fileInput.addEventListener('change', handleFileSelect);
 
 function handleFileSelect() {
     const file = fileInput.files[0];
     if (!file) return;
     
-    // Check file size
+    // Check size (50MB)
     if (file.size > 50 * 1024 * 1024) {
-        alert('Файл слишком большой! Максимум 50 МБ');
+        alert('Файл слишком большой! Максимальный размер 50 МБ.');
         clearFile();
         return;
     }
     
-    // Check file type
-    const validExtensions = ['.pdf', '.docx', '.txt', '.md'];
-    const fileExt = '.' + file.name.split('.').pop().toLowerCase();
-    if (!validExtensions.includes(fileExt)) {
-        alert('Неподдерживаемый формат файла!');
+    // Check type
+    const validTypes = ['.pdf', '.docx', '.txt', '.md'];
+    const fileName = file.name.toLowerCase();
+    const isValid = validTypes.some(ext => fileName.endsWith(ext));
+    
+    if (!isValid) {
+        alert('Неподдерживаемый формат. Используйте PDF, DOCX, TXT или MD.');
         clearFile();
         return;
     }
     
-    // Display file info
+    // UI Update
     document.getElementById('fileName').textContent = file.name;
     document.getElementById('fileSize').textContent = formatFileSize(file.size);
-    fileSelected.classList.add('active');
-    uploadZone.style.display = 'none';
     
-    // Auto-fill title if empty
+    uploadZone.style.display = 'none';
+    fileSelected.classList.add('active');
+    
+    // Auto-fill title
     if (!titleInput.value) {
-        const nameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
-        titleInput.value = nameWithoutExt;
+        titleInput.value = file.name.replace(/\.[^/.]+$/, "");
     }
 }
 
@@ -446,34 +623,40 @@ function clearFile() {
     fileInput.value = '';
     fileSelected.classList.remove('active');
     uploadZone.style.display = 'block';
+    setTimeout(() => uploadZone.style.opacity = 1, 10);
 }
 
 function formatFileSize(bytes) {
-    if (bytes < 1024) return bytes + ' Б';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' КБ';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' МБ';
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-// Form Submit
+// Form Submit & Progress Simulation
 uploadForm.addEventListener('submit', function(e) {
-    if (!fileInput.files || fileInput.files.length === 0) {
+    if (!fileInput.files.length) {
         e.preventDefault();
-        alert('Выберите файл для загрузки');
+        alert('Пожалуйста, выберите файл.');
         return;
     }
     
-    // Show progress
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Загрузка...';
+    // Show progress UI
     progressSection.classList.add('active');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Загрузка...';
     
-    // Simulate progress (actual progress would need AJAX)
-    let progress = 0;
-    const progressInterval = setInterval(() => {
-        progress += 5;
-        document.getElementById('progressFill').style.width = progress + '%';
-        if (progress >= 90) {
-            clearInterval(progressInterval);
+    // Simulate upload progress (since we can't hook into standard form submit easily without AJAX)
+    // In a real app with AJAX/HTMX, you'd use the xhr.upload.onprogress
+    let width = 0;
+    const interval = setInterval(() => {
+        if (width >= 95) {
+            clearInterval(interval);
+        } else {
+            width += Math.random() * 5; // Random increment
+            document.getElementById('progressFill').style.width = width + '%';
+            document.getElementById('progressPercent').textContent = Math.round(width) + '%';
         }
     }, 200);
 });

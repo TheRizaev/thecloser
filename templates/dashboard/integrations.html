@@ -5,7 +5,70 @@
 {% block extra_css %}
 <style>
 /* ============================================
-   INTEGRATIONS PAGE STYLES
+   HEADER STYLES (NEW)
+   ============================================ */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.header-icon-box {
+    width: 60px;
+    height: 60px;
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    color: #818cf8;
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+}
+
+.page-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin: 0;
+    line-height: 1.1;
+    letter-spacing: -0.5px;
+    color: white;
+}
+
+.page-subtitle {
+    color: #94a3b8;
+    font-size: 1.05rem;
+    margin-top: 6px;
+    font-weight: 400;
+}
+
+@media (max-width: 600px) {
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .header-icon-box {
+        width: 50px;
+        height: 50px;
+        font-size: 1.4rem;
+    }
+    .page-title {
+        font-size: 1.8rem;
+    }
+}
+
+/* ============================================
+   EXISTING INTEGRATIONS PAGE STYLES
    ============================================ */
 
 .integrations-header {
@@ -543,15 +606,19 @@
 {% endblock %}
 
 {% block content %}
-<div class="page-header integrations-header">
-    <div>
-        <h1 class="page-title">🔗 Интеграции</h1>
-        <p class="page-subtitle">Подключите CRM системы для автоматической передачи лидов</p>
+<div class="dashboard-header">
+    <div class="header-left">
+        <div class="header-icon-box">
+            <i class="fa-solid fa-plug"></i>
+        </div>
+        <div>
+            <h1 class="page-title">Интеграции</h1>
+            <p class="page-subtitle">Подключите CRM системы для автоматической передачи лидов</p>
+        </div>
     </div>
 </div>
 
 <div class="integrations-grid">
-    <!-- Bitrix24 Card -->
     <div class="integration-card {% if bitrix and bitrix.is_connected %}connected{% endif %}" id="bitrix-card">
         <div class="integration-header">
             <div class="integration-logo bitrix">
@@ -577,7 +644,6 @@
                 <span class="feature-tag"><i class="fa-solid fa-check"></i> Webhook интеграция</span>
             </div>
             
-            <!-- Disconnected State -->
             <div id="bitrix-disconnected" {% if bitrix and bitrix.is_connected %}style="display:none"{% endif %}>
                 <button class="btn-toggle-form" onclick="toggleBitrixForm()">
                     <i class="fa-solid fa-plug"></i>
@@ -631,7 +697,6 @@
                 </div>
             </div>
             
-            <!-- Connected State -->
             <div id="bitrix-connected" {% if not bitrix or not bitrix.is_connected %}style="display:none"{% endif %}>
                 <div class="connected-info">
                     <div class="connected-info-row">
@@ -680,7 +745,6 @@
         </div>
     </div>
 
-    <!-- AmoCRM Card -->
     <div class="integration-card {% if amocrm and amocrm.is_connected %}connected{% endif %}" id="amocrm-card">
         <div class="integration-header">
             <div class="integration-logo amocrm">
@@ -706,7 +770,6 @@
                 <span class="feature-tag"><i class="fa-solid fa-check"></i> OAuth 2.0</span>
             </div>
             
-            <!-- Disconnected State -->
             <div id="amocrm-disconnected" {% if amocrm and amocrm.is_connected %}style="display:none"{% endif %}>
                 <button class="btn-toggle-form" onclick="toggleAmoCRMForm()">
                     <i class="fa-solid fa-plug"></i>
@@ -714,13 +777,11 @@
                 </button>
                 
                 <div class="connection-form" id="amocrm-form">
-                    <!-- Connection Method Tabs -->
                     <div class="connection-tabs">
                         <button class="connection-tab active" onclick="switchAmoCRMTab('oauth')">OAuth 2.0</button>
                         <button class="connection-tab" onclick="switchAmoCRMTab('apikey')">API Key (Legacy)</button>
                     </div>
                     
-                    <!-- OAuth Method -->
                     <div class="tab-content active" id="amocrm-oauth-tab">
                         <div class="info-box">
                             <div class="info-box-header">
@@ -778,7 +839,6 @@
                         </div>
                     </div>
                     
-                    <!-- API Key Method (Legacy) -->
                     <div class="tab-content" id="amocrm-apikey-tab">
                         <div class="info-box warning">
                             <div class="info-box-header">
@@ -839,7 +899,6 @@
                 </div>
             </div>
             
-            <!-- Connected State -->
             <div id="amocrm-connected" {% if not amocrm or not amocrm.is_connected %}style="display:none"{% endif %}>
                 <div class="connected-info">
                     <div class="connected-info-row">
@@ -888,7 +947,6 @@
         </div>
     </div>
 
-    <!-- МойСклад Card -->
     <div class="integration-card {% if moysklad and moysklad.is_connected %}connected{% endif %}" id="moysklad-card">
         <div class="integration-header">
             <div class="integration-logo moysklad">
@@ -914,7 +972,6 @@
                 <span class="feature-tag"><i class="fa-solid fa-check"></i> Контрагенты</span>
             </div>
             
-            <!-- Disconnected State -->
             <div id="moysklad-disconnected" {% if moysklad and moysklad.is_connected %}style="display:none"{% endif %}>
                 <button class="btn-toggle-form" onclick="toggleMoySkladForm()">
                     <i class="fa-solid fa-plug"></i>
@@ -922,13 +979,11 @@
                 </button>
                 
                 <div class="connection-form" id="moysklad-form">
-                    <!-- Connection Method Tabs -->
                     <div class="connection-tabs">
                         <button class="connection-tab active" onclick="switchMoySkladTab('credentials')">Логин/Пароль</button>
                         <button class="connection-tab" onclick="switchMoySkladTab('token')">API Токен</button>
                     </div>
                     
-                    <!-- Credentials Method -->
                     <div class="tab-content active" id="moysklad-credentials-tab">
                         <div class="info-box">
                             <div class="info-box-header">
@@ -959,7 +1014,6 @@
                         </div>
                     </div>
                     
-                    <!-- Token Method -->
                     <div class="tab-content" id="moysklad-token-tab">
                         <div class="info-box">
                             <div class="info-box-header">
@@ -1004,7 +1058,6 @@
                 </div>
             </div>
             
-            <!-- Connected State -->
             <div id="moysklad-connected" {% if not moysklad or not moysklad.is_connected %}style="display:none"{% endif %}>
                 <div class="connected-info">
                     <div class="connected-info-row">
@@ -1053,7 +1106,6 @@
         </div>
     </div>
 
-    <!-- Google Sheets Card -->
     <div class="integration-card {% if google_sheets and google_sheets.is_connected %}connected{% endif %}" id="gsheets-card">
         <div class="integration-header">
             <div class="integration-logo google-sheets">
@@ -1079,7 +1131,6 @@
                 <span class="feature-tag"><i class="fa-solid fa-check"></i> Формулы</span>
             </div>
             
-            <!-- Disconnected State -->
             <div id="gsheets-disconnected" {% if google_sheets and google_sheets.is_connected %}style="display:none"{% endif %}>
                 <button class="btn-toggle-form" onclick="toggleGSheetsForm()">
                     <i class="fa-solid fa-plug"></i>
@@ -1087,13 +1138,11 @@
                 </button>
                 
                 <div class="connection-form" id="gsheets-form">
-                    <!-- Connection Method Tabs -->
                     <div class="connection-tabs">
                         <button class="connection-tab active" onclick="switchGSheetsTab('simple')">Быстрое</button>
                         <button class="connection-tab" onclick="switchGSheetsTab('service')">Service Account</button>
                     </div>
                     
-                    <!-- Simple Method -->
                     <div class="tab-content active" id="gsheets-simple-tab">
                         <div class="info-box warning">
                             <div class="info-box-header">
@@ -1115,7 +1164,6 @@
                         </div>
                     </div>
                     
-                    <!-- Service Account Method -->
                     <div class="tab-content" id="gsheets-service-tab">
                         <div class="info-box">
                             <div class="info-box-header">
@@ -1191,7 +1239,6 @@
                 </div>
             </div>
             
-            <!-- Connected State -->
             <div id="gsheets-connected" {% if not google_sheets or not google_sheets.is_connected %}style="display:none"{% endif %}>
                 <div class="connected-info">
                     <div class="connected-info-row">
@@ -1245,7 +1292,6 @@
     </div>
 </div>
 
-<!-- Coming Soon Section -->
 <div class="glass-card" style="text-align: center; padding: 48px;">
     <div style="width: 64px; height: 64px; background: rgba(99, 102, 241, 0.1); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
         <i class="fa-solid fa-plus" style="font-size: 24px; color: var(--dash-primary);"></i>

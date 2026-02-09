@@ -51,9 +51,6 @@ def get_file_type(filename):
 # ============================================
 
 def home(request):
-    """Главная страница"""
-    if request.user.is_authenticated:
-        return redirect('dashboard')
     return render(request, 'index.html')
 
 def pricing(request):

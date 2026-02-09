@@ -4,18 +4,74 @@
 
 {% block extra_css %}
 <style>
+/* ============================================
+   HEADER STYLES
+   ============================================ */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.header-icon-box {
+    width: 60px;
+    height: 60px;
+    background: rgba(34, 158, 217, 0.1); /* Telegram Blue Tint */
+    border: 1px solid rgba(34, 158, 217, 0.3);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: #229ED9;
+    box-shadow: 0 0 20px rgba(34, 158, 217, 0.2);
+}
+
+.page-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin: 0;
+    line-height: 1.1;
+    letter-spacing: -0.5px;
+    color: white;
+}
+
+.page-subtitle {
+    color: #94a3b8;
+    font-size: 1.05rem;
+    margin-top: 6px;
+    font-weight: 400;
+}
+
+/* ============================================
+   WIZARD STYLES
+   ============================================ */
 .auth-wizard {
     max-width: 600px;
     margin: 0 auto;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--dash-border);
+    border-radius: 24px;
+    padding: 32px;
+    backdrop-filter: blur(10px);
 }
 
 .wizard-step {
     display: none;
+    animation: fadeIn 0.4s ease;
 }
 
 .wizard-step.active {
     display: block;
-    animation: fadeIn 0.3s;
 }
 
 @keyframes fadeIn {
@@ -23,58 +79,109 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* Steps Indicator */
 .step-indicator {
     display: flex;
     justify-content: center;
-    gap: 20px;
+    gap: 40px;
     margin-bottom: 40px;
+    position: relative;
+}
+
+/* Line behind steps */
+.step-indicator::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 40px;
+    right: 40px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.05);
+    z-index: 0;
 }
 
 .step-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    position: relative;
+    z-index: 1;
 }
 
 .step-dot {
     width: 40px;
     height: 40px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.05);
-    border: 2px solid var(--dash-border);
+    border-radius: 12px;
+    background: #0f172a; /* Match bg to hide line */
+    border: 1px solid var(--dash-border);
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 600;
+    color: var(--dash-text-muted);
     transition: all 0.3s;
 }
 
 .step-dot.active {
-    background: var(--dash-primary);
-    border-color: var(--dash-primary);
-    color: white;
+    background: rgba(34, 158, 217, 0.1);
+    border-color: #229ED9;
+    color: #229ED9;
+    box-shadow: 0 0 15px rgba(34, 158, 217, 0.3);
 }
 
 .step-dot.completed {
-    background: var(--dash-success);
-    border-color: var(--dash-success);
+    background: rgba(34, 197, 94, 0.1);
+    border-color: #22c55e;
+    color: #22c55e;
 }
 
 .step-label {
     font-size: 12px;
     color: var(--dash-text-muted);
-    text-align: center;
+    font-weight: 500;
+    transition: color 0.3s;
 }
 
 .step-item.active .step-label {
-    color: var(--dash-primary);
-    font-weight: 600;
+    color: white;
 }
 
+/* Forms */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--dash-text-muted);
+}
+
+.form-input {
+    width: 100%;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--dash-border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: white;
+    font-size: 15px;
+    transition: all 0.2s;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #229ED9;
+    background: rgba(15, 23, 42, 0.8);
+    box-shadow: 0 0 0 3px rgba(34, 158, 217, 0.1);
+}
+
+/* Info Box */
 .info-box {
-    background: rgba(99, 102, 241, 0.1);
-    border: 1px solid rgba(99, 102, 241, 0.2);
+    background: rgba(34, 158, 217, 0.05);
+    border: 1px solid rgba(34, 158, 217, 0.2);
     border-radius: 12px;
     padding: 16px;
     margin-bottom: 24px;
@@ -82,51 +189,114 @@
 
 .info-box h4 {
     margin: 0 0 8px 0;
-    color: var(--dash-primary);
+    color: #229ED9;
     font-size: 14px;
     font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.info-box p {
-    margin: 0;
+.info-box p, .info-box li {
     font-size: 13px;
     color: var(--dash-text-muted);
-    line-height: 1.5;
+    line-height: 1.6;
 }
 
 .info-box ol {
-    margin: 12px 0 0 20px;
-    padding: 0;
-    font-size: 13px;
-    color: var(--dash-text-muted);
-    line-height: 1.8;
+    margin: 0;
+    padding-left: 20px;
 }
 
 .info-box a {
-    color: var(--dash-primary);
+    color: #229ED9;
     text-decoration: none;
+    border-bottom: 1px dashed #229ED9;
 }
 
 .info-box a:hover {
-    text-decoration: underline;
+    border-bottom-style: solid;
+}
+
+/* Buttons */
+.btn-primary {
+    background: linear-gradient(135deg, #229ED9, #0088cc); /* Telegram colors */
+    border: none;
+    box-shadow: 0 4px 15px rgba(34, 158, 217, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(34, 158, 217, 0.4);
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 1px solid var(--dash-border);
+    color: var(--dash-text);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: white;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+    }
+    
+    .header-icon-box {
+        width: 50px;
+        height: 50px;
+        font-size: 1.4rem;
+    }
+    
+    .page-title {
+        font-size: 1.8rem;
+    }
+    
+    .auth-wizard {
+        padding: 24px 20px;
+    }
+    
+    .step-indicator {
+        gap: 15px;
+    }
+    
+    .step-label {
+        display: none; /* Скрываем подписи шагов на мобильных */
+    }
+    
+    .step-indicator::before {
+        left: 20px;
+        right: 20px;
+    }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div>
-        <h1 class="page-title">📱 Подключение Telegram</h1>
-        <p class="page-subtitle">{{ bot.name }}</p>
+<div class="dashboard-header">
+    <div class="header-left">
+        <div class="header-icon-box">
+            <i class="fa-brands fa-telegram"></i>
+        </div>
+        <div>
+            <h1 class="page-title">Подключение Telegram</h1>
+            <p class="page-subtitle">Настройка бота: <strong>{{ bot.name }}</strong></p>
+        </div>
     </div>
 </div>
 
-<div class="glass-card auth-wizard">
-    <!-- Step Indicator -->
+<div class="auth-wizard">
     <div class="step-indicator">
         <div class="step-item active">
             <div class="step-dot active" id="step-dot-1">1</div>
-            <div class="step-label">API ключи</div>
+            <div class="step-label">API</div>
         </div>
         <div class="step-item">
             <div class="step-dot" id="step-dot-2">2</div>
@@ -138,62 +308,60 @@
         </div>
         <div class="step-item">
             <div class="step-dot" id="step-dot-4">4</div>
-            <div class="step-label">2FA</div>
+            <div class="step-label">Пароль</div>
         </div>
     </div>
 
-    <!-- Step 1: API Credentials -->
     <div class="wizard-step active" id="step-1">
-        <h2 style="text-align: center; margin-bottom: 20px;">Получите API ключи</h2>
+        <h2 style="text-align: center; margin-bottom: 24px; font-size: 1.5rem;">API Данные</h2>
         
         <div class="info-box">
-            <h4><i class="fa-solid fa-circle-info"></i> Как получить API ID и API Hash?</h4>
+            <h4><i class="fa-solid fa-circle-info"></i> Инструкция</h4>
             <ol>
                 <li>Перейдите на <a href="https://my.telegram.org" target="_blank">my.telegram.org</a></li>
-                <li>Войдите с помощью вашего номера телефона</li>
-                <li>Нажмите "API development tools"</li>
-                <li>Заполните форму (можно указать любые данные)</li>
+                <li>Авторизуйтесь по номеру телефона</li>
+                <li>Выберите <strong>API development tools</strong></li>
+                <li>Создайте приложение (App title можно любое)</li>
                 <li>Скопируйте <strong>api_id</strong> и <strong>api_hash</strong></li>
             </ol>
         </div>
 
         <div class="form-group">
-            <label class="form-label">API ID</label>
+            <label class="form-label">App API_ID</label>
             <input 
                 type="number" 
                 id="api-id-input" 
                 class="form-input" 
-                placeholder="12345678"
+                placeholder="Например: 12345678"
                 value="{{ bot.api_id }}"
             >
         </div>
 
         <div class="form-group">
-            <label class="form-label">API Hash</label>
+            <label class="form-label">App API_HASH</label>
             <input 
                 type="text" 
                 id="api-hash-input" 
                 class="form-input" 
-                placeholder="abcdef1234567890abcdef1234567890"
+                placeholder="Например: a1b2c3d4e5f6..."
                 value="{{ bot.api_hash }}"
             >
         </div>
 
-        <div id="api-error" style="display: none; color: var(--dash-error); margin-bottom: 20px; font-size: 14px;"></div>
+        <div id="api-error" class="message-box error" style="display: none; color: #ef4444; margin-bottom: 20px; font-size: 14px; text-align: center;"></div>
 
-        <button onclick="saveApiCredentials()" class="btn btn-primary" style="width: 100%;" id="api-save-btn">
-            <i class="fa-solid fa-arrow-right"></i>
-            Далее
+        <button onclick="saveApiCredentials()" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 1rem;" id="api-save-btn">
+            Продолжить
+            <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i>
         </button>
     </div>
 
-    <!-- Step 2: Phone Number -->
     <div class="wizard-step" id="step-2">
-        <h2 style="text-align: center; margin-bottom: 30px;">Введите номер телефона</h2>
+        <h2 style="text-align: center; margin-bottom: 24px; font-size: 1.5rem;">Номер телефона</h2>
         
         <div class="info-box">
-            <h4><i class="fa-solid fa-circle-info"></i> Важно</h4>
-            <p>Укажите номер телефона в международном формате с кодом страны (например: +998901234567)</p>
+            <h4><i class="fa-solid fa-phone"></i> Формат номера</h4>
+            <p>Введите номер, к которому будет привязан юзер-бот. Обязательно в международном формате.</p>
         </div>
 
         <div class="form-group">
@@ -202,107 +370,100 @@
                 type="tel" 
                 id="phone-input" 
                 class="form-input" 
-                placeholder="+998901234567"
+                placeholder="+998 90 123 45 67"
                 autocomplete="tel"
                 value="{{ bot.phone_number }}"
+                style="font-size: 18px; letter-spacing: 1px;"
             >
         </div>
 
-        <div id="error-message" style="display: none; color: var(--dash-error); margin-bottom: 20px; font-size: 14px;"></div>
+        <div id="error-message" style="display: none; color: #ef4444; margin-bottom: 20px; font-size: 14px; text-align: center;"></div>
 
-        <button onclick="sendCode()" class="btn btn-primary" style="width: 100%; margin-bottom: 10px;" id="send-code-btn">
-            <i class="fa-solid fa-paper-plane"></i>
-            Отправить код
+        <button onclick="sendCode()" class="btn btn-primary" style="width: 100%; padding: 14px; margin-bottom: 12px;" id="send-code-btn">
+            <i class="fa-solid fa-paper-plane" style="margin-right: 8px;"></i>
+            Получить код
         </button>
 
-        <button onclick="goToStep(1)" class="btn btn-secondary" style="width: 100%;">
-            <i class="fa-solid fa-arrow-left"></i>
+        <button onclick="goToStep(1)" class="btn btn-secondary" style="width: 100%; padding: 12px;">
             Назад
         </button>
     </div>
 
-    <!-- Step 3: Verification Code -->
     <div class="wizard-step" id="step-3">
-        <h2 style="text-align: center; margin-bottom: 30px;">Введите код из Telegram</h2>
+        <h2 style="text-align: center; margin-bottom: 24px; font-size: 1.5rem;">Код подтверждения</h2>
         
         <div class="info-box">
-            <h4><i class="fa-solid fa-circle-info"></i> Проверьте Telegram</h4>
-            <p>Код отправлен в Telegram на номер <strong id="phone-display"></strong></p>
+            <h4><i class="fa-brands fa-telegram"></i> Проверьте Telegram</h4>
+            <p>Мы отправили сервисный код в Telegram на номер <strong id="phone-display" style="color: white;"></strong>.</p>
         </div>
 
-        <div class="form-group">
-            <label class="form-label">Код подтверждения</label>
+        <div class="form-group" style="text-align: center;">
+            <label class="form-label">Введите 5 цифр</label>
             <input 
                 type="text" 
                 id="code-input" 
                 class="form-input" 
-                placeholder="12345"
+                placeholder="• • • • •"
                 maxlength="5"
                 autocomplete="one-time-code"
-                style="text-align: center; font-size: 24px; letter-spacing: 8px;"
+                style="text-align: center; font-size: 32px; letter-spacing: 12px; font-family: monospace; max-width: 300px; margin: 0 auto;"
             >
         </div>
 
-        <div id="verify-error" style="display: none; color: var(--dash-error); margin-bottom: 20px; font-size: 14px;"></div>
+        <div id="verify-error" style="display: none; color: #ef4444; margin-bottom: 20px; font-size: 14px; text-align: center;"></div>
 
-        <button onclick="verifyCode()" class="btn btn-primary" style="width: 100%; margin-bottom: 10px;" id="verify-btn">
-            <i class="fa-solid fa-check"></i>
-            Подтвердить
+        <button onclick="verifyCode()" class="btn btn-primary" style="width: 100%; padding: 14px; margin-bottom: 12px;" id="verify-btn">
+            Подтвердить вход
         </button>
 
-        <button onclick="goToStep(2)" class="btn btn-secondary" style="width: 100%;">
-            <i class="fa-solid fa-arrow-left"></i>
+        <button onclick="goToStep(2)" class="btn btn-secondary" style="width: 100%; padding: 12px;">
             Назад
         </button>
     </div>
 
-    <!-- Step 4: 2FA Password -->
     <div class="wizard-step" id="step-4">
-        <h2 style="text-align: center; margin-bottom: 30px;">Введите пароль 2FA</h2>
+        <h2 style="text-align: center; margin-bottom: 24px; font-size: 1.5rem;">Облачный пароль</h2>
         
         <div class="info-box">
-            <h4><i class="fa-solid fa-shield-halved"></i> Двухфакторная аутентификация</h4>
-            <p>У вашего аккаунта включена 2FA. Введите пароль из приложения-аутентификатора или облачный пароль Telegram.</p>
+            <h4><i class="fa-solid fa-lock"></i> Двухфакторная аутентификация</h4>
+            <p>На вашем аккаунте установлен дополнительный пароль (2FA). Пожалуйста, введите его для завершения входа.</p>
         </div>
 
         <div class="form-group">
-            <label class="form-label">Пароль 2FA</label>
+            <label class="form-label">Ваш пароль</label>
             <input 
                 type="password" 
                 id="password-input" 
                 class="form-input" 
-                placeholder="Ваш пароль 2FA"
+                placeholder="Введите пароль"
                 autocomplete="off"
                 style="text-align: center; font-size: 18px;"
             >
         </div>
 
-        <div id="password-error" style="display: none; color: var(--dash-error); margin-bottom: 20px; font-size: 14px;"></div>
+        <div id="password-error" style="display: none; color: #ef4444; margin-bottom: 20px; font-size: 14px; text-align: center;"></div>
 
-        <button onclick="verifyWithPassword()" class="btn btn-primary" style="width: 100%; margin-bottom: 10px;" id="password-btn">
-            <i class="fa-solid fa-lock"></i>
-            Подтвердить
+        <button onclick="verifyWithPassword()" class="btn btn-primary" style="width: 100%; padding: 14px; margin-bottom: 12px;" id="password-btn">
+            Войти
         </button>
 
-        <button onclick="goToStep(3)" class="btn btn-secondary" style="width: 100%;">
-            <i class="fa-solid fa-arrow-left"></i>
+        <button onclick="goToStep(3)" class="btn btn-secondary" style="width: 100%; padding: 12px;">
             Назад
         </button>
     </div>
 
-    <!-- Success Step -->
     <div class="wizard-step" id="step-success">
         <div style="text-align: center; padding: 40px 20px;">
-            <div style="width: 80px; height: 80px; background: rgba(34, 197, 94, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
-                <i class="fa-solid fa-check" style="font-size: 40px; color: var(--dash-success);"></i>
+            <div style="width: 100px; height: 100px; background: rgba(34, 197, 94, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 30px; border: 1px solid rgba(34, 197, 94, 0.2);">
+                <i class="fa-solid fa-check" style="font-size: 50px; color: #22c55e;"></i>
             </div>
-            <h2 style="margin-bottom: 12px;">Успешно подключено!</h2>
-            <p style="color: var(--dash-text-muted); margin-bottom: 32px;">
-                Ваш Telegram бот готов к работе
+            <h2 style="margin-bottom: 16px; color: white;">Успешно!</h2>
+            <p style="color: var(--dash-text-muted); margin-bottom: 40px; font-size: 1.1rem;">
+                Ваш Telegram аккаунт подключен. Теперь бот может отвечать на сообщения от вашего имени.
             </p>
-            <a href="{% url 'agent_detail' bot.id %}" class="btn btn-primary">
-                <i class="fa-solid fa-arrow-right"></i>
-                Перейти к боту
+            <a href="{% url 'agent_detail' bot.id %}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 10px; padding: 14px 30px;">
+                <i class="fa-solid fa-robot"></i>
+                Перейти к настройкам бота
             </a>
         </div>
     </div>
@@ -314,26 +475,32 @@ let currentStep = 1;
 let requires2FA = false;
 
 function goToStep(step) {
-    // Сбрасываем все
+    // Сбрасываем видимость шагов
     document.querySelectorAll('.wizard-step').forEach(s => s.classList.remove('active'));
+    
+    // Сбрасываем стили индикаторов
     document.querySelectorAll('.step-dot').forEach(d => {
         d.classList.remove('active');
         d.classList.remove('completed');
     });
     document.querySelectorAll('.step-item').forEach(i => i.classList.remove('active'));
     
-    // Показываем целевой шаг
+    // Показываем нужный шаг
     document.getElementById(`step-${step}`).classList.add('active');
     
-    // Обновляем индикаторы (только если шаг <= 4)
+    // Обновляем индикаторы (для шагов 1-4)
     if (step <= 4) {
         document.getElementById(`step-dot-${step}`).classList.add('active');
         document.querySelectorAll('.step-item')[step - 1].classList.add('active');
     }
     
-    // Отмечаем предыдущие шаги как завершённые
+    // Помечаем пройденные
     for (let i = 1; i < step && i <= 4; i++) {
-        document.getElementById(`step-dot-${i}`).classList.add('completed');
+        const dot = document.getElementById(`step-dot-${i}`);
+        if(dot) {
+            dot.classList.add('completed');
+            dot.innerHTML = '<i class="fa-solid fa-check" style="font-size: 14px;"></i>';
+        }
     }
     
     currentStep = step;
@@ -346,7 +513,7 @@ function saveApiCredentials() {
     const btn = document.getElementById('api-save-btn');
     
     if (!apiId || !apiHash) {
-        errorDiv.textContent = 'Заполните оба поля';
+        errorDiv.textContent = 'Пожалуйста, заполните оба поля';
         errorDiv.style.display = 'block';
         return;
     }
@@ -376,12 +543,12 @@ function saveApiCredentials() {
         }
     })
     .catch(error => {
-        errorDiv.textContent = 'Произошла ошибка. Попробуйте снова.';
+        errorDiv.textContent = 'Произошла ошибка сети';
         errorDiv.style.display = 'block';
     })
     .finally(() => {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i> Далее';
+        btn.innerHTML = 'Продолжить <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i>';
     });
 }
 
@@ -392,13 +559,6 @@ function sendCode() {
     
     if (!phone) {
         errorDiv.textContent = 'Введите номер телефона';
-        errorDiv.style.display = 'block';
-        return;
-    }
-    
-    // Validate phone format
-    if (!phone.startsWith('+')) {
-        errorDiv.textContent = 'Номер должен начинаться с + и кода страны';
         errorDiv.style.display = 'block';
         return;
     }
@@ -420,22 +580,19 @@ function sendCode() {
         if (data.success) {
             document.getElementById('phone-display').textContent = phone;
             goToStep(3);
-            // Focus on code input
-            setTimeout(() => {
-                document.getElementById('code-input').focus();
-            }, 300);
+            setTimeout(() => document.getElementById('code-input').focus(), 300);
         } else {
             errorDiv.textContent = data.error || 'Ошибка отправки кода';
             errorDiv.style.display = 'block';
         }
     })
     .catch(error => {
-        errorDiv.textContent = 'Произошла ошибка. Попробуйте снова.';
+        errorDiv.textContent = 'Ошибка соединения';
         errorDiv.style.display = 'block';
     })
     .finally(() => {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Отправить код';
+        btn.innerHTML = '<i class="fa-solid fa-paper-plane" style="margin-right: 8px;"></i> Получить код';
     });
 }
 
@@ -445,7 +602,7 @@ function verifyCode() {
     const btn = document.getElementById('verify-btn');
     
     if (!code) {
-        errorDiv.textContent = 'Введите код';
+        errorDiv.textContent = 'Введите код подтверждения';
         errorDiv.style.display = 'block';
         return;
     }
@@ -465,46 +622,48 @@ function verifyCode() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Показываем успех
+            // Успех сразу
             document.querySelectorAll('.wizard-step').forEach(s => s.classList.remove('active'));
             document.getElementById('step-success').classList.add('active');
-            document.querySelectorAll('.step-dot').forEach(d => d.classList.add('completed'));
+            // Закрашиваем все кружки
+            for(let i=1; i<=4; i++) {
+                const dot = document.getElementById(`step-dot-${i}`);
+                if(dot) dot.classList.add('completed');
+            }
         } else if (data.requires_2fa) {
-            // Требуется 2FA - переходим на шаг 4
+            // Нужен пароль
             requires2FA = true;
             goToStep(4);
-            setTimeout(() => {
-                document.getElementById('password-input').focus();
-            }, 300);
+            setTimeout(() => document.getElementById('password-input').focus(), 300);
         } else {
             errorDiv.textContent = data.error || 'Неверный код';
             errorDiv.style.display = 'block';
         }
     })
     .catch(error => {
-        errorDiv.textContent = 'Произошла ошибка. Попробуйте снова.';
+        errorDiv.textContent = 'Ошибка соединения';
         errorDiv.style.display = 'block';
     })
     .finally(() => {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-check"></i> Подтвердить';
+        btn.innerHTML = 'Подтвердить вход';
     });
 }
 
 function verifyWithPassword() {
-    const code = document.getElementById('code-input').value.trim(); // Код из предыдущего шага
+    const code = document.getElementById('code-input').value.trim();
     const password = document.getElementById('password-input').value.trim();
     const errorDiv = document.getElementById('password-error');
     const btn = document.getElementById('password-btn');
     
     if (!password) {
-        errorDiv.textContent = 'Введите пароль 2FA';
+        errorDiv.textContent = 'Введите пароль';
         errorDiv.style.display = 'block';
         return;
     }
     
     btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Проверка...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Вход...';
     errorDiv.style.display = 'none';
     
     fetch(`/api/agents/${botId}/telegram/verify-code/`, {
@@ -514,49 +673,50 @@ function verifyWithPassword() {
             'X-CSRFToken': '{{ csrf_token }}'
         },
         body: JSON.stringify({ 
-            code: code,           // Отправляем тот же код
-            password: password    // + пароль 2FA
+            code: code,
+            password: password 
         })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Показываем успех
             document.querySelectorAll('.wizard-step').forEach(s => s.classList.remove('active'));
             document.getElementById('step-success').classList.add('active');
-            document.querySelectorAll('.step-dot').forEach(d => d.classList.add('completed'));
+            for(let i=1; i<=4; i++) {
+                const dot = document.getElementById(`step-dot-${i}`);
+                if(dot) dot.classList.add('completed');
+            }
         } else {
             errorDiv.textContent = data.error || 'Неверный пароль';
             errorDiv.style.display = 'block';
         }
     })
     .catch(error => {
-        errorDiv.textContent = 'Произошла ошибка. Попробуйте снова.';
+        errorDiv.textContent = 'Ошибка соединения';
         errorDiv.style.display = 'block';
     })
     .finally(() => {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-lock"></i> Подтвердить';
+        btn.innerHTML = 'Войти';
     });
 }
 
-// Auto-focus on inputs when steps change
+// Enter key support
 document.addEventListener('DOMContentLoaded', function() {
-    // Auto-submit on Enter key
-    document.getElementById('api-id-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') saveApiCredentials();
-    });
-    document.getElementById('api-hash-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') saveApiCredentials();
-    });
-    document.getElementById('phone-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') sendCode();
-    });
-    document.getElementById('code-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') verifyCode();
-    });
-    document.getElementById('password-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') verifyWithPassword();
+    const inputs = [
+        { id: 'api-hash-input', func: saveApiCredentials },
+        { id: 'phone-input', func: sendCode },
+        { id: 'code-input', func: verifyCode },
+        { id: 'password-input', func: verifyWithPassword }
+    ];
+    
+    inputs.forEach(item => {
+        const el = document.getElementById(item.id);
+        if (el) {
+            el.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') item.func();
+            });
+        }
     });
 });
 </script>

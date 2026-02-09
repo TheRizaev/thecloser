@@ -5,159 +5,231 @@
 
 {% block extra_css %}
 <style>
-.detail-container {
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-.file-header-card {
-    background: var(--dash-surface);
-    border: 1px solid var(--dash-border);
-    border-radius: 20px;
-    padding: 32px;
-    margin-bottom: 32px;
-}
-
-.file-header-top {
+/* ============================================
+   HEADER STYLES
+   ============================================ */
+.dashboard-header {
     display: flex;
-    align-items: flex-start;
-    gap: 24px;
-    margin-bottom: 24px;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    gap: 20px;
+    flex-wrap: wrap;
 }
 
-.file-icon-large {
-    width: 80px;
-    height: 80px;
-    background: rgba(99, 102, 241, 0.1);
-    border-radius: 16px;
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.header-icon-box {
+    width: 60px;
+    height: 60px;
+    border-radius: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 36px;
-    flex-shrink: 0;
+    font-size: 1.8rem;
+    box-shadow: 0 0 20px rgba(0,0,0,0.2);
 }
 
-.file-icon-large.pdf { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
-.file-icon-large.docx { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
-.file-icon-large.txt { background: rgba(168, 85, 247, 0.1); color: #a855f7; }
-.file-icon-large.md { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
+/* File Type Colors for Header Icon */
+.header-icon-box.pdf { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); box-shadow: 0 0 20px rgba(239, 68, 68, 0.2); }
+.header-icon-box.docx { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); }
+.header-icon-box.txt { background: rgba(168, 85, 247, 0.1); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.3); box-shadow: 0 0 20px rgba(168, 85, 247, 0.2); }
+.header-icon-box.md { background: rgba(34, 197, 94, 0.1); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); box-shadow: 0 0 20px rgba(34, 197, 94, 0.2); }
 
-.file-header-info {
-    flex: 1;
+.page-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin: 0;
+    line-height: 1.1;
+    letter-spacing: -0.5px;
+    color: white;
 }
 
-.file-header-info h1 {
-    font-size: 28px;
-    margin: 0 0 8px 0;
-}
-
-.file-meta-list {
-    display: flex;
-    gap: 24px;
-    flex-wrap: wrap;
-    font-size: 14px;
-    color: var(--dash-text-muted);
-}
-
-.file-meta-item {
+.page-subtitle {
+    color: #94a3b8;
+    font-size: 1.05rem;
+    margin-top: 6px;
+    font-weight: 400;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
 }
 
-.file-header-actions {
+/* Action Buttons */
+.header-actions {
     display: flex;
     gap: 12px;
 }
 
-.file-description {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid var(--dash-border);
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 24px;
-}
-
-.assigned-bots-section {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 16px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid var(--dash-border);
-    border-radius: 12px;
-}
-
-.assigned-bots-list {
-    flex: 1;
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.bot-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    background: rgba(99, 102, 241, 0.1);
-    border: 1px solid rgba(99, 102, 241, 0.2);
-    border-radius: 8px;
-    font-size: 13px;
-}
-
-.bot-chip-avatar {
-    width: 20px;
-    height: 20px;
-    background: rgba(99, 102, 241, 0.2);
-    border-radius: 4px;
+.btn-icon-large {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
+    font-size: 1.2rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--dash-border);
+    color: var(--dash-text);
+    transition: all 0.2s;
+    cursor: pointer;
+    text-decoration: none;
 }
 
-.stats-row {
+.btn-icon-large:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.btn-icon-large.download:hover { color: var(--dash-primary); border-color: var(--dash-primary); }
+.btn-icon-large.refresh:hover { color: #f59e0b; border-color: #f59e0b; }
+.btn-icon-large.delete:hover { color: #ef4444; border-color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+
+/* ============================================
+   INFO CARDS
+   ============================================ */
+.detail-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
     margin-bottom: 32px;
 }
 
-.stat-box {
-    background: var(--dash-surface);
-    border: 1px solid var(--dash-border);
-    border-radius: 16px;
-    padding: 20px;
-}
-
-.stat-box-value {
-    font-size: 32px;
-    font-weight: 700;
-    margin-bottom: 6px;
-}
-
-.stat-box-label {
-    font-size: 13px;
-    color: var(--dash-text-muted);
-}
-
-.chunks-section {
-    background: var(--dash-surface);
+.info-card {
+    background: rgba(255, 255, 255, 0.02);
     border: 1px solid var(--dash-border);
     border-radius: 20px;
-    padding: 32px;
+    padding: 24px;
+    backdrop-filter: blur(10px);
 }
 
-.chunks-section h2 {
-    font-size: 20px;
-    margin: 0 0 24px 0;
+.info-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.info-card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+}
+
+.meta-item {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.meta-label {
+    font-size: 12px;
+    color: var(--dash-text-muted);
+    margin-bottom: 4px;
+    display: block;
+}
+
+.meta-value {
+    font-size: 15px;
+    font-weight: 600;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.status-badge.indexed { background: rgba(34, 197, 94, 0.1); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.2); }
+.status-badge.pending { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2); }
+
+/* Assigned Bots */
+.bots-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.bot-tag {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 10px;
+    font-size: 13px;
+    color: white;
+}
+
+.bot-tag i {
+    color: #818cf8;
+}
+
+.btn-add-bot {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    border: 1px dashed var(--dash-border);
+    background: transparent;
+    color: var(--dash-text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.btn-add-bot:hover {
+    border-color: var(--dash-primary);
+    color: var(--dash-primary);
+    background: rgba(99, 102, 241, 0.1);
+}
+
+/* Chunks Section */
+.chunks-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.chunks-count {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
 }
 
 .chunk-card {
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(15, 23, 42, 0.4);
     border: 1px solid var(--dash-border);
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 20px;
     margin-bottom: 16px;
     transition: all 0.2s;
@@ -165,283 +237,378 @@
 
 .chunk-card:hover {
     border-color: rgba(99, 102, 241, 0.3);
+    background: rgba(15, 23, 42, 0.6);
 }
 
-.chunk-header {
+.chunk-meta {
     display: flex;
     justify-content: space-between;
-    align-items: center;
     margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.chunk-index {
+.chunk-id {
+    font-family: monospace;
     font-size: 12px;
-    font-weight: 600;
     color: var(--dash-primary);
     background: rgba(99, 102, 241, 0.1);
-    padding: 4px 10px;
+    padding: 2px 8px;
     border-radius: 6px;
 }
 
 .chunk-text {
     font-size: 14px;
     line-height: 1.7;
-    color: var(--dash-text-muted);
+    color: #cbd5e1;
     white-space: pre-wrap;
-    word-wrap: break-word;
 }
 
-.danger-zone {
-    background: rgba(239, 68, 68, 0.05);
-    border: 1px solid rgba(239, 68, 68, 0.2);
-    border-radius: 16px;
-    padding: 24px;
-    margin-top: 32px;
+/* Modal Styles */
+.modal-assign-bots {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
+    display: none; align-items: center; justify-content: center;
+    z-index: 2000; padding: 20px;
+    animation: fadeIn 0.2s ease;
 }
 
-.danger-zone h3 {
-    color: var(--dash-error);
-    margin: 0 0 12px 0;
-    font-size: 16px;
+.modal-assign-bots.active { display: flex; }
+
+.modal-content-assign {
+    background: #0f172a;
+    border: 1px solid var(--dash-border);
+    border-radius: 24px;
+    padding: 32px;
+    max-width: 450px;
+    width: 100%;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
+.modal-header-assign {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 24px;
+}
+
+.modal-header-assign h3 {
+    margin: 0; font-size: 20px; font-weight: 700; color: white;
+}
+
+.bots-checklist {
+    display: grid; gap: 12px; margin-bottom: 24px;
+    max-height: 300px; overflow-y: auto;
+}
+
+.bot-checkbox-item {
+    display: flex; align-items: center; gap: 14px; padding: 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--dash-border);
+    border-radius: 12px; cursor: pointer; transition: all 0.2s;
+}
+
+.bot-checkbox-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--dash-primary);
+}
+
+.bot-checkbox-item input[type="checkbox"] {
+    width: 20px; height: 20px; accent-color: var(--dash-primary);
+}
+
+.btn-save-modal {
+    width: 100%; padding: 12px; border-radius: 12px;
+    background: var(--dash-primary); color: white; border: none; font-weight: 600; cursor: pointer;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .detail-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+    .dashboard-header { flex-direction: column; align-items: flex-start; }
+    .header-left { width: 100%; }
+    .header-actions { width: 100%; justify-content: space-between; }
+    .btn-icon-large { flex: 1; }
+    .header-icon-box { width: 50px; height: 50px; font-size: 1.5rem; }
+    .page-title { font-size: 1.8rem; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="detail-container">
-    <!-- Header -->
-    <div class="file-header-card">
-        <div class="file-header-top">
-            <div class="file-icon-large {{ kb.file_type }}">
-                {% if kb.file_type == 'pdf' %}
-                    <i class="fa-solid fa-file-pdf"></i>
-                {% elif kb.file_type == 'docx' %}
-                    <i class="fa-solid fa-file-word"></i>
-                {% elif kb.file_type == 'txt' %}
-                    <i class="fa-solid fa-file-lines"></i>
-                {% elif kb.file_type == 'md' %}
-                    <i class="fa-brands fa-markdown"></i>
+<div class="dashboard-header">
+    <div class="header-left">
+        <div class="header-icon-box {{ kb.file_type }}">
+            {% if kb.file_type == 'pdf' %}
+                <i class="fa-solid fa-file-pdf"></i>
+            {% elif kb.file_type == 'docx' %}
+                <i class="fa-solid fa-file-word"></i>
+            {% elif kb.file_type == 'txt' %}
+                <i class="fa-solid fa-file-lines"></i>
+            {% elif kb.file_type == 'md' %}
+                <i class="fa-brands fa-markdown"></i>
+            {% else %}
+                <i class="fa-solid fa-file"></i>
+            {% endif %}
+        </div>
+        <div>
+            <h1 class="page-title">{{ kb.title }}</h1>
+            <p class="page-subtitle">
+                {% if kb.is_indexed %}
+                    <span class="status-badge indexed"><i class="fa-solid fa-check"></i> Индексирован</span>
                 {% else %}
-                    <i class="fa-solid fa-file"></i>
+                    <span class="status-badge pending"><i class="fa-solid fa-clock"></i> В обработке</span>
                 {% endif %}
-            </div>
-            
-            <div class="file-header-info">
-                <h1>{{ kb.title }}</h1>
-                <div class="file-meta-list">
-                    <div class="file-meta-item">
-                        <i class="fa-solid fa-calendar"></i>
-                        Загружен {{ kb.created_at|date:"d.m.Y H:i" }}
-                    </div>
-                    <div class="file-meta-item">
-                        <i class="fa-solid fa-database"></i>
-                        {{ kb.file_size_display }}
-                    </div>
-                    <div class="file-meta-item">
-                        <i class="fa-solid fa-puzzle-piece"></i>
-                        {{ total_chunks }} фрагментов
-                    </div>
-                    {% if kb.is_indexed %}
-                    <div class="file-meta-item" style="color: var(--dash-success);">
-                        <i class="fa-solid fa-check-circle"></i>
-                        Проиндексирован
-                    </div>
-                    {% else %}
-                    <div class="file-meta-item" style="color: var(--dash-warning);">
-                        <i class="fa-solid fa-clock"></i>
-                        Ожидает индексации
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-            
-            <div class="file-header-actions">
-                <a href="{{ kb.file.url }}" download class="btn btn-secondary" title="Скачать">
-                    <i class="fa-solid fa-download"></i>
-                </a>
-                <button class="btn btn-secondary" onclick="reindexFile()" title="Переиндексировать">
-                    <i class="fa-solid fa-sync"></i>
-                </button>
-                <a href="{% url 'knowledge_base_list' %}" class="btn btn-secondary">
-                    <i class="fa-solid fa-arrow-left"></i>
-                </a>
+                <span style="opacity: 0.5;">•</span>
+                {{ kb.created_at|date:"d.m.Y H:i" }}
+            </p>
+        </div>
+    </div>
+    
+    <div class="header-actions">
+        <a href="{% url 'knowledge_base_list' %}" class="btn-icon-large" title="Назад">
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <a href="{{ kb.file.url }}" download class="btn-icon-large download" title="Скачать файл">
+            <i class="fa-solid fa-download"></i>
+        </a>
+        <button onclick="reindexFile()" class="btn-icon-large refresh" title="Переиндексировать">
+            <i class="fa-solid fa-rotate"></i>
+        </button>
+        <button onclick="deleteFile()" class="btn-icon-large delete" title="Удалить">
+            <i class="fa-solid fa-trash"></i>
+        </button>
+    </div>
+</div>
+
+<div class="detail-grid">
+    <div class="info-card">
+        <div class="info-card-header">
+            <div class="info-card-title">
+                <i class="fa-solid fa-circle-info" style="color: var(--dash-primary);"></i>
+                Информация о файле
             </div>
         </div>
         
-        <!-- Description -->
+        <div class="meta-grid">
+            <div class="meta-item">
+                <span class="meta-label">Размер</span>
+                <div class="meta-value">{{ kb.file_size_display }}</div>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">Тип</span>
+                <div class="meta-value" style="text-transform: uppercase;">{{ kb.file_type }}</div>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">Всего фрагментов</span>
+                <div class="meta-value">{{ total_chunks }}</div>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">Символов</span>
+                <div class="meta-value">{{ total_chars|default:"-" }}</div>
+            </div>
+        </div>
+        
         {% if kb.description %}
-        <div class="file-description">
-            <strong style="display: block; margin-bottom: 8px; font-size: 13px; color: var(--dash-text-muted);">
-                Описание:
-            </strong>
-            {{ kb.description }}
+        <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05);">
+            <span class="meta-label">Описание</span>
+            <p style="margin: 4px 0 0 0; font-size: 14px; color: #cbd5e1; line-height: 1.6;">
+                {{ kb.description }}
+            </p>
         </div>
         {% endif %}
-        
-        <!-- Assigned Bots -->
-        <div class="assigned-bots-section">
-            <div style="font-size: 13px; color: var(--dash-text-muted);">
-                Назначено ботам:
+    </div>
+
+    <div class="info-card">
+        <div class="info-card-header">
+            <div class="info-card-title">
+                <i class="fa-solid fa-robot" style="color: #a855f7;"></i>
+                Доступ у ботов
             </div>
-            <div class="assigned-bots-list">
-                {% for bot in assigned_bots %}
-                <div class="bot-chip">
-                    <div class="bot-chip-avatar">
+            <button class="btn-add-bot" onclick="openAssignModal()" title="Изменить доступ">
+                <i class="fa-solid fa-pen"></i>
+            </button>
+        </div>
+        
+        <div class="bots-list">
+            {% for bot in assigned_bots %}
+            <div class="bot-tag">
+                {% if bot.platform == 'telegram' %}
+                    <i class="fa-brands fa-telegram" style="color: #229ED9;"></i>
+                {% elif bot.platform == 'whatsapp' %}
+                    <i class="fa-brands fa-whatsapp" style="color: #25D366;"></i>
+                {% else %}
+                    <i class="fa-solid fa-robot"></i>
+                {% endif %}
+                {{ bot.name }}
+            </div>
+            {% empty %}
+            <p style="font-size: 13px; color: var(--dash-text-muted);">
+                Этот файл пока не назначен ни одному боту.
+            </p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="info-card">
+    <div class="chunks-header">
+        <div class="info-card-title">
+            <i class="fa-solid fa-layer-group" style="color: #3b82f6;"></i>
+            Фрагменты знаний (Chunks)
+        </div>
+        <span class="chunks-count">{{ sample_chunks|length }} из {{ total_chunks }}</span>
+    </div>
+
+    {% if sample_chunks %}
+        {% for chunk in sample_chunks %}
+        <div class="chunk-card">
+            <div class="chunk-meta">
+                <span class="chunk-id">#{{ chunk.chunk_index|add:1 }}</span>
+                <span style="font-size: 12px; color: var(--dash-text-muted);">{{ chunk.text|length }} chars</span>
+            </div>
+            <div class="chunk-text">{{ chunk.text }}</div>
+        </div>
+        {% endfor %}
+        
+        {% if total_chunks > 10 %}
+        <div style="text-align: center; margin-top: 20px; color: var(--dash-text-muted); font-size: 13px;">
+            Показаны первые 10 фрагментов. Используйте API для доступа ко всем данным.
+        </div>
+        {% endif %}
+    {% else %}
+        <div style="text-align: center; padding: 40px 20px;">
+            <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.05); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                <i class="fa-solid fa-box-open" style="font-size: 24px; color: var(--dash-text-muted);"></i>
+            </div>
+            <p style="color: var(--dash-text-muted); margin: 0;">Фрагментов пока нет. Возможно, файл еще обрабатывается.</p>
+        </div>
+    {% endif %}
+</div>
+
+<div class="modal-assign-bots" id="assignBotsModal">
+    <div class="modal-content-assign">
+        <div class="modal-header-assign">
+            <h3>Доступ к файлу</h3>
+            <button class="btn-icon-large" onclick="closeAssignModal()" style="width: 36px; height: 36px; font-size: 1rem;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        
+        <div class="bots-checklist" id="botsChecklist">
+            {% for bot in all_bots %}
+            <label class="bot-checkbox-item">
+                <input 
+                    type="checkbox" 
+                    value="{{ bot.id }}" 
+                    {% if bot in assigned_bots %}checked{% endif %}
+                >
+                <div class="bot-checkbox-label" style="flex: 1; display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 32px; height: 32px; background: rgba(99,102,241,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
                         {% if bot.platform == 'telegram' %}
-                            <i class="fa-brands fa-telegram"></i>
+                            <i class="fa-brands fa-telegram" style="color: #229ED9;"></i>
                         {% elif bot.platform == 'whatsapp' %}
-                            <i class="fa-brands fa-whatsapp"></i>
+                            <i class="fa-brands fa-whatsapp" style="color: #25D366;"></i>
                         {% else %}
                             <i class="fa-solid fa-robot"></i>
                         {% endif %}
                     </div>
-                    {{ bot.name }}
-                </div>
-                {% empty %}
-                <span style="font-size: 13px; color: var(--dash-text-muted);">
-                    Не назначено ни одному боту
-                </span>
-                {% endfor %}
-            </div>
-            <button class="btn btn-secondary" onclick="openAssignModal()">
-                <i class="fa-solid fa-pen"></i>
-                Изменить
-            </button>
-        </div>
-    </div>
-
-    <!-- Stats -->
-    <div class="stats-row">
-        <div class="stat-box">
-            <div class="stat-box-value">{{ total_chunks }}</div>
-            <div class="stat-box-label">Всего фрагментов</div>
-        </div>
-        
-        <div class="stat-box">
-            <div class="stat-box-value">{{ assigned_bots.count }}</div>
-            <div class="stat-box-label">Назначено ботам</div>
-        </div>
-        
-        <div class="stat-box">
-            <div class="stat-box-value">{{ kb.get_file_type_display }}</div>
-            <div class="stat-box-label">Тип файла</div>
-        </div>
-    </div>
-
-    <!-- Chunks -->
-    <div class="chunks-section">
-        <h2>
-            <i class="fa-solid fa-puzzle-piece"></i>
-            Фрагменты документа
-            {% if total_chunks > 10 %}
-                <span style="font-size: 14px; font-weight: normal; color: var(--dash-text-muted);">
-                    (показано первых 10 из {{ total_chunks }})
-                </span>
-            {% endif %}
-        </h2>
-        
-        {% if sample_chunks %}
-            {% for chunk in sample_chunks %}
-            <div class="chunk-card">
-                <div class="chunk-header">
-                    <div class="chunk-index">
-                        Фрагмент #{{ chunk.chunk_index|add:1 }}
-                    </div>
-                    <div style="font-size: 12px; color: var(--dash-text-muted);">
-                        {{ chunk.text|length }} символов
+                    <div>
+                        <div style="font-weight: 500; color: white; font-size: 14px;">{{ bot.name }}</div>
+                        <div style="font-size: 11px; color: var(--dash-text-muted);">{{ bot.get_platform_display }}</div>
                     </div>
                 </div>
-                <div class="chunk-text">{{ chunk.text|truncatewords:100 }}</div>
-            </div>
+            </label>
             {% endfor %}
-            
-            {% if total_chunks > 10 %}
-            <div style="text-align: center; margin-top: 24px;">
-                <p style="color: var(--dash-text-muted); font-size: 14px;">
-                    Показано 10 из {{ total_chunks }} фрагментов
-                </p>
-            </div>
-            {% endif %}
-        {% else %}
-            <div style="text-align: center; padding: 40px; color: var(--dash-text-muted);">
-                <i class="fa-solid fa-puzzle-piece" style="font-size: 48px; margin-bottom: 16px; opacity: 0.3;"></i>
-                <p>Документ еще не проиндексирован</p>
-                <button class="btn btn-primary" onclick="reindexFile()">
-                    <i class="fa-solid fa-sync"></i>
-                    Запустить индексацию
-                </button>
-            </div>
-        {% endif %}
-    </div>
-
-    <!-- Danger Zone -->
-    <div class="danger-zone">
-        <h3><i class="fa-solid fa-triangle-exclamation"></i> Опасная зона</h3>
-        <p style="color: var(--dash-text-muted); margin: 0 0 16px 0; font-size: 14px;">
-            Удаление документа нельзя отменить. Все фрагменты и связи с ботами будут удалены.
-        </p>
-        <button class="btn btn-secondary" onclick="deleteFile()" style="background: var(--dash-error); border-color: var(--dash-error); color: white;">
-            <i class="fa-solid fa-trash"></i>
-            Удалить документ
+        </div>
+        
+        <button class="btn-save-modal" onclick="saveAssignment()">
+            Сохранить изменения
         </button>
     </div>
 </div>
 
 <script>
 const csrfToken = '{{ csrf_token }}';
-const kbId = {{ kb.id }};
+const fileId = {{ kb.id }};
 
-async function reindexFile() {
-    if (!confirm('Переиндексировать этот документ?\n\nЭто может занять несколько минут.')) return;
+function openAssignModal() {
+    document.getElementById('assignBotsModal').classList.add('active');
+}
+
+function closeAssignModal() {
+    document.getElementById('assignBotsModal').classList.remove('active');
+}
+
+async function saveAssignment() {
+    const selectedBots = Array.from(
+        document.querySelectorAll('#botsChecklist input[type="checkbox"]:checked')
+    ).map(cb => parseInt(cb.value));
+    
+    const btn = document.querySelector('.btn-save-modal');
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Сохранение...';
     
     try {
-        const response = await fetch(`/api/knowledge/${kbId}/reindex/`, {
+        const response = await fetch(`/api/knowledge/${fileId}/assign-bots/`, {
             method: 'POST',
-            headers: { 'X-CSRFToken': csrfToken }
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ bot_ids: selectedBots })
         });
         
         const data = await response.json();
         
         if (data.success) {
-            alert('✅ ' + data.message);
             location.reload();
         } else {
-            alert('❌ ' + data.error);
+            alert('Ошибка: ' + data.error);
         }
     } catch (error) {
-        alert('Ошибка: ' + error);
+        alert('Ошибка соединения');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+    }
+}
+
+async function reindexFile() {
+    if (!confirm('Переиндексировать этот файл?')) return;
+    try {
+        const response = await fetch(`/api/knowledge/${fileId}/reindex/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken }
+        });
+        const data = await response.json();
+        if (data.success) location.reload();
+    } catch (error) {
+        alert('Ошибка при запуске индексации');
     }
 }
 
 async function deleteFile() {
-    const confirmation = prompt(
-        'Введите "УДАЛИТЬ" для подтверждения удаления документа "{{ kb.title|escapejs }}":'
-    );
-    
-    if (confirmation !== 'УДАЛИТЬ') {
-        alert('Удаление отменено');
-        return;
-    }
-    
+    if (!confirm('Вы уверены, что хотите удалить этот файл? Это действие нельзя отменить.')) return;
     try {
-        const response = await fetch(`/dashboard/knowledge/${kbId}/delete/`, {
+        const response = await fetch(`/dashboard/knowledge/${fileId}/delete/`, {
             method: 'POST',
             headers: { 'X-CSRFToken': csrfToken }
         });
-        
         if (response.ok) {
-            window.location.href = '{% url "knowledge_base_list" %}';
-        } else {
-            alert('Ошибка удаления');
+            window.location.href = "{% url 'knowledge_base_list' %}";
         }
     } catch (error) {
-        alert('Ошибка: ' + error);
+        alert('Ошибка при удалении');
     }
 }
 
-function openAssignModal() {
-    // TODO: Открыть модалку для изменения назначения ботов
-    window.location.href = '{% url "knowledge_base_list" %}';
-}
+// Close modal on click outside
+document.getElementById('assignBotsModal').addEventListener('click', function(e) {
+    if (e.target === this) closeAssignModal();
+});
 </script>
 {% endblock %}

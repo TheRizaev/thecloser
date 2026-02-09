@@ -7,12 +7,20 @@
     padding: 120px 5% 50px; position: relative; max-width: 1400px; margin: 0 auto;
 }
 
-/* Эффекты фона */
 .ambient-glow {
-    position: absolute; width: 600px; height: 600px;
+    position: absolute;
+    width: 100%; 
+    max-width: 600px; 
+    height: 600px; /* Можно оставить или сделать auto */
     background: radial-gradient(circle, var(--glow-color) 0%, transparent 70%);
-    top: -200px; left: 50%; transform: translateX(-50%);
-    filter: blur(80px); opacity: 0.4; z-index: -1; animation: pulse 8s infinite alternate;
+    top: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+    filter: blur(80px);
+    opacity: 0.4;
+    z-index: -1;
+    animation: pulse 8s infinite alternate;
+    pointer-events: none; /* Чтобы сквозь него можно было кликать */
 }
 .grid-pattern {
     position: absolute; top: 0; left: 0; width: 100%; height: 100vh;
@@ -156,16 +164,94 @@ h1 { font-size: 3.5rem; line-height: 1.1; margin-bottom: 24px; letter-spacing: -
 .case-card.featured { border-color: rgba(99, 102, 241, 0.3); background: rgba(15, 23, 42, 0.6); }
 .featured-badge { position: absolute; top: 15px; right: 15px; background: var(--accent-primary); color: white; font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; }
 
-/* --- INTEGRATIONS --- */
-.integrations-section { padding: 60px 0; text-align: center; overflow: hidden; border-bottom: 1px solid var(--glass-border); }
-.logos-title { color: var(--text-secondary); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 30px; }
-.marquee-container { position: relative; width: 100%; display: flex; }
-.marquee-track { display: flex; gap: 50px; animation: scroll 20s linear infinite; white-space: nowrap; }
-.logo-item { font-size: 1.5rem; font-weight: 600; color: #64748b; display: flex; align-items: center; gap: 10px; }
-@keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-.fade-overlay { position: absolute; top: 0; bottom: 0; width: 150px; z-index: 2; pointer-events: none; }
-.fade-overlay.left { left: 0; background: linear-gradient(to right, var(--bg-color), transparent); }
-.fade-overlay.right { right: 0; background: linear-gradient(to left, var(--bg-color), transparent); }
+/* --- INTEGRATIONS (PERMANENT SHINE MODE) --- */
+.integrations-section { 
+    padding: 120px 0; 
+    text-align: center; 
+    overflow: hidden; 
+    border-bottom: 1px solid var(--glass-border); 
+    /* Усилим фоновое свечение */
+    background: radial-gradient(circle at center, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+}
+
+.logos-title { 
+    color: var(--text-secondary); 
+    font-size: 1.1rem; 
+    text-transform: uppercase; 
+    letter-spacing: 3px; 
+    margin-bottom: 60px; 
+    opacity: 0.8;
+    font-weight: 600;
+}
+
+.marquee-container { 
+    position: relative; 
+    width: 100%; 
+    display: flex; 
+    overflow: hidden; 
+    /* Маска по краям */
+    mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+.marquee-track { 
+    display: flex; 
+    align-items: center; 
+    gap: 120px; /* Огромный отступ */
+    width: max-content;
+    padding: 20px;
+    will-change: transform;
+}
+
+/* СТИЛИ ЭЛЕМЕНТОВ (ПОСТОЯННОЕ СИЯНИЕ) */
+.logo-item { 
+    font-size: 3.5rem; /* Крупный текст */
+    font-weight: 800; 
+    color: #ffffff; /* Белый текст */
+    display: flex; 
+    align-items: center; 
+    gap: 24px; 
+    white-space: nowrap;
+    
+    /* ПОСТОЯННОЕ СИЯНИЕ */
+    opacity: 1; /* Полная видимость */
+    filter: grayscale(0%); /* Полный цвет */
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.2); /* Легкое свечение текста */
+    
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    cursor: default;
+}
+
+/* Иконки тоже должны сиять своим цветом */
+.logo-item i {
+    font-size: 4.5rem;
+    /* Эта магия заставляет иконку светиться её же собственным цветом (который задан в HTML) */
+    filter: drop-shadow(0 0 10px currentColor); 
+    opacity: 0.9; /* Чуть приглушим, чтобы не слепило, но сияло */
+}
+
+/* АНИМАЦИИ (медленные и плавные) */
+.scroll-left { animation: scrollLeft 80s linear infinite; }
+.scroll-right { animation: scrollRight 80s linear infinite; }
+
+@keyframes scrollLeft { 
+    0% { transform: translateX(0); } 
+    100% { transform: translateX(-50%); } 
+}
+
+@keyframes scrollRight { 
+    0% { transform: translateX(-50%); } 
+    100% { transform: translateX(0); } 
+}
+
+/* АДАПТИВ ДЛЯ ТЕЛЕФОНОВ */
+@media (max-width: 768px) {
+    .integrations-section { padding: 60px 0; }
+    .marquee-track { gap: 60px; }
+    .logo-item { font-size: 2rem; } 
+    .logo-item i { font-size: 2.5rem; }
+    .scroll-left, .scroll-right { animation-duration: 30s; }
+}
 
 /* --- FOOTER --- */
 footer { border-top: 1px solid var(--glass-border); padding: 80px 5% 30px; background: #020617; }
@@ -192,4 +278,110 @@ footer { border-top: 1px solid var(--glass-border); padding: 80px 5% 30px; backg
     .process-container { flex-direction: column-reverse; gap: 30px; }
     .cases-grid { grid-template-columns: 1fr; max-width: 500px; margin: 50px auto 0; }
     .footer-content { grid-template-columns: 1fr; text-align: center; }
+    .ambient-glow {
+        width: 100%; /* Растягиваем на всю ширину экрана */
+        height: 400px; /* Уменьшаем высоту */
+        top: -100px;
+        filter: blur(60px); /* Чуть меньше блюра для производительности */
+    }
+    
+    .hero {
+        padding-left: 20px;
+        padding-right: 20px;
+        overflow: hidden; /* Дополнительная страховка для секции */
+    }
+}
+@media (max-width: 480px) {
+    /* --- ИСПРАВЛЕНИЕ 1: ГЛАВНЫЙ ЭКРАН (HERO) --- */
+    
+    .hero {
+        padding-top: 80px;
+        padding-bottom: 40px;
+        overflow: hidden; /* Обрезает все лишнее */
+    }
+
+    .hero-content {
+        margin-top: 5%;
+    }
+
+    .hero h1 {
+        /* Уменьшаем шрифт, чтобы слово "Автоматизируй" влезало */
+        font-size: 3rem; 
+        line-height: 1.2;
+        word-wrap: break-word; /* Перенос длинных слов, если все равно не влезет */
+    }
+
+    .subtitle {
+        font-size: 0.9rem;
+    }
+
+    .cta-group {
+        flex-direction: column; /* Кнопки друг под другом */
+        width: 100%;
+        gap: 10px;
+    }
+
+    .cta-group .btn-primary,
+    .cta-group .btn-secondary {
+        width: 100%; /* Кнопки на всю ширину */
+        justify-content: center;
+        text-align: center;
+        box-sizing: border-box; /* Чтобы padding не увеличивал ширину */
+    }
+
+    /* --- ИСПРАВЛЕНИЕ 2: КАРТОЧКА NO-CODE --- */
+
+    /* Убедимся, что у контейнера с визуализацией есть высота */
+    .card-visual.visual-nodes {
+        min-height: 120px; 
+        margin-top: 10px;
+    }
+
+    /* Уменьшаем сами кубики-узлы */
+    .node {
+        width: 40px;
+        height: 40px;
+        font-size: 0.8rem; /* Уменьшаем иконку внутри */
+    }
+
+    /* Двигаем их ближе к центру, чтобы не обрезались */
+    .n1 { 
+        top: 10%; 
+        left: 20%; 
+    }
+    
+    .n2 { 
+        bottom: 10%; 
+        right: 20%; 
+    }
+    
+    .node-line {
+        width: 60px; /* Линия покороче */
+    }
+    .bento-card {
+        min-height: 260px; /* Было меньше или авто */
+        justify-content: space-between; /* Текст вверху, график внизу */
+    }
+
+    /* 2. Настраиваем зону графика */
+    .visual-chart {
+        /* Даем жесткий отступ сверху, чтобы плашка "+140%" не резалась об текст */
+        margin-top: 40px; 
+        /* Фиксируем высоту графика, чтобы он не плющился */
+        height: 120px;
+        /* Прижимаем бары к низу */
+        align-items: flex-end;
+        padding-bottom: 10px;
+    }
+
+    /* 3. Чуть уменьшаем ширину столбиков для эстетики на телефоне */
+    .chart-bar {
+        width: 25px; 
+    }
+    
+    /* 4. Страховка для текста над баром */
+    .chart-bar.active span {
+        font-size: 0.75rem; /* Чуть меньше шрифт цифр */
+        top: -22px; /* Чуть ближе к столбику */
+    }
 }

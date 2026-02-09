@@ -5,6 +5,80 @@
 
 {% block extra_css %}
 <style>
+/* ============================================
+   HEADER STYLES
+   ============================================ */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.header-icon-box {
+    width: 60px;
+    height: 60px;
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    color: #818cf8;
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+}
+
+.page-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin: 0;
+    line-height: 1.1;
+    letter-spacing: -0.5px;
+    color: white;
+}
+
+.page-subtitle {
+    color: #94a3b8;
+    font-size: 1.05rem;
+    margin-top: 6px;
+    font-weight: 400;
+}
+
+/* Кнопка загрузки */
+.btn-upload {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-upload:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.5);
+    color: white;
+}
+
+/* ============================================
+   STATS & FILTERS
+   ============================================ */
 .knowledge-stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -13,15 +87,18 @@
 }
 
 .stat-card-mini {
-    background: var(--dash-surface);
+    background: rgba(255, 255, 255, 0.02);
     border: 1px solid var(--dash-border);
     border-radius: 16px;
-    padding: 24px;
+    padding: 20px;
     transition: transform 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 16px;
 }
 
 .stat-card-mini:hover {
-    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.04);
 }
 
 .stat-card-mini .stat-icon {
@@ -32,30 +109,38 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 16px;
-    font-size: 24px;
+    font-size: 20px;
     color: var(--dash-primary);
+    flex-shrink: 0;
 }
 
-.stat-card-mini .stat-value {
-    font-size: 32px;
+.stat-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-value {
+    font-size: 24px;
     font-weight: 700;
-    margin-bottom: 4px;
+    color: white;
+    line-height: 1.2;
 }
 
-.stat-card-mini .stat-label {
+.stat-label {
     font-size: 13px;
     color: var(--dash-text-muted);
 }
 
+/* Filters Bar */
 .filters-bar {
-    background: var(--dash-surface);
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(10px);
     border: 1px solid var(--dash-border);
     border-radius: 16px;
-    padding: 20px;
+    padding: 16px;
     margin-bottom: 24px;
     display: flex;
-    gap: 12px;
+    gap: 16px;
     flex-wrap: wrap;
     align-items: center;
 }
@@ -70,26 +155,43 @@
     font-size: 13px;
     color: var(--dash-text-muted);
     white-space: nowrap;
+    display: none; /* Скрываем лейблы на десктопе для чистоты, или можно оставить */
 }
 
-.filter-select, .search-input {
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid var(--dash-border);
-    border-radius: 8px;
-    padding: 8px 12px;
-    color: var(--dash-text);
-    font-size: 13px;
+@media (min-width: 1024px) {
+    .filter-label { display: block; }
 }
 
 .filter-select {
-    min-width: 140px;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--dash-border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--dash-text);
+    font-size: 14px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: var(--dash-primary);
+}
+
+.search-wrapper {
+    flex: 1;
+    position: relative;
+    min-width: 250px;
 }
 
 .search-input {
-    flex: 1;
-    min-width: 250px;
+    width: 100%;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--dash-border);
+    border-radius: 10px;
+    padding: 10px 16px 10px 40px;
+    color: white;
     font-size: 14px;
-    padding: 8px 16px;
 }
 
 .search-input:focus {
@@ -97,13 +199,24 @@
     border-color: var(--dash-primary);
 }
 
+.search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--dash-text-muted);
+}
+
+/* ============================================
+   FILES LIST & ADAPTATION
+   ============================================ */
 .files-grid {
     display: grid;
     gap: 16px;
 }
 
 .file-card {
-    background: var(--dash-surface);
+    background: rgba(255, 255, 255, 0.02);
     border: 1px solid var(--dash-border);
     border-radius: 16px;
     padding: 20px;
@@ -115,6 +228,7 @@
 
 .file-card:hover {
     border-color: rgba(99, 102, 241, 0.3);
+    background: rgba(255, 255, 255, 0.04);
     transform: translateX(4px);
 }
 
@@ -122,11 +236,11 @@
     width: 56px;
     height: 56px;
     background: rgba(99, 102, 241, 0.1);
-    border-radius: 12px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    font-size: 26px;
     color: var(--dash-primary);
     flex-shrink: 0;
 }
@@ -138,16 +252,17 @@
 
 .file-info {
     flex: 1;
-    min-width: 0;
+    min-width: 0; /* Важно для truncate */
 }
 
 .file-title {
     font-size: 16px;
     font-weight: 600;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    color: white;
 }
 
 .file-meta {
@@ -161,22 +276,25 @@
 .file-meta-item {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
 }
 
 .file-badges {
     display: flex;
     gap: 8px;
-    flex-wrap: wrap;
+    align-items: center;
 }
 
 .file-badge {
-    padding: 4px 10px;
-    border-radius: 6px;
+    padding: 6px 12px;
+    border-radius: 8px;
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .file-badge.indexed {
@@ -201,7 +319,7 @@
 
 .file-badge.bot-count:hover {
     background: rgba(99, 102, 241, 0.2);
-    transform: scale(1.05);
+    color: white;
 }
 
 .file-actions {
@@ -209,82 +327,138 @@
     gap: 8px;
 }
 
-.empty-state-kb {
-    text-align: center;
-    padding: 80px 20px;
-}
-
-.empty-state-kb .empty-icon {
-    width: 120px;
-    height: 120px;
-    background: rgba(99, 102, 241, 0.1);
-    border-radius: 50%;
+.btn-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--dash-border);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 24px;
-    font-size: 48px;
+    color: var(--dash-text);
+    transition: all 0.2s;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-icon:hover {
+    background: rgba(99, 102, 241, 0.1);
+    border-color: var(--dash-primary);
     color: var(--dash-primary);
 }
 
-.modal-assign-bots {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(4px);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: 20px;
+.btn-icon.btn-danger:hover {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: #ef4444;
+    color: #ef4444;
 }
 
-.modal-assign-bots.active {
-    display: flex;
+/* MEDIA QUERIES (ADAPTATION) */
+@media (max-width: 768px) {
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+    }
+    
+    .header-left { width: 100%; }
+    
+    .btn-upload {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .filters-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .filter-group, .filter-select {
+        width: 100%;
+    }
+    
+    .search-wrapper {
+        width: 100%;
+    }
+
+    /* Адаптация карточки файла */
+    .file-card {
+        flex-direction: column;
+        align-items: flex-start;
+        position: relative;
+        padding-bottom: 60px; /* Место под кнопки */
+    }
+
+    .file-icon {
+        margin-bottom: 10px;
+    }
+
+    .file-info {
+        width: 100%;
+    }
+
+    .file-title {
+        white-space: normal; /* Разрешить перенос текста */
+        margin-bottom: 12px;
+    }
+    
+    .file-badges {
+        margin-top: 12px;
+        flex-wrap: wrap;
+    }
+
+    .file-actions {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+    }
 }
+
+/* ============================================
+   MODALS
+   ============================================ */
+.modal-assign-bots {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
+    display: none; align-items: center; justify-content: center;
+    z-index: 2000; padding: 20px;
+    animation: fadeIn 0.2s ease;
+}
+
+.modal-assign-bots.active { display: flex; }
 
 .modal-content-assign {
-    background: var(--dash-bg);
+    background: #0f172a;
     border: 1px solid var(--dash-border);
-    border-radius: 20px;
+    border-radius: 24px;
     padding: 32px;
-    max-width: 500px;
+    max-width: 450px;
     width: 100%;
-    max-height: 80vh;
-    overflow-y: auto;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
 }
 
 .modal-header-assign {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    display: flex; justify-content: space-between; align-items: center;
     margin-bottom: 24px;
 }
 
 .modal-header-assign h3 {
-    margin: 0;
-    font-size: 20px;
+    margin: 0; font-size: 20px; font-weight: 700; color: white;
 }
 
 .bots-checklist {
-    display: grid;
-    gap: 12px;
-    margin-bottom: 24px;
+    display: grid; gap: 12px; margin-bottom: 24px;
+    max-height: 300px; overflow-y: auto;
 }
 
 .bot-checkbox-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px;
-    background: rgba(255, 255, 255, 0.02);
+    display: flex; align-items: center; gap: 14px; padding: 14px;
+    background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--dash-border);
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.2s;
+    border-radius: 12px; cursor: pointer; transition: all 0.2s;
 }
 
 .bot-checkbox-item:hover {
@@ -293,135 +467,106 @@
 }
 
 .bot-checkbox-item input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-    accent-color: var(--dash-primary);
-}
-
-.bot-checkbox-label {
-    flex: 1;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.bot-avatar-small {
-    width: 32px;
-    height: 32px;
-    background: rgba(99, 102, 241, 0.1);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
+    width: 20px; height: 20px; accent-color: var(--dash-primary);
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div>
-        <h1 class="page-title">📚 База знаний</h1>
-        <p class="page-subtitle">Управление документами для AI ботов</p>
+<div class="dashboard-header">
+    <div class="header-left">
+        <div class="header-icon-box">
+            <i class="fa-solid fa-book-open"></i>
+        </div>
+        <div>
+            <h1 class="page-title">База знаний</h1>
+            <p class="page-subtitle">Управление документами для AI ботов</p>
+        </div>
     </div>
-    <a href="{% url 'upload_knowledge' %}" class="btn btn-primary">
-        <i class="fa-solid fa-upload"></i>
+    <a href="{% url 'upload_knowledge' %}" class="btn-upload">
+        <i class="fa-solid fa-cloud-arrow-up"></i>
         Загрузить файл
     </a>
 </div>
 
-<!-- Stats -->
 <div class="knowledge-stats-grid">
     <div class="stat-card-mini">
         <div class="stat-icon">
-            <i class="fa-solid fa-file"></i>
+            <i class="fa-solid fa-file-contract"></i>
         </div>
-        <div class="stat-value">{{ total_files }}</div>
-        <div class="stat-label">Всего файлов</div>
+        <div class="stat-content">
+            <div class="stat-value">{{ total_files }}</div>
+            <div class="stat-label">Всего файлов</div>
+        </div>
     </div>
     
     <div class="stat-card-mini">
         <div class="stat-icon" style="background: rgba(34, 197, 94, 0.1); color: #22c55e;">
-            <i class="fa-solid fa-check-circle"></i>
+            <i class="fa-solid fa-check-double"></i>
         </div>
-        <div class="stat-value">{{ indexed_files }}</div>
-        <div class="stat-label">Проиндексировано</div>
+        <div class="stat-content">
+            <div class="stat-value">{{ indexed_files }}</div>
+            <div class="stat-label">Проиндексировано</div>
+        </div>
     </div>
     
     <div class="stat-card-mini">
         <div class="stat-icon" style="background: rgba(168, 85, 247, 0.1); color: #a855f7;">
-            <i class="fa-solid fa-puzzle-piece"></i>
+            <i class="fa-solid fa-layer-group"></i>
         </div>
-        <div class="stat-value">{{ total_chunks|default:0 }}</div>
-        <div class="stat-label">Всего фрагментов</div>
+        <div class="stat-content">
+            <div class="stat-value">{{ total_chunks|default:0 }}</div>
+            <div class="stat-label">Фрагментов знаний</div>
+        </div>
     </div>
 </div>
 
-<!-- Filters -->
 <form method="GET" id="filters-form">
     <div class="filters-bar">
+        <div class="search-wrapper">
+            <i class="fa-solid fa-search search-icon"></i>
+            <input 
+                type="search" 
+                name="search" 
+                class="search-input" 
+                placeholder="Поиск документа..."
+                value="{{ current_filters.search }}"
+            >
+        </div>
+
         <div class="filter-group">
-            <span class="filter-label">Тип:</span>
             <select name="file_type" class="filter-select" onchange="document.getElementById('filters-form').submit()">
                 <option value="all" {% if current_filters.file_type == 'all' %}selected{% endif %}>Все типы</option>
-                <option value="pdf" {% if current_filters.file_type == 'pdf' %}selected{% endif %}>PDF</option>
-                <option value="docx" {% if current_filters.file_type == 'docx' %}selected{% endif %}>Word</option>
-                <option value="txt" {% if current_filters.file_type == 'txt' %}selected{% endif %}>Text</option>
-                <option value="md" {% if current_filters.file_type == 'md' %}selected{% endif %}>Markdown</option>
+                <option value="pdf" {% if current_filters.file_type == 'pdf' %}selected{% endif %}>PDF Документы</option>
+                <option value="docx" {% if current_filters.file_type == 'docx' %}selected{% endif %}>Word Файлы</option>
+                <option value="txt" {% if current_filters.file_type == 'txt' %}selected{% endif %}>Text / Notes</option>
             </select>
         </div>
         
         <div class="filter-group">
-            <span class="filter-label">Статус:</span>
             <select name="status" class="filter-select" onchange="document.getElementById('filters-form').submit()">
-                <option value="all" {% if current_filters.status == 'all' %}selected{% endif %}>Все</option>
-                <option value="indexed" {% if current_filters.status == 'indexed' %}selected{% endif %}>Проиндексировано</option>
-                <option value="pending" {% if current_filters.status == 'pending' %}selected{% endif %}>Ожидает</option>
+                <option value="all" {% if current_filters.status == 'all' %}selected{% endif %}>Любой статус</option>
+                <option value="indexed" {% if current_filters.status == 'indexed' %}selected{% endif %}>Готовы</option>
+                <option value="pending" {% if current_filters.status == 'pending' %}selected{% endif %}>В обработке</option>
             </select>
         </div>
         
         <div class="filter-group">
-            <span class="filter-label">Бот:</span>
-            <select name="bot" class="filter-select" onchange="document.getElementById('filters-form').submit()">
-                <option value="all" {% if current_filters.bot == 'all' %}selected{% endif %}>Все боты</option>
-                {% for bot in user_bots %}
-                <option value="{{ bot.id }}" {% if current_filters.bot == bot.id|stringformat:"s" %}selected{% endif %}>
-                    {{ bot.name }}
-                </option>
-                {% endfor %}
-            </select>
-        </div>
-        
-        <div class="filter-group">
-            <span class="filter-label">Сортировка:</span>
             <select name="sort" class="filter-select" onchange="document.getElementById('filters-form').submit()">
-                <option value="-created_at" {% if current_filters.sort == '-created_at' %}selected{% endif %}>Новые первые</option>
-                <option value="created_at" {% if current_filters.sort == 'created_at' %}selected{% endif %}>Старые первые</option>
-                <option value="title" {% if current_filters.sort == 'title' %}selected{% endif %}>По названию (А-Я)</option>
-                <option value="-file_size" {% if current_filters.sort == '-file_size' %}selected{% endif %}>Большие файлы</option>
+                <option value="-created_at" {% if current_filters.sort == '-created_at' %}selected{% endif %}>Сначала новые</option>
+                <option value="created_at" {% if current_filters.sort == 'created_at' %}selected{% endif %}>Сначала старые</option>
+                <option value="title" {% if current_filters.sort == 'title' %}selected{% endif %}>По названию</option>
             </select>
         </div>
         
-        <input 
-            type="search" 
-            name="search" 
-            class="search-input" 
-            placeholder="🔍 Поиск по названию или описанию..."
-            value="{{ current_filters.search }}"
-        >
-        
-        {% if current_filters.search or current_filters.file_type != 'all' or current_filters.status != 'all' or current_filters.bot != 'all' %}
-        <a href="{% url 'knowledge_base_list' %}" class="btn btn-secondary">
+        {% if current_filters.search or current_filters.file_type != 'all' or current_filters.status != 'all' %}
+        <a href="{% url 'knowledge_base_list' %}" class="btn btn-icon" style="background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.2); color: #ef4444;" title="Сбросить">
             <i class="fa-solid fa-xmark"></i>
-            Сбросить
         </a>
         {% endif %}
     </div>
 </form>
 
-<!-- Files List -->
 {% if page_obj %}
 <div class="glass-card">
     <div class="files-grid">
@@ -442,10 +587,10 @@
             </div>
             
             <div class="file-info">
-                <div class="file-title">{{ file.title }}</div>
+                <div class="file-title" title="{{ file.title }}">{{ file.title }}</div>
                 <div class="file-meta">
                     <div class="file-meta-item">
-                        <i class="fa-solid fa-calendar"></i>
+                        <i class="fa-solid fa-calendar-days"></i>
                         {{ file.created_at|date:"d.m.Y" }}
                     </div>
                     <div class="file-meta-item">
@@ -454,28 +599,28 @@
                     </div>
                     <div class="file-meta-item">
                         <i class="fa-solid fa-puzzle-piece"></i>
-                        {{ file.chunks_count }} фрагментов
+                        {{ file.chunks_count }}
                     </div>
                 </div>
-            </div>
-            
-            <div class="file-badges">
-                {% if file.is_indexed %}
-                    <span class="file-badge indexed">
-                        <i class="fa-solid fa-check"></i> Indexed
-                    </span>
-                {% else %}
-                    <span class="file-badge pending">
-                        <i class="fa-solid fa-clock"></i> Pending
-                    </span>
-                {% endif %}
                 
-                <span class="file-badge bot-count" 
-                      onclick="openAssignModal({{ file.id }}, '{{ file.title|escapejs }}')" 
-                      title="Назначить ботам">
-                    <i class="fa-solid fa-robot"></i> 
-                    {{ file.bots_count }} бот{% if file.bots_count == 1 %}{% elif file.bots_count < 5 %}а{% else %}ов{% endif %}
-                </span>
+                <div class="file-badges" style="margin-top: 10px;">
+                    {% if file.is_indexed %}
+                        <span class="file-badge indexed">
+                            <i class="fa-solid fa-check"></i> Indexed
+                        </span>
+                    {% else %}
+                        <span class="file-badge pending">
+                            <i class="fa-solid fa-arrows-rotate fa-spin"></i> Processing
+                        </span>
+                    {% endif %}
+                    
+                    <span class="file-badge bot-count" 
+                          onclick="openAssignModal({{ file.id }}, '{{ file.title|escapejs }}')" 
+                          title="Назначить ботам">
+                        <i class="fa-solid fa-robot"></i> 
+                        {{ file.bots_count }}
+                    </span>
+                </div>
             </div>
             
             <div class="file-actions">
@@ -483,31 +628,30 @@
                     <i class="fa-solid fa-eye"></i>
                 </a>
                 <button class="btn-icon" onclick="reindexFile({{ file.id }})" title="Переиндексировать">
-                    <i class="fa-solid fa-sync"></i>
+                    <i class="fa-solid fa-rotate"></i>
                 </button>
                 <button class="btn-icon btn-danger" onclick="deleteFile({{ file.id }}, '{{ file.title|escapejs }}')" title="Удалить">
-                    <i class="fa-solid fa-trash"></i>
+                    <i class="fa-solid fa-trash-can"></i>
                 </button>
             </div>
         </div>
         {% endfor %}
     </div>
     
-    <!-- Pagination -->
     {% if page_obj.has_other_pages %}
-    <div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 32px;">
+    <div style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--dash-border);">
         {% if page_obj.has_previous %}
-        <a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}" class="btn btn-secondary">
+        <a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}" class="btn-icon">
             <i class="fa-solid fa-chevron-left"></i>
         </a>
         {% endif %}
         
-        <span style="color: var(--dash-text-muted); font-size: 14px;">
+        <span style="color: var(--dash-text-muted); font-size: 14px; font-weight: 500;">
             Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
         </span>
         
         {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}" class="btn btn-secondary">
+        <a href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}" class="btn-icon">
             <i class="fa-solid fa-chevron-right"></i>
         </a>
         {% endif %}
@@ -518,21 +662,20 @@
 <div class="glass-card">
     <div class="empty-state-kb">
         <div class="empty-icon">
-            <i class="fa-solid fa-book"></i>
+            <i class="fa-solid fa-folder-open"></i>
         </div>
-        <h3 style="margin: 0 0 12px 0;">База знаний пуста</h3>
-        <p style="color: var(--dash-text-muted); margin: 0 0 24px 0;">
-            Загрузите документы, чтобы ваши боты могли использовать их для ответов
+        <h3 style="margin: 0 0 12px 0; color: white; font-size: 24px;">База знаний пуста</h3>
+        <p style="color: var(--dash-text-muted); margin: 0 0 32px 0; max-width: 400px; margin-left: auto; margin-right: auto;">
+            Загрузите документы, инструкции или прайс-листы, чтобы ваши боты могли использовать их для умных ответов.
         </p>
-        <a href="{% url 'upload_knowledge' %}" class="btn btn-primary">
-            <i class="fa-solid fa-upload"></i>
+        <a href="{% url 'upload_knowledge' %}" class="btn-upload">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
             Загрузить первый файл
         </a>
     </div>
 </div>
 {% endif %}
 
-<!-- Modal: Assign Bots -->
 <div class="modal-assign-bots" id="assignBotsModal">
     <div class="modal-content-assign">
         <div class="modal-header-assign">
@@ -547,7 +690,7 @@
             <label class="bot-checkbox-item">
                 <input type="checkbox" value="{{ bot.id }}" data-bot-id="{{ bot.id }}">
                 <div class="bot-checkbox-label">
-                    <div class="bot-avatar-small">
+                    <div class="bot-avatar-small" style="width: 32px; height: 32px; background: rgba(99,102,241,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
                         {% if bot.platform == 'telegram' %}
                             <i class="fa-brands fa-telegram" style="color: #229ED9;"></i>
                         {% elif bot.platform == 'whatsapp' %}
@@ -557,7 +700,7 @@
                         {% endif %}
                     </div>
                     <div>
-                        <div style="font-weight: 500;">{{ bot.name }}</div>
+                        <div style="font-weight: 500; color: white; font-size: 14px;">{{ bot.name }}</div>
                         <div style="font-size: 11px; color: var(--dash-text-muted);">{{ bot.get_platform_display }}</div>
                     </div>
                 </div>
@@ -566,12 +709,8 @@
         </div>
         
         <div style="display: flex; gap: 12px;">
-            <button class="btn btn-primary" onclick="saveAssignment()" style="flex: 1;">
-                <i class="fa-solid fa-check"></i>
+            <button class="btn-upload" onclick="saveAssignment()" style="flex: 1; justify-content: center; border-radius: 10px;">
                 Сохранить
-            </button>
-            <button class="btn btn-secondary" onclick="closeAssignModal()">
-                Отмена
             </button>
         </div>
     </div>
@@ -583,24 +722,14 @@ let currentFileId = null;
 
 async function openAssignModal(fileId, fileName) {
     currentFileId = fileId;
-    document.getElementById('modalTitle').textContent = `Назначить ботам: ${fileName}`;
-    
-    // Загружаем текущее назначение
-    try {
-        const response = await fetch(`/dashboard/knowledge/${fileId}/`);
-        // TODO: парсим JSON и проставляем галочки
-    } catch (error) {
-        console.error('Error loading assignments:', error);
-    }
-    
+    document.getElementById('modalTitle').textContent = `Доступ для: ${fileName}`;
     document.getElementById('assignBotsModal').classList.add('active');
+    // Здесь можно добавить логику подгрузки уже выбранных ботов, если API позволяет
 }
 
 function closeAssignModal() {
     document.getElementById('assignBotsModal').classList.remove('active');
     currentFileId = null;
-    
-    // Сброс чекбоксов
     document.querySelectorAll('#botsChecklist input[type="checkbox"]').forEach(cb => {
         cb.checked = false;
     });
@@ -609,7 +738,6 @@ function closeAssignModal() {
 async function saveAssignment() {
     if (!currentFileId) return;
     
-    // Собираем выбранных ботов
     const selectedBots = Array.from(
         document.querySelectorAll('#botsChecklist input[type="checkbox"]:checked')
     ).map(cb => parseInt(cb.value));
@@ -627,62 +755,45 @@ async function saveAssignment() {
         const data = await response.json();
         
         if (data.success) {
-            alert('✅ ' + data.message);
             location.reload();
         } else {
-            alert('❌ ' + data.error);
+            alert('Ошибка: ' + data.error);
         }
     } catch (error) {
-        alert('Ошибка: ' + error);
+        alert('Ошибка соединения');
     }
 }
 
 async function reindexFile(fileId) {
-    if (!confirm('Переиндексировать этот файл? Это может занять время.')) return;
-    
+    if (!confirm('Переиндексировать файл?')) return;
     try {
         const response = await fetch(`/api/knowledge/${fileId}/reindex/`, {
             method: 'POST',
             headers: { 'X-CSRFToken': csrfToken }
         });
-        
         const data = await response.json();
-        
-        if (data.success) {
-            alert('✅ ' + data.message);
-            location.reload();
-        } else {
-            alert('❌ ' + data.error);
-        }
+        if (data.success) location.reload();
     } catch (error) {
-        alert('Ошибка: ' + error);
+        alert('Ошибка');
     }
 }
 
 async function deleteFile(fileId, fileName) {
-    if (!confirm(`Удалить файл "${fileName}"?\n\nЭто действие необратимо.`)) return;
-    
+    if (!confirm(`Удалить файл "${fileName}"?`)) return;
     try {
         const response = await fetch(`/dashboard/knowledge/${fileId}/delete/`, {
             method: 'POST',
             headers: { 'X-CSRFToken': csrfToken }
         });
-        
-        if (response.ok) {
-            location.reload();
-        } else {
-            alert('Ошибка удаления');
-        }
+        if (response.ok) location.reload();
     } catch (error) {
-        alert('Ошибка: ' + error);
+        alert('Ошибка');
     }
 }
 
-// Close modal on outside click
+// Close on outside click
 document.getElementById('assignBotsModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeAssignModal();
-    }
+    if (e.target === this) closeAssignModal();
 });
 </script>
 {% endblock %}

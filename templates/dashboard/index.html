@@ -3,19 +3,136 @@
 {% block title %}Обзор{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div>
-        <h1 class="page-title">👋 Привет, {{ request.user.first_name|default:"друг" }}!</h1>
-        <p class="page-subtitle">Вот что происходит с вашими ботами сегодня</p>
+<style>
+    /* Локальные стили для красивой шапки */
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 40px;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    /* Красивая иконка в стекле */
+    .header-icon-box {
+        width: 60px;
+        height: 60px;
+        background: rgba(99, 102, 241, 0.1); /* Полупрозрачный индиго */
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        color: #818cf8;
+        box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+    }
+
+    .page-title {
+        font-size: 2.2rem; /* Увеличенный шрифт */
+        font-weight: 800;
+        margin: 0;
+        line-height: 1.1;
+        letter-spacing: -0.5px;
+        color: white;
+    }
+
+    /* Градиент для имени */
+    .gradient-name {
+        background: linear-gradient(135deg, #fff 0%, #a855f7 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .page-subtitle {
+        color: #94a3b8;
+        font-size: 1.05rem;
+        margin-top: 6px;
+        font-weight: 400;
+    }
+
+    /* Кнопка создания */
+    .btn-create {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: none;
+    }
+
+    .btn-create:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.5);
+        color: white;
+    }
+
+    /* Адаптив для мобильных */
+    @media (max-width: 600px) {
+        .dashboard-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .header-left {
+            width: 100%;
+        }
+
+        .page-title {
+            font-size: 1.8rem; /* Чуть меньше на телефоне, но все равно крупно */
+        }
+
+        .btn-create {
+            width: 100%; /* Кнопка на всю ширину */
+            justify-content: center;
+            padding: 14px;
+            font-size: 1rem;
+        }
+        
+        /* Скрываем большую иконку на очень маленьких экранах, если мешает, 
+           или оставляем (сейчас оставлена) */
+        .header-icon-box {
+            min-width: 50px;
+            width: 50px;
+            height: 50px;
+            font-size: 1.4rem;
+        }
+    }
+</style>
+
+<div class="dashboard-header">
+    <div class="header-left">
+        <div class="header-icon-box">
+            <i class="fa-solid fa-rocket"></i>
+        </div>
+        <div>
+            <h1 class="page-title">Привет, <span class="gradient-name">{{ request.user.first_name|default:"друг" }}</span>!</h1>
+            <p class="page-subtitle">Ваш центр управления ИИ-агентами</p>
+        </div>
     </div>
-    <a href="{% url 'create_agent' %}" class="btn btn-primary">
+    
+    <a href="{% url 'create_agent' %}" class="btn-create">
         <i class="fa-solid fa-plus"></i>
-        Создать бота
+        <span>Создать бота</span>
     </a>
 </div>
 
-<!-- Stats Grid -->
-<div class="stats-grid">
+<div class="stats-grid" style="margin-top: 20px;">
     <div class="stat-card">
         <div class="stat-header">
             <div class="stat-icon" style="background: rgba(99, 102, 241, 0.1); color: var(--dash-primary);">
@@ -59,8 +176,7 @@
     </div>
 </div>
 
-<!-- Recent Conversations -->
-<div class="glass-card">
+<div class="glass-card" style="margin-top: 30px;">
     <div class="card-header">
         <h2 class="card-title">
             <i class="fa-solid fa-clock-rotate-left"></i>

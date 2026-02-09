@@ -3,12 +3,99 @@
 {% block title %}Мои агенты{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div>
-        <h1 class="page-title">🤖 Мои агенты</h1>
-        <p class="page-subtitle">Управляйте своими чат-ботами и их настройками</p>
+<style>
+    /* Единый стиль заголовков (как на главной и в диалогах) */
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 40px;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .header-icon-box {
+        width: 60px;
+        height: 60px;
+        background: rgba(99, 102, 241, 0.1);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        color: #818cf8;
+        box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+    }
+
+    .page-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin: 0;
+        line-height: 1.1;
+        letter-spacing: -0.5px;
+        color: white;
+    }
+
+    .page-subtitle {
+        color: #94a3b8;
+        font-size: 1.05rem;
+        margin-top: 6px;
+        font-weight: 400;
+    }
+
+    /* Кнопка создания */
+    .btn-create {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-create:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.5);
+        color: white;
+    }
+
+    /* Адаптив */
+    @media (max-width: 600px) {
+        .dashboard-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 20px;
+        }
+        .header-left { width: 100%; }
+        .btn-create { width: 100%; justify-content: center; }
+    }
+</style>
+
+<div class="dashboard-header">
+    <div class="header-left">
+        <div class="header-icon-box">
+            <i class="fa-solid fa-robot"></i>
+        </div>
+        <div>
+            <h1 class="page-title">Мои агенты</h1>
+            <p class="page-subtitle">Управляйте своими чат-ботами и их настройками</p>
+        </div>
     </div>
-    <a href="{% url 'create_agent' %}" class="btn btn-primary">
+    <a href="{% url 'create_agent' %}" class="btn-create">
         <i class="fa-solid fa-plus"></i>
         Создать агента
     </a>
@@ -85,16 +172,15 @@
     </div>
 {% else %}
     <div class="glass-card">
-        <div class="empty-state">
-            <div class="empty-icon">
+        <div style="text-align: center; padding: 80px 20px;">
+            <div style="width: 100px; height: 100px; background: rgba(99, 102, 241, 0.05); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 40px; color: var(--dash-primary); border: 1px solid rgba(99, 102, 241, 0.2);">
                 <i class="fa-solid fa-robot"></i>
             </div>
-            <h3 class="empty-title">У вас пока нет ботов</h3>
-            <p class="empty-text">
-                Создайте своего первого чат-бота и начните автоматизировать общение с клиентами. 
-                Это займет всего пару минут!
+            <h3 style="font-size: 24px; margin: 0 0 12px 0; color: white;">У вас пока нет ботов</h3>
+            <p style="font-size: 15px; color: var(--dash-text-muted); margin: 0 0 30px 0; max-width: 400px; margin-left: auto; margin-right: auto;">
+                Создайте своего первого ИИ-агента и начните автоматизировать общение с клиентами уже сегодня.
             </p>
-            <a href="{% url 'create_agent' %}" class="btn btn-primary">
+            <a href="{% url 'create_agent' %}" class="btn-create" style="padding: 12px 30px;">
                 <i class="fa-solid fa-plus"></i>
                 Создать первого бота
             </a>
