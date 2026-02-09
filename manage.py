@@ -5,8 +5,6 @@ import sys
 
 def main():
     """Run administrative tasks."""
-    # 'config.settings' — это путь к файлу settings.py
-    # Если ты назвал проект по-другому, замени 'config' на свое название
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
     try:
         from django.core.management import execute_from_command_line

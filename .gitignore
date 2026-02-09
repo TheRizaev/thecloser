@@ -34,6 +34,7 @@ db.sqlite3-journal
 /staticfiles
 
 # Переменные окружения
+.env2
 .env
 .env.local
 .env.*.local
