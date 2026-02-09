@@ -223,16 +223,10 @@ class RAGService:
             logger.error(f"Ошибка поиска в базе знаний: {e}")
             return []
     
-    def answer_question(self, bot_id: int, query: str, top_k: int = 5) -> Dict:
+    def answer_question(self, bot_id: int, query: str, top_k: int = 5, history: List[Dict] = None) -> Dict:
         """
-        Отвечает на вопрос используя RAG
-        
-        Returns:
-            {
-                'answer': str,
-                'sources': List[str],
-                'confidence': float
-            }
+        Отвечает на вопрос используя RAG и историю диалога
+        history format: [{'role': 'user'|'assistant', 'content': 'text'}, ...]
         """
         from core.models import BotAgent
         
@@ -240,43 +234,54 @@ class RAGService:
             # Поиск релевантных чанков
             results = self.search_similar_chunks(bot_id, query, top_k)
             
-            if not results:
-                return {
-                    'answer': None,
-                    'sources': [],
-                    'confidence': 0.0
-                }
+            # Если ничего не найдено, но есть история, можно попробовать ответить без контекста
+            # Но по текущей логике вернем пустой ответ или продолжим без контекста
             
-            # Формируем контекст
-            context = "\n\n".join([r['text'] for r in results])
-            avg_confidence = sum(r['similarity'] for r in results) / len(results)
+            context = ""
+            if results:
+                context = "\n\n".join([r['text'] for r in results])
+            
+            avg_confidence = 0.0
+            if results:
+                avg_confidence = sum(r['similarity'] for r in results) / len(results)
             
             # Получаем промпт бота
             bot = BotAgent.objects.get(id=bot_id)
             system_prompt = bot.system_prompt or "Ты полезный ассистент."
             
-            # Генерируем ответ
-            full_prompt = f"""{system_prompt}
+            # Формируем системное сообщение с контекстом
+            full_system_prompt = f"""{system_prompt}
 
-Используй следующую информацию из базы знаний для ответа:
+Используй следующую информацию из базы знаний для ответа (если она релевантна):
 
 {context}
 
-Вопрос пользователя: {query}
+Отвечай естественно, как живой человек. Если в базе знаний нет информации, используй свои знания, но отдавай приоритет базе знаний."""
 
-Ответь на основе предоставленной информации. Если информации недостаточно, скажи об этом."""
+            # Собираем сообщения для OpenAI
+            messages = [{"role": "system", "content": full_system_prompt}]
+            
+            # Добавляем историю
+            if history:
+                for msg in history:
+                    # Валидация ролей
+                    role = msg.get('role', 'user')
+                    if role not in ['user', 'assistant', 'system']:
+                        role = 'user'
+                    messages.append({"role": role, "content": msg.get('content', '')})
+            
+            # Добавляем текущий вопрос
+            messages.append({"role": "user", "content": query})
 
             response = self.embedder.client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": full_prompt}
-                ],
-                temperature=0.3,
-                max_tokens=500
+                model=bot.openai_model or "gpt-4o-mini", # Используем модель из настроек бота
+                messages=messages,
+                temperature=bot.temperature,
+                max_tokens=bot.max_tokens
             )
             
             answer = response.choices[0].message.content.strip()
-            sources = list(set([r['source'] for r in results]))
+            sources = list(set([r['source'] for r in results])) if results else []
             
             return {
                 'answer': answer,

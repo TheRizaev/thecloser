@@ -108,6 +108,28 @@ def mark_bot_invalid(bot_id):
     BotAgent.objects.filter(id=bot_id).update(status='error')
 
 
+@sync_to_async
+def get_conversation_history(conversation_id, limit=10):
+    """
+    Получает последние сообщения для контекста.
+    limit=10 означает 5 пар (вопрос-ответ).
+    """
+    # Берем limit+1, чтобы исключить текущее сообщение, которое мы уже сохранили (если сохраняли)
+    # Но обычно логика: сохранили user -> достали историю (включая user) -> исключили user из истории для промпта
+    # Или: достаем предыдущие сообщения
+    
+    messages = MessageModel.objects.filter(conversation_id=conversation_id).order_by('-created_at')[:limit]
+    
+    # Разворачиваем (от старых к новым)
+    history_objs = list(reversed(messages))
+    
+    formatted_history = []
+    for msg in history_objs:
+        role = 'assistant' if msg.role == 'bot' else 'user'
+        formatted_history.append({'role': role, 'content': msg.content})
+        
+    return formatted_history
+
 # ==========================================
 # 2. RAG Integration
 # ==========================================
@@ -131,37 +153,55 @@ def get_rag_response(bot_id, query):
 # 3. AI Logic with RAG
 # ==========================================
 
-async def get_chatgpt_response(message_text, system_prompt, bot_id=None, use_rag=False):
-    """Запрос к OpenAI с RAG поддержкой"""
+async def get_chatgpt_response(message_text, system_prompt, bot_id=None, use_rag=False, history=None):
+    """Запрос к OpenAI с RAG поддержкой и ИСТОРИЕЙ"""
     if not ai_client:
         return "⚠️ Ошибка: AI клиент не инициализирован."
 
     try:
-        # RAG поиск
+        # RAG поиск (получаем контекст)
         rag_context = ""
-        rag_sources = []
         
         if use_rag and bot_id:
             logger.info(f"🔍 [Bot {bot_id}] Searching knowledge base...")
+            # В RAG сервис историю для поиска пока не передаем (можно доработать, если нужно переформулировать вопрос)
             rag_result = await get_rag_response(bot_id, message_text)
             
             if rag_result and rag_result.get('answer'):
+                # В текущей реализации rag_service возвращает готовый ответ.
+                # Мы используем его как расширенный контекст.
                 rag_context = f"\n\n📚 ИНФОРМАЦИЯ ИЗ БАЗЫ ЗНАНИЙ:\n{rag_result['answer']}\n"
-                rag_sources = rag_result.get('sources', [])
-                logger.info(f"✅ [Bot {bot_id}] RAG found info (confidence: {rag_result.get('confidence', 0):.2f})")
-            else:
-                logger.info(f"ℹ️ [Bot {bot_id}] No relevant info in knowledge base")
+                logger.info(f"✅ [Bot {bot_id}] RAG found info")
         
-        # Формируем промпт
-        enhanced_prompt = system_prompt
+        # Формируем системный промпт
+        enhanced_system_prompt = system_prompt
         
         if rag_context:
-            enhanced_prompt += """
+            enhanced_system_prompt += """
 
 ВАЖНО: Используй информацию из базы знаний для ответа.
-Отвечай естественно, как живой человек.
 """
-            enhanced_prompt += rag_context
+            enhanced_system_prompt += rag_context
+        
+        # Собираем массив сообщений
+        messages_payload = [{"role": "system", "content": enhanced_system_prompt}]
+        
+        # Добавляем историю (исключая последнее сообщение, если оно дублирует current message_text)
+        # В handle_message мы сначала сохраняем сообщение юзера, потом вызываем эту функцию.
+        # Поэтому в history ПОСЛЕДНИМ элементом будет текущее сообщение юзера.
+        # OpenAI API требует: System -> History -> User (current).
+        
+        if history:
+            # Если последнее сообщение в истории совпадает с текущим текстом, не добавляем его в историю,
+            # так как оно будет добавлено в конце как current message
+            msgs_to_add = history
+            if history and history[-1]['role'] == 'user' and history[-1]['content'] == message_text:
+                msgs_to_add = history[:-1]
+                
+            messages_payload.extend(msgs_to_add)
+            
+        # Добавляем текущее сообщение
+        messages_payload.append({"role": "user", "content": message_text})
         
         # Запрос к OpenAI
         loop = asyncio.get_event_loop()
@@ -170,17 +210,13 @@ async def get_chatgpt_response(message_text, system_prompt, bot_id=None, use_rag
             None,
             lambda: ai_client.chat.completions.create(
                 model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": enhanced_prompt},
-                    {"role": "user", "content": message_text}
-                ],
+                messages=messages_payload,
                 temperature=0.7,
                 max_tokens=1000
             )
         )
         
         answer = response.choices[0].message.content.strip()
-        
         return answer
         
     except Exception as e:
@@ -222,7 +258,9 @@ async def handle_message(event, bot_id):
 
     # Сохраняем входящее
     conversation = await get_or_create_conversation(bot_record, user_id, user_name)
-    await save_message_to_db(conversation, 'user', text)
+    await save_message_to_db(conversation, 'user', text)    
+    
+    history = await get_conversation_history(conversation.id, limit=11)
 
     # --- ЭМУЛЯЦИЯ ЧЕЛОВЕКА ---
     
@@ -244,7 +282,8 @@ async def handle_message(event, bot_id):
         text, 
         system_prompt,
         bot_id=bot_id,
-        use_rag=use_rag
+        use_rag=use_rag,
+        history=history
     )
 
     # 4. Печать

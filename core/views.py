@@ -1270,12 +1270,17 @@ def telegram_webhook(request, bot_token):
             
             Message.objects.create(conversation=conversation, role='user', content=text)
             
+            history = get_history_for_rag(conversation.id, limit=11)
+            if history and history[-1]['content'] == text:
+                history = history[:-1]
+            
             # RAG логика
             if bot.use_rag:
-                result = rag_service.answer_question(bot.id, text, top_k=bot.rag_top_k)
+                result = rag_service.answer_question(bot.id, text, top_k=bot.rag_top_k, history=history)
                 bot_response = result['answer']
             else:
-                bot_response = "Я пока умею только молчать (RAG выключен)."
+                result = rag_service.answer_question(bot.id, text, top_k=bot.rag_top_k, history=history)
+                bot_response = result['answer']
             
             Message.objects.create(conversation=conversation, role='bot', content=bot_response)
             conversation.last_message_at = timezone.now()
@@ -1316,12 +1321,17 @@ def send_message_api(request, bot_id):
         
         Message.objects.create(conversation=conversation, role='user', content=message_text)
         
+        history = get_history_for_rag(conversation.id, limit=11)
+        if history and history[-1]['content'] == message_text:
+            history = history[:-1]
+        
         if bot.use_rag:
-            result = rag_service.answer_question(bot.id, message_text, top_k=bot.rag_top_k)
+            result = rag_service.answer_question(bot.id, message_text, top_k=bot.rag_top_k, history=history)
             bot_response = result['answer']
             sources = result.get('sources', [])
         else:
-            bot_response = "Ответ без RAG"
+            result = rag_service.answer_question(bot.id, message_text, top_k=0, history=history)
+            bot_response = result['answer']
             sources = []
         
         Message.objects.create(conversation=conversation, role='bot', content=bot_response)
@@ -1339,3 +1349,11 @@ def send_message_api(request, bot_id):
 def settings_view(request):
     """Настройки аккаунта"""
     return render(request, 'dashboard/settings.html')
+
+def get_history_for_rag(conversation_id, limit=10):
+    messages = Message.objects.filter(conversation_id=conversation_id).order_by('-created_at')[:limit]
+    history = []
+    for msg in reversed(messages):
+        role = 'assistant' if msg.role == 'bot' else 'user'
+        history.append({'role': role, 'content': msg.content})
+    return history
