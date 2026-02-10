@@ -68,3 +68,5 @@ media/documents/*
 # Бэкапы
 *.bak
 *.backup
+
+settings.py
