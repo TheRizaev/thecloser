@@ -14,6 +14,12 @@
         --bg-modal: rgba(0, 0, 0, 0.85);
         --surface-dark: #1e293b;
         --surface-darker: #0f172a;
+
+
+        --price-cheap: #3b82f6;           /* Синий */
+        --price-moderate: #10b981;        /* Зеленый */
+        --price-expensive: #f59e0b;       /* Оранжевый/Золотой */
+        --price-very-expensive: #ef4444;  /* Красный */
     }
 
     .bot-detail-container {
@@ -439,6 +445,44 @@
     
     input:checked + .toggle-slider:before { transform: translateX(24px); }
 
+    .form-select.price-cheap {
+        border-color: var(--price-cheap);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+
+    .form-select.price-moderate {
+        border-color: var(--price-moderate);
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+    }
+
+    .form-select.price-expensive {
+        border-color: var(--price-expensive);
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+    }
+
+    .form-select.price-very-expensive {
+        border-color: var(--price-very-expensive);
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+    }
+
+    .model-price-hint {
+        margin-top: 8px;
+        font-size: 12px;
+        line-height: 1.4;
+        padding: 8px 12px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+    }
+
+    .model-price-hint.cheap {
+        background: rgba(59, 130, 246, 0.1);
+        color: var(--price-cheap);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
     /* --- RESPONSIVE MEDIA QUERIES --- */
     @media (max-width: 1024px) {
         .config-grid { grid-template-columns: 1fr; }
@@ -589,9 +633,12 @@
                         <a href="{% url 'telegram_connect' bot.id %}" class="btn btn-secondary">
                             <i class="fa-solid fa-link"></i> Подключить
                         </a>
+
                         {% endif %}
                     {% endif %}
-                    
+                        <a href="{% url 'bot_test_chat' bot.id %}" class="btn btn-secondary">
+                            <i class="fa-solid fa-comment-dots"></i> Тест-чат
+                        </a>
                     <button class="btn btn-secondary" onclick="toggleBotStatus()">
                         <i class="fa-solid fa-power-off"></i> 
                         {% if bot.status == 'active' %}Стоп{% else %}Пуск{% endif %}
@@ -653,6 +700,20 @@
                             <label class="form-label">Название агента</label>
                             <input type="text" name="name" class="form-input" value="{{ bot.name }}" required>
                         </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Название компании</label>
+                            <input 
+                                type="text" 
+                                name="company_name" 
+                                class="form-input" 
+                                value="{{ bot.company_name|default:'TheCloser' }}" 
+                                placeholder="TheCloser"
+                            >
+                            <div style="margin-top: 6px; font-size: 12px; color: var(--dash-text-muted);">
+                                <i class="fa-solid fa-circle-info"></i> От лица какой компании выступает бот
+                            </div>
+                        </div>
                         
                         <div class="form-group">
                             <label class="form-label">Описание</label>
@@ -673,7 +734,30 @@
                                     Искать ответы в файлах перед генерацией.
                                 </div>
                             </div>
-
+                            <div class="form-group" id="ragKGroup" style="display: {% if bot.use_rag %}block{% else %}none{% endif %};">
+                                <label class="form-label">
+                                    Количество фрагментов для поиска (RAG Top K)
+                                    <i class="fa-solid fa-circle-info" title="Сколько релевантных фрагментов использовать из базы знаний"></i>
+                                </label>
+                                <div style="display: flex; align-items: center; gap: 16px;">
+                                    <input 
+                                        type="range" 
+                                        name="rag_k" 
+                                        min="1" 
+                                        max="10" 
+                                        step="1" 
+                                        value="{{ bot.rag_top_k|default:'5' }}" 
+                                        style="flex: 1;" 
+                                        oninput="ragKDisplay.innerText = this.value"
+                                    >
+                                    <span id="ragKDisplay" style="font-family: monospace; font-weight: bold; font-size: 16px; color: var(--dash-primary); width: 30px; text-align: right;">
+                                        {{ bot.rag_top_k|default:'5' }}
+                                    </span>
+                                </div>
+                                <div style="margin-top: 6px; font-size: 12px; color: var(--dash-text-muted);">
+                                    💡 Больше фрагментов = больше контекста, но выше стоимость токенов
+                                </div>
+                            </div>
                             <label class="toggle-switch">
                                 <input type="checkbox" name="use_rag" {% if bot.use_rag %}checked{% endif %}>
                                 <span class="toggle-slider"></span>
@@ -689,23 +773,13 @@
                         <div class="form-group">
                             <label class="form-label">LLM Провайдер и Модель</label>
                             <select name="model" class="form-select" id="aiModelSelect" onchange="updateModelColor()">
-                                <optgroup label="OpenAI" class="optgroup-openai">
-                                    <option value="gpt-4o" {% if bot.openai_model == 'gpt-4o' %}selected{% endif %}>GPT-4o (Флагман)</option>
-                                    <option value="gpt-4o-mini" {% if bot.openai_model == 'gpt-4o-mini' %}selected{% endif %}>GPT-4o Mini (Быстрая)</option>
-                                    <option value="gpt-4-turbo" {% if bot.openai_model == 'gpt-4-turbo' %}selected{% endif %}>GPT-4 Turbo</option>
-                                </optgroup>
-                                
-                                <optgroup label="Google DeepMind" class="optgroup-google">
-                                    <option value="gemini-1.5-pro" {% if bot.openai_model == 'gemini-1.5-pro' %}selected{% endif %}>Gemini 1.5 Pro</option>
-                                    <option value="gemini-1.5-flash" {% if bot.openai_model == 'gemini-1.5-flash' %}selected{% endif %}>Gemini 1.5 Flash</option>
-                                </optgroup>
-                                
-                                <optgroup label="Anthropic" class="optgroup-anthropic">
-                                    <option value="claude-3-5-sonnet" {% if bot.openai_model == 'claude-3-5-sonnet' %}selected{% endif %}>Claude 3.5 Sonnet</option>
-                                    <option value="claude-3-opus" {% if bot.openai_model == 'claude-3-opus' %}selected{% endif %}>Claude 3 Opus</option>
-                                </optgroup>
+                                {% for value, label in bot.MODEL_CHOICES %}
+                                    <option value="{{ value }}" {% if bot.openai_model == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
                             </select>
-                            <div style="margin-top: 8px; font-size: 12px; color: var(--dash-text-muted); line-height: 1.4;" id="modelHint"></div>
+                            <div class="model-price-hint" id="modelHint"></div>
                         </div>
 
                         <div class="form-group">
@@ -915,6 +989,11 @@
     const realInput = document.getElementById('realPromptInput');
     const preview = document.getElementById('promptPreviewText');
 
+    document.querySelector('input[name="use_rag"]').addEventListener('change', function() {
+        const ragKGroup = document.getElementById('ragKGroup');
+        ragKGroup.style.display = this.checked ? 'block' : 'none';
+    });
+
     function openEditor() {
         document.body.appendChild(modal);
         textarea.value = realInput.value;
@@ -958,25 +1037,30 @@
     // Model Color Logic
     function updateModelColor() {
         const select = document.getElementById('aiModelSelect');
-        const selectedOpt = select.options[select.selectedIndex];
-        const group = selectedOpt.parentElement.className;
+        const selectedText = select.options[select.selectedIndex].text;
         const hint = document.getElementById('modelHint');
-
-        select.style.borderColor = 'var(--dash-border)';
-        hint.style.color = 'var(--dash-text-muted)';
-
-        if (group.includes('openai')) {
-            select.style.borderColor = 'var(--provider-openai)';
-            hint.innerText = "OpenAI: Идеальный баланс скорости и качества.";
-            hint.style.color = 'var(--provider-openai)';
-        } else if (group.includes('google')) {
-            select.style.borderColor = 'var(--provider-google)';
-            hint.innerText = "Google: Большое контекстное окно для длинных документов.";
-            hint.style.color = 'var(--provider-google)';
-        } else if (group.includes('anthropic')) {
-            select.style.borderColor = 'var(--provider-anthropic)';
-            hint.innerText = "Anthropic: Естественные и безопасные ответы.";
-            hint.style.color = 'var(--provider-anthropic)';
+        
+        // Удаляем все классы цены
+        select.classList.remove('price-cheap', 'price-moderate', 'price-expensive', 'price-very-expensive');
+        hint.className = 'model-price-hint';
+        
+        // Определяем категорию по тексту в скобках
+        if (selectedText.includes('(Cheap)')) {
+            select.classList.add('price-cheap');
+            hint.classList.add('cheap');
+            hint.innerHTML = '<i class="fa-solid fa-dollar-sign"></i> Дешевая модель — минимальная стоимость запросов';
+        } else if (selectedText.includes('(Moderate)')) {
+            select.classList.add('price-moderate');
+            hint.classList.add('moderate');
+            hint.innerHTML = '<i class="fa-solid fa-dollar-sign"></i><i class="fa-solid fa-dollar-sign"></i> Сбалансированная модель — оптимальное соотношение цены и качества';
+        } else if (selectedText.includes('(Expensive)')) {
+            select.classList.add('price-expensive');
+            hint.classList.add('expensive');
+            hint.innerHTML = '<i class="fa-solid fa-dollar-sign"></i><i class="fa-solid fa-dollar-sign"></i><i class="fa-solid fa-dollar-sign"></i> Продвинутая модель — высокое качество ответов';
+        } else if (selectedText.includes('(Very Expensive)')) {
+            select.classList.add('price-very-expensive');
+            hint.classList.add('very-expensive');
+            hint.innerHTML = '<i class="fa-solid fa-dollar-sign"></i><i class="fa-solid fa-dollar-sign"></i><i class="fa-solid fa-dollar-sign"></i><i class="fa-solid fa-dollar-sign"></i> Премиум модель — максимальное качество и скорость';
         }
     }
     updateModelColor();

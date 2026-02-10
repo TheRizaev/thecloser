@@ -45,6 +45,7 @@ urlpatterns = [
     path('dashboard/agents/', views.bots_list, name='agents_list'),
     path('dashboard/agents/create/', views.bot_create, name='create_agent'),
     path('dashboard/agents/<int:bot_id>/', views.bot_detail, name='agent_detail'),
+    path('dashboard/agents/<int:bot_id>/test-chat/', views.bot_test_chat, name='bot_test_chat'),
     
     # API управления ботами
     path('api/agents/<int:bot_id>/toggle/', views.toggle_bot_status, name='toggle_bot_status'),

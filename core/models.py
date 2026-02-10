@@ -17,16 +17,14 @@ import re
 def knowledge_base_upload_path(instance, filename):
     """
     Генерирует путь для загрузки: knowledge_base/user_email/filename
-    Теперь все файлы пользователя хранятся в одной папке
     """
-    user_email = instance.user.email.split('@')[0]  # Берем только часть до @
-    # Очищаем имя от недопустимых символов
+    user_email = instance.user.email.split('@')[0]
     clean_email = re.sub(r'[^\w\-.]', '_', user_email)
     clean_filename = re.sub(r'[^\w\-.]', '_', filename)
     return f'knowledge_base/{clean_email}/{clean_filename}'
 
 # ============================================
-# МОДЕЛЬ: БОТ-АССИСТЕНТ (без изменений)
+# МОДЕЛЬ: БОТ-АССИСТЕНТ (ОБНОВЛЕНО!)
 # ============================================
 
 class BotAgent(models.Model):
@@ -47,6 +45,21 @@ class BotAgent(models.Model):
         ('error', 'Ошибка'),
     ]
     
+    # ========== НОВОЕ: Список моделей с категориями цен ==========
+    MODEL_CHOICES = [
+        ('gpt-3.5-turbo-0125', 'GPT-3.5 Turbo (Moderate)'),
+        ('gpt-4o-2024-08-06', 'GPT-4o (Moderate)'),
+        ('gpt-4o-mini-2024-07-18', 'GPT-4o mini (Moderate)'),
+        ('o1-mini-2024-09-12', 'o1 mini (Moderate)'),
+        ('o3-mini-2025-01-31', 'o3 mini (Moderate)'),
+        ('o1-2024-12-17', 'o1 (Very Expensive)'),
+        ('gpt-4.1-2025-04-14', 'GPT-4.1 (Moderate)'),
+        ('gpt-5-nano-2025-08-07', 'GPT-5 Nano (Cheap)'),
+        ('gpt-5-mini-2025-08-07', 'GPT-5 Mini (Cheap)'),
+        ('gpt-5-2025-08-07', 'GPT-5 (Moderate)'),
+        ('gpt-5.2-2025-12-11', 'GPT-5.2 (Expensive)'),
+    ]
+    
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -57,6 +70,14 @@ class BotAgent(models.Model):
     name = models.CharField(max_length=200, verbose_name='Название бота')
     description = models.TextField(blank=True, verbose_name='Описание')
     avatar = models.ImageField(upload_to='bot_avatars/', blank=True, null=True, verbose_name='Аватар')
+    
+    # ========== НОВОЕ ПОЛЕ: Название компании ==========
+    company_name = models.CharField(
+        max_length=100,
+        default='TheCloser',
+        verbose_name='Название компании',
+        help_text='Название компании, от лица которой выступает бот'
+    )
     
     platform = models.CharField(
         max_length=20,
@@ -88,9 +109,11 @@ class BotAgent(models.Model):
         verbose_name='Системный промпт'
     )
     
+    # ========== ОБНОВЛЕНО: Поле с choices ==========
     openai_model = models.CharField(
         max_length=50,
-        default='gpt-4o-mini',
+        choices=MODEL_CHOICES,
+        default='gpt-4o-mini-2024-07-18',
         verbose_name='Модель OpenAI'
     )
     

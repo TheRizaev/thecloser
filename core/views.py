@@ -225,46 +225,52 @@ def bot_detail(request, bot_id):
         bot.description = request.POST.get('description', bot.description)
         bot.system_prompt = request.POST.get('system_prompt', bot.system_prompt)
         bot.openai_model = request.POST.get('model', bot.openai_model)
-        bot.temperature = float(request.POST.get('temperature', bot.temperature))
-        bot.max_tokens = int(request.POST.get('max_tokens', bot.max_tokens))
         
-        # Чекбоксы
+        try:
+            bot.temperature = float(request.POST.get('temperature', bot.temperature))
+        except (ValueError, TypeError):
+            bot.temperature = 0.7
+            
+        try:
+            bot.max_tokens = int(request.POST.get('max_tokens', bot.max_tokens))
+        except (ValueError, TypeError):
+            bot.max_tokens = 500
+        
+        bot.company_name = request.POST.get('company_name', bot.company_name or 'TheCloser')
+        
         bot.status = 'active' if request.POST.get('is_active') else 'paused'
         bot.use_rag = bool(request.POST.get('use_rag'))
-        bot.rag_top_k = int(request.POST.get('rag_k', bot.rag_top_k))
+        
+        try:
+            bot.rag_top_k = int(request.POST.get('rag_k', bot.rag_top_k))
+        except (ValueError, TypeError):
+            bot.rag_top_k = 5
         
         bot.save()
         messages.success(request, 'Настройки бота сохранены')
         return redirect('agent_detail', bot_id=bot.id)
     
-    # Статистика с аннотациями
     conversations = Conversation.objects.filter(bot=bot)
     bot.conversations_count = conversations.count()
     bot.leads_count = conversations.filter(is_lead=True).count()
     
-    # Подсчет сообщений
     total_messages = Message.objects.filter(conversation__bot=bot).count()
     bot.total_messages = total_messages
     
-    # Получаем файлы базы знаний для этого бота
     knowledge_files = KnowledgeBase.objects.filter(
         bots=bot
     ).prefetch_related('bots').order_by('-created_at')[:5]
     
-    # Подсчитываем количество файлов
     bot.knowledge_count = KnowledgeBase.objects.filter(bots=bot).count()
     
-    # Получаем последние диалоги с аннотацией
     recent_conversations = conversations.select_related('bot').annotate(
         messages_count=Count('messages')
     ).order_by('-last_message_at')[:10]
     
-    # Добавляем последнее сообщение
     for conv in recent_conversations:
         last_msg = conv.messages.order_by('-created_at').first()
         conv.last_message = last_msg.content[:100] if last_msg else ""
     
-    # Передаём всё в контекст
     context = {
         'bot': bot,
         'knowledge_files': knowledge_files,
@@ -1357,3 +1363,14 @@ def get_history_for_rag(conversation_id, limit=10):
         role = 'assistant' if msg.role == 'bot' else 'user'
         history.append({'role': role, 'content': msg.content})
     return history
+
+@login_required
+def bot_test_chat(request, bot_id):
+    """Страница тест-чата с ботом"""
+    bot = get_object_or_404(BotAgent, id=bot_id, user=request.user)
+    
+    context = {
+        'bot': bot,
+    }
+    
+    return render(request, 'dashboard/bot_test_chat.html', context)
