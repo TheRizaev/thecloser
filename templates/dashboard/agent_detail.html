@@ -584,6 +584,48 @@
         
         /* Скрываем пустые ячейки если нужно или меняем их вид */
     }
+
+    #temperatureGroup, #maxTokensGroup, #reasoningWarning {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 1;
+    max-height: 200px;
+    overflow: hidden;
+    margin-bottom: 24px;
+}
+
+#temperatureGroup[style*="display: none"],
+#maxTokensGroup[style*="display: none"] {
+    opacity: 0;
+    max-height: 0;
+    margin-bottom: 0;
+    padding: 0;
+}
+
+#reasoningWarning[style*="display: block"] {
+    animation: fadeInUp 0.4s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.6;
+        transform: scale(1.15);
+    }
+}
 </style>
 {% endblock %}
 
@@ -755,7 +797,7 @@
                                     </span>
                                 </div>
                                 <div style="margin-top: 6px; font-size: 12px; color: var(--dash-text-muted);">
-                                    💡 Больше фрагментов = больше контекста, но выше стоимость токенов
+                                    Больше фрагментов = больше контекста, но выше стоимость токенов
                                 </div>
                             </div>
                             <label class="toggle-switch">
@@ -771,8 +813,8 @@
                         <h3 style="margin-top: 0;">Модель интеллекта</h3>
                         
                         <div class="form-group">
-                            <label class="form-label">LLM Провайдер и Модель</label>
-                            <select name="model" class="form-select" id="aiModelSelect" onchange="updateModelColor()">
+                            <label class="form-label">AI Модель</label>
+                            <select name="model" class="form-select" id="aiModelSelect" onchange="updateModelSettings()">
                                 {% for value, label in bot.MODEL_CHOICES %}
                                     <option value="{{ value }}" {% if bot.openai_model == value %}selected{% endif %}>
                                         {{ label }}
@@ -782,17 +824,73 @@
                             <div class="model-price-hint" id="modelHint"></div>
                         </div>
 
-                        <div class="form-group">
-                            <label class="form-label">Температура (Креативность)</label>
+                        <!-- ========== Temperature (СКРЫВАЕТСЯ для reasoning) ========== -->
+                        <div class="form-group" id="temperatureGroup">
+                            <label class="form-label">
+                                Температура (Креативность)
+                                <i class="fa-solid fa-circle-info" style="font-size: 11px; opacity: 0.6;" title="Чем выше — тем креативнее и непредсказуемее ответы"></i>
+                            </label>
                             <div style="display: flex; align-items: center; gap: 16px;">
-                                <input type="range" name="temperature" min="0" max="2" step="0.1" value="{{ bot.temperature|default:'0.7' }}" style="flex: 1;" oninput="tempDisplay.innerText = this.value">
-                                <span id="tempDisplay" style="font-family: monospace; font-weight: bold; font-size: 16px; color: var(--dash-primary); width: 30px; text-align: right;">{{ bot.temperature|default:'0.7' }}</span>
+                                <input 
+                                    type="range" 
+                                    name="temperature" 
+                                    min="0" 
+                                    max="2" 
+                                    step="0.1" 
+                                    value="{{ bot.temperature|default:'0.7' }}" 
+                                    style="flex: 1;" 
+                                    oninput="tempDisplay.innerText = this.value"
+                                >
+                                <span id="tempDisplay" style="font-family: monospace; font-weight: bold; font-size: 16px; color: var(--dash-primary); width: 30px; text-align: right;">
+                                    {{ bot.temperature|default:'0.7' }}
+                                </span>
                             </div>
                         </div>
 
-                        <div class="form-group">
-                            <label class="form-label">Лимит токенов</label>
-                            <input type="number" name="max_tokens" class="form-input" value="{{ bot.max_tokens|default:'1000' }}">
+                        <!-- ========== Max Tokens (СКРЫВАЕТСЯ для reasoning) ========== -->
+                        <div class="form-group" id="maxTokensGroup">
+                            <label class="form-label">
+                                Лимит токенов
+                                <i class="fa-solid fa-circle-info" style="font-size: 11px; opacity: 0.6;" title="Максимальная длина ответа"></i>
+                            </label>
+                            <input 
+                                type="number" 
+                                name="max_tokens" 
+                                class="form-input" 
+                                value="{{ bot.max_tokens|default:'1000' }}"
+                                min="100"
+                                max="4000"
+                                step="100"
+                            >
+                            <div style="margin-top: 6px; font-size: 12px; color: var(--dash-text-muted);">
+                             ~750 слов на русском языке при 1000 токенов
+                            </div>
+                        </div>
+
+                        <!-- ========== ПРЕДУПРЕЖДЕНИЕ для reasoning моделей ========== -->
+                        <div class="form-group" id="reasoningWarning" style="display: none;">
+                            <div style="
+                                background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(139, 92, 246, 0.15) 100%);
+                                border: 1px solid rgba(139, 92, 246, 0.3);
+                                border-radius: 12px;
+                                padding: 20px;
+                                display: flex;
+                                gap: 16px;
+                                align-items: flex-start;
+                            ">
+                                <div style="color: #a78bfa; font-size: 28px; flex-shrink: 0; animation: pulse 2s ease-in-out infinite;">
+                                    <i class="fa-solid fa-brain"></i>
+                                </div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; color: #a78bfa; margin-bottom: 8px; font-size: 15px;">
+                                        Reasoning Model
+                                    </div>
+                                    <div style="font-size: 13px; color: var(--dash-text-muted); line-height: 1.6;">
+                                        Эта модель использует <strong>внутренние рассуждения</strong> для решения задач.<br>
+                                        Температура и макс. токены автоматически управляются моделью.
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 12px; height: 48px; font-size: 16px;">
@@ -979,6 +1077,81 @@
         </div>
     </div>
 </div>
+
+<script>
+// ========== СПИСОК REASONING МОДЕЛЕЙ ==========
+const REASONING_MODELS = [
+    'o1-mini', 'o1-2024', 'o3-mini', 'o3-2025',
+    'gpt-4.1', 'gpt-5', 'gpt-5.2'
+];
+
+function isReasoningModel(modelValue) {
+    return REASONING_MODELS.some(prefix => modelValue.includes(prefix));
+}
+
+function updateModelSettings() {
+    const select = document.getElementById('aiModelSelect');
+    const selectedValue = select.value;
+    const selectedText = select.options[select.selectedIndex].text;
+    const hint = document.getElementById('modelHint');
+    
+    const temperatureGroup = document.getElementById('temperatureGroup');
+    const maxTokensGroup = document.getElementById('maxTokensGroup');
+    const reasoningWarning = document.getElementById('reasoningWarning');
+    
+    // Удаляем все классы цены
+    select.classList.remove('price-cheap', 'price-moderate', 'price-expensive', 'price-very-expensive');
+    hint.className = 'model-price-hint';
+    
+    // ========== ПРОВЕРЯЕМ ТИП МОДЕЛИ ==========
+    const isReasoning = isReasoningModel(selectedValue);
+    
+    if (isReasoning) {
+        // ========== REASONING MODEL → СКРЫВАЕМ ОБА ПОЛЯ ==========
+        temperatureGroup.style.display = 'none';
+        maxTokensGroup.style.display = 'none';
+        reasoningWarning.style.display = 'block';
+        
+        // Цвет для reasoning моделей
+        select.classList.add('price-expensive');
+        hint.classList.add('expensive');
+        hint.innerHTML = '<i class="fa-solid fa-brain"></i> Reasoning Model — для сложных логических задач (~$3-60 за 1M токенов)';
+        
+    } else {
+        // ========== LEGACY MODEL → ПОКАЗЫВАЕМ ОБА ПОЛЯ ==========
+        temperatureGroup.style.display = 'block';
+        maxTokensGroup.style.display = 'block';
+        reasoningWarning.style.display = 'none';
+        
+        // Определяем цену по тексту
+        if (selectedText.includes('(Cheap)')) {
+            select.classList.add('price-cheap');
+            hint.classList.add('cheap');
+            hint.innerHTML = '<i class="fa-solid fa-dollar-sign"></i> Дешевая модель — минимальная стоимость (~$0.15-0.50 за 1M токенов)';
+        } else if (selectedText.includes('(Moderate)')) {
+            select.classList.add('price-moderate');
+            hint.classList.add('moderate');
+            hint.innerHTML = '<i class="fa-solid fa-dollar-sign"></i><i class="fa-solid fa-dollar-sign"></i> Сбалансированная модель — оптимальное соотношение (~$2.50-10 за 1M токенов)';
+        } else if (selectedText.includes('(Expensive)')) {
+            select.classList.add('price-expensive');
+            hint.classList.add('expensive');
+            hint.innerHTML = '<i class="fa-solid fa-dollar-sign"></i><i class="fa-solid fa-dollar-sign"></i><i class="fa-solid fa-dollar-sign"></i> Дорогая модель — высокая точность (~$30 за 1M токенов)';
+        } else {
+            hint.innerHTML = '<i class="fa-solid fa-microchip"></i> Выберите модель для просмотра информации о ценах';
+        }
+    }
+}
+
+// Вызываем сразу при загрузке
+document.addEventListener('DOMContentLoaded', function() {
+    updateModelSettings();
+});
+
+// Совместимость со старым кодом
+function updateModelColor() {
+    updateModelSettings();
+}
+</script>   
 
 <script>
     const csrfToken = '{{ csrf_token }}';

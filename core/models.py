@@ -1,8 +1,5 @@
-# core/models.py
-"""
-Модели базы данных для проекта SalesAI
-ОБНОВЛЕНО: KnowledgeBase теперь поддерживает связь многие-ко-многим с ботами
-"""
+# core/models.py - ПОЛНАЯ ВЕРСИЯ СО ВСЕМИ МОДЕЛЯМИ
+# ОБНОВЛЕНО: Возвращены o1, o3, GPT-5+ с маркерами для нового API
 
 from django.db import models
 from django.contrib.auth.models import User
@@ -15,16 +12,14 @@ import re
 # ============================================
 
 def knowledge_base_upload_path(instance, filename):
-    """
-    Генерирует путь для загрузки: knowledge_base/user_email/filename
-    """
+    """Генерирует путь для загрузки: knowledge_base/user_email/filename"""
     user_email = instance.user.email.split('@')[0]
     clean_email = re.sub(r'[^\w\-.]', '_', user_email)
     clean_filename = re.sub(r'[^\w\-.]', '_', filename)
     return f'knowledge_base/{clean_email}/{clean_filename}'
 
 # ============================================
-# МОДЕЛЬ: БОТ-АССИСТЕНТ (ОБНОВЛЕНО!)
+# МОДЕЛЬ: БОТ-АССИСТЕНТ (ПОЛНАЯ ВЕРСИЯ)
 # ============================================
 
 class BotAgent(models.Model):
@@ -45,19 +40,45 @@ class BotAgent(models.Model):
         ('error', 'Ошибка'),
     ]
     
-    # ========== НОВОЕ: Список моделей с категориями цен ==========
+    # ========== ПОЛНЫЙ СПИСОК МОДЕЛЕЙ (Legacy + Reasoning + Future) ==========
     MODEL_CHOICES = [
-        ('gpt-3.5-turbo-0125', 'GPT-3.5 Turbo (Moderate)'),
-        ('gpt-4o-2024-08-06', 'GPT-4o (Moderate)'),
-        ('gpt-4o-mini-2024-07-18', 'GPT-4o mini (Moderate)'),
-        ('o1-mini-2024-09-12', 'o1 mini (Moderate)'),
-        ('o3-mini-2025-01-31', 'o3 mini (Moderate)'),
-        ('o1-2024-12-17', 'o1 (Very Expensive)'),
+        # ===== GPT-3.5 (Legacy, Дешевые) =====
+        ('gpt-3.5-turbo', 'GPT-3.5 Turbo (Cheap)'),
+        ('gpt-3.5-turbo-0125', 'GPT-3.5 Turbo 0125 (Cheap)'),
+        
+        # ===== GPT-4 Turbo (Умеренные) =====
+        ('gpt-4-turbo', 'GPT-4 Turbo (Moderate)'),
+        ('gpt-4-turbo-2024-04-09', 'GPT-4 Turbo (Apr 2024) (Moderate)'),
+        
+        # ===== GPT-4o (Умеренные - Рекомендуем) =====
+        ('gpt-4o', 'GPT-4o (Moderate) ⭐'),
+        ('gpt-4o-2024-11-20', 'GPT-4o (Nov 2024) (Moderate)'),
+        ('gpt-4o-2024-08-06', 'GPT-4o (Aug 2024) (Moderate)'),
+        ('gpt-4o-2024-05-13', 'GPT-4o (May 2024) (Moderate)'),
+        
+        # ===== GPT-4o mini (Дешевые - Оптимальные) =====
+        ('gpt-4o-mini', 'GPT-4o mini (Cheap) 🔥'),
+        ('gpt-4o-mini-2024-07-18', 'GPT-4o mini (Jul 2024) (Cheap)'),
+        
+        # ===== GPT-4 (Дорогие - Legacy) =====
+        ('gpt-4', 'GPT-4 (Expensive)'),
+        ('gpt-4-0613', 'GPT-4 0613 (Expensive)'),
+        
+        # ===== o1 REASONING MODELS (Очень дорогие) =====
+        ('o1-mini-2024-09-12', 'o1 mini (Moderate) 🧠'),
+        ('o1-2024-12-17', 'o1 (Very Expensive) 🧠'),
+        
+        # ===== o3 REASONING MODELS (Очень дорогие) =====
+        ('o3-mini-2025-01-31', 'o3 mini (Moderate) 🧠'),
+        
+        # ===== GPT-4.1 =====
         ('gpt-4.1-2025-04-14', 'GPT-4.1 (Moderate)'),
-        ('gpt-5-nano-2025-08-07', 'GPT-5 Nano (Cheap)'),
-        ('gpt-5-mini-2025-08-07', 'GPT-5 Mini (Cheap)'),
-        ('gpt-5-2025-08-07', 'GPT-5 (Moderate)'),
-        ('gpt-5.2-2025-12-11', 'GPT-5.2 (Expensive)'),
+        
+        # ===== GPT-5 SERIES (Будущие модели) =====
+        ('gpt-5-nano-2025-08-07', 'GPT-5 Nano (Cheap) 🚀'),
+        ('gpt-5-mini-2025-08-07', 'GPT-5 Mini (Cheap) 🚀'),
+        ('gpt-5-2025-08-07', 'GPT-5 (Moderate) 🚀'),
+        ('gpt-5.2-2025-12-11', 'GPT-5.2 (Expensive) 🚀'),
     ]
     
     user = models.ForeignKey(
@@ -71,7 +92,7 @@ class BotAgent(models.Model):
     description = models.TextField(blank=True, verbose_name='Описание')
     avatar = models.ImageField(upload_to='bot_avatars/', blank=True, null=True, verbose_name='Аватар')
     
-    # ========== НОВОЕ ПОЛЕ: Название компании ==========
+    # Название компании
     company_name = models.CharField(
         max_length=100,
         default='TheCloser',
@@ -109,11 +130,10 @@ class BotAgent(models.Model):
         verbose_name='Системный промпт'
     )
     
-    # ========== ОБНОВЛЕНО: Поле с choices ==========
     openai_model = models.CharField(
         max_length=50,
         choices=MODEL_CHOICES,
-        default='gpt-4o-mini-2024-07-18',
+        default='gpt-4o-mini',
         verbose_name='Модель OpenAI'
     )
     
@@ -147,10 +167,19 @@ class BotAgent(models.Model):
     
     def __str__(self):
         return f"{self.name} ({self.get_platform_display()})"
+    
+    # ========== НОВЫЙ МЕТОД: Определение типа API ==========
+    def uses_new_api(self):
+        """Проверяет, использует ли модель новый API (o1/o3/GPT-5+)"""
+        reasoning_models = [
+            'o1-mini', 'o1-2024', 'o3-mini', 'o3-2025',
+            'gpt-4.1', 'gpt-5', 'gpt-5.2'
+        ]
+        return any(model in self.openai_model for model in reasoning_models)
 
 
 # ============================================
-# МОДЕЛЬ: ДИАЛОГ, СООБЩЕНИЕ (без изменений)
+# ОСТАЛЬНЫЕ МОДЕЛИ БЕЗ ИЗМЕНЕНИЙ
 # ============================================
 
 class Conversation(models.Model):
@@ -232,15 +261,8 @@ class Message(models.Model):
         return f"{self.get_role_display()}: {self.content[:50]}"
 
 
-# ============================================
-# МОДЕЛЬ: БАЗА ЗНАНИЙ (ОБНОВЛЕНО!)
-# ============================================
-
 class KnowledgeBase(models.Model):
-    """
-    Модель документа в базе знаний
-    ОБНОВЛЕНО: Теперь поддерживает связь многие-ко-многим с ботами
-    """
+    """Модель документа в базе знаний"""
     
     FILE_TYPE_CHOICES = [
         ('pdf', 'PDF'),
@@ -249,7 +271,6 @@ class KnowledgeBase(models.Model):
         ('md', 'Markdown'),
     ]
     
-    # ИЗМЕНЕНО: Теперь владелец - пользователь, а не конкретный бот
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -257,7 +278,6 @@ class KnowledgeBase(models.Model):
         verbose_name='Владелец'
     )
     
-    # НОВОЕ: Связь многие-ко-многим с ботами
     bots = models.ManyToManyField(
         BotAgent,
         related_name='knowledge_base',
@@ -317,10 +337,6 @@ class KnowledgeBase(models.Model):
         return ", ".join([bot.name for bot in self.bots.all()])
 
 
-# ============================================
-# МОДЕЛЬ: ФРАГМЕНТ ДОКУМЕНТА (без изменений)
-# ============================================
-
 class KnowledgeChunk(models.Model):
     """Модель фрагмента документа с векторным представлением"""
     
@@ -352,10 +368,6 @@ class KnowledgeChunk(models.Model):
     def __str__(self):
         return f"Фрагмент {self.chunk_index} из {self.knowledge_base.title}"
 
-
-# ============================================
-# ОСТАЛЬНЫЕ МОДЕЛИ (без изменений)
-# ============================================
 
 class Analytics(models.Model):
     """Модель для хранения аналитических данных"""

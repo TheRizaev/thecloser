@@ -1,4 +1,4 @@
-# services/rag_service.py - ИСПРАВЛЕННАЯ ВЕРСИЯ С HUMANIZER
+# services/rag_service.py - С ПОДДЕРЖКОЙ НОВОГО API
 
 import logging
 from typing import List, Dict
@@ -46,7 +46,6 @@ class FileReader:
         
         file_ext = Path(file_path).suffix.lower()
         
-        # TXT, MD, CSV
         if file_ext in ['.txt', '.md', '.csv']:
             logger.info(f"Чтение файла: {file_path}")
             try:
@@ -60,7 +59,6 @@ class FileReader:
                 logger.info(f"TXT файл прочитан с кодировкой latin-1: {file_path}")
                 return content
         
-        # PDF
         elif file_ext == '.pdf':
             try:
                 from pypdf import PdfReader
@@ -75,7 +73,6 @@ class FileReader:
                 logger.error(f"Ошибка чтения PDF: {e}")
                 return ""
         
-        # DOCX
         elif file_ext == '.docx':
             try:
                 from docx import Document
@@ -149,18 +146,14 @@ class RAGService:
         try:
             kb = KnowledgeBase.objects.get(id=knowledge_base_id)
             
-            # Читаем
             logger.info(f"Чтение файла: {file_path}")
             text = self.file_reader.read_file(file_path)
             
-            # Чанки
             logger.info("Разбиение на чанки...")
             chunks = self.text_chunker.split_text(text)
             
-            # Удаляем старые
             KnowledgeChunk.objects.filter(knowledge_base=kb).delete()
             
-            # Векторизуем
             logger.info(f"Векторизация {len(chunks)} чанков...")
             for idx, chunk_text in enumerate(chunks):
                 embedding = self.embedder.get_embedding(chunk_text)
@@ -175,7 +168,6 @@ class RAGService:
                 if (idx + 1) % 10 == 0:
                     logger.info(f"Обработано {idx + 1}/{len(chunks)} чанков")
             
-            # Обновляем статус
             kb.is_indexed = True
             kb.chunks_count = len(chunks)
             kb.indexed_at = timezone.now()
@@ -201,7 +193,6 @@ class RAGService:
         try:
             logger.info(f"Поиск в базе знаний для бота {bot_id}: {query[:50]}...")
             
-            # Получаем embedding запроса
             query_embedding = self.embedder.get_embedding(query)
             query_vector = np.array(query_embedding)
             
@@ -213,12 +204,10 @@ class RAGService:
                 logger.warning(f"Нет чанков для бота {bot_id}")
                 return []
             
-            # Считаем similarity
             similarities = []
             for chunk in chunks:
                 chunk_vector = np.array(chunk.embedding)
                 
-                # Cosine similarity
                 similarity = np.dot(query_vector, chunk_vector) / (
                     np.linalg.norm(query_vector) * np.linalg.norm(chunk_vector)
                 )
@@ -230,7 +219,6 @@ class RAGService:
                     'source': chunk.knowledge_base.title
                 })
             
-            # Сортируем и возвращаем top_k
             similarities.sort(key=lambda x: x['similarity'], reverse=True)
             top_results = similarities[:top_k]
             
@@ -244,12 +232,11 @@ class RAGService:
     
     def answer_question(self, bot_id: int, query: str, top_k: int = 5, history: List[Dict] = None) -> Dict:
         """
-        ИСПРАВЛЕНО: Теперь использует HUMANIZER_INSTRUCTIONS + настройки бота
+        ОБНОВЛЕНО: Поддержка НОВОГО API для o1/o3/GPT-5+
         """
         from core.models import BotAgent
         
         try:
-            # Получаем бота
             bot = BotAgent.objects.get(id=bot_id)
             
             # ========== ШАГ 1: HUMANIZER ==========
@@ -289,7 +276,6 @@ class RAGService:
             # ========== ШАГ 5: ФОРМИРУЕМ СООБЩЕНИЯ ==========
             messages = [{"role": "system", "content": final_system_prompt}]
             
-            # Добавляем историю
             if history:
                 for msg in history:
                     role = msg.get('role', 'user')
@@ -297,18 +283,27 @@ class RAGService:
                         role = 'user'
                     messages.append({"role": role, "content": msg.get('content', '')})
             
-            # Добавляем текущий вопрос
             messages.append({"role": "user", "content": query})
 
-            # ========== ШАГ 6: ЗАПРОС К OPENAI С НАСТРОЙКАМИ БОТА ==========
-            logger.info(f"🤖 Bot: {bot.name} | Model: {bot.openai_model} | Temp: {bot.temperature} | Max: {bot.max_tokens}")
+            # ========== ШАГ 6: ОПРЕДЕЛЯЕМ ТИП API ==========
+            uses_new_api = bot.uses_new_api()
             
-            response = self.embedder.client.chat.completions.create(
-                model=bot.openai_model or "gpt-4o-mini",
-                messages=messages,
-                temperature=bot.temperature,  # ← ТЕПЕРЬ ИСПОЛЬЗУЮТСЯ!
-                max_tokens=bot.max_tokens      # ← ТЕПЕРЬ ИСПОЛЬЗУЮТСЯ!
-            )
+            logger.info(f"Bot: {bot.name} | Model: {bot.openai_model} | New API: {uses_new_api} | Temp: {bot.temperature} | Max: {bot.max_tokens}")
+            
+            if uses_new_api:
+                logger.info("Using NEW API with max_completion_tokens")
+                response = self.embedder.client.chat.completions.create(
+                    model=bot.openai_model,
+                    messages=messages,
+                )
+            else:
+                logger.info("Using LEGACY API with temperature + max_tokens")
+                response = self.embedder.client.chat.completions.create(
+                    model=bot.openai_model,
+                    messages=messages,
+                    temperature=bot.temperature,
+                    max_tokens=bot.max_tokens
+                )
             
             answer = response.choices[0].message.content.strip()
             
