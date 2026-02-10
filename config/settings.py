@@ -100,7 +100,7 @@ DATABASES = {
         'PORT': os.getenv('DB_PORT', '5432'),
         'OPTIONS': {
             # 'sslmode': 'require',
-            'options': '-c search_path=public'
+            'options': '-c search_path=public',
         },
     }
 }

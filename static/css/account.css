@@ -1,590 +1,244 @@
 /* ============================================
-   ACCOUNT AUTHENTICATION STYLES
-   Modern Glass Morphism Design
+   ACCOUNT.CSS — Clean & Cyber Style
    ============================================ */
 
 :root {
-    --auth-primary: #6366f1;
-    --auth-primary-hover: #4f46e5;
-    --auth-surface: rgba(15, 23, 42, 0.7);
+    --auth-bg: #020617;          /* Глубокий фон */
+    --auth-card-bg: rgba(15, 23, 42, 0.6); /* Стекло */
     --auth-border: rgba(255, 255, 255, 0.08);
-    --auth-text: #f9fafb;
-    --auth-text-muted: #94a3b8;
-    --auth-error: #ef4444;
-    --auth-success: #22c55e;
+    
+    --primary: #6366f1;          /* Indigo */
+    --primary-hover: #4f46e5;
+    
+    --text-main: #f8fafc;        /* Белый текст */
+    --text-muted: #94a3b8;       /* Серый текст */
+    
+    --success: #22c55e;
+    --danger: #ef4444;
 }
 
-/* ============================================
-   LAYOUT & CONTAINER
-   ============================================ */
+* { margin: 0; padding: 0; box-sizing: border-box; } /* Важно: чтобы padding не раздувал элементы */
 
-body {
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #030712;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    color: var(--auth-text);
-    overflow: hidden;
+html {
+    overflow-y: scroll; /* ХАК: Всегда показывать полосу прокрутки, чтобы меню не прыгало по ширине */
 }
 
-.auth-container {
-    position: relative;
+html, body {
     width: 100%;
     min-height: 100vh;
+    position: relative;
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+}
+body {
+    background-color: var(--auth-bg);
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    color: var(--text-main);
+    overflow-x: hidden;
+}
+
+/* Контейнер на весь экран, центрирует карту */
+.auth-page-wrapper {
+    min-height: 100vh;
+    width: 100%;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 40px 20px;
+    position: relative;
+    padding-top: 80px; /* Отступ под Navbar */
+    padding-bottom: 40px;
     z-index: 1;
 }
 
-/* ============================================
-   AMBIENT BACKGROUND
-   ============================================ */
-
+/* 2. ЖИВОЙ ФОН (Ambient) */
 .auth-ambient {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    overflow: hidden;
-    pointer-events: none;
+    position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
 }
 
 .ambient-orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(120px);
-    opacity: 0;
-    animation: orbFloat 20s ease-in-out infinite;
+    position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.4;
+    animation: floatOrb 20s infinite alternate ease-in-out;
+}
+.orb-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: radial-gradient(circle, #4f46e5 0%, transparent 70%); }
+.orb-2 { bottom: -10%; right: -10%; width: 40vw; height: 40vw; background: radial-gradient(circle, #db2777 0%, transparent 70%); animation-delay: -5s; }
+.orb-3 { top: 40%; left: 40%; width: 30vw; height: 30vw; background: radial-gradient(circle, #06b6d4 0%, transparent 70%); opacity: 0.2; animation-delay: -10s; }
+
+@keyframes floatOrb {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(30px, 50px); }
 }
 
-.orb-1 {
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, transparent 70%);
-    top: -200px;
-    left: -100px;
-    animation-delay: 0s;
-}
-
-.orb-2 {
-    width: 500px;
-    height: 500px;
-    background: radial-gradient(circle, rgba(168, 85, 247, 0.2) 0%, transparent 70%);
-    bottom: -150px;
-    right: -100px;
-    animation-delay: 5s;
-}
-
-.orb-3 {
-    width: 400px;
-    height: 400px;
-    background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    animation-delay: 10s;
-}
-
-@keyframes orbFloat {
-    0%, 100% {
-        opacity: 0.4;
-        transform: translate(0, 0) scale(1);
-    }
-    50% {
-        opacity: 0.6;
-        transform: translate(50px, -50px) scale(1.1);
-    }
-}
-
+/* Сетка на фоне */
 .ambient-grid {
-    position: absolute;
-    inset: 0;
+    position: absolute; inset: 0;
     background-image: 
-        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
     background-size: 50px 50px;
-    mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
+    mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
 }
 
-.auth-pattern {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    opacity: 0.5;
-    pointer-events: none;
+/* 3. СТЕКЛЯННАЯ КАРТОЧКА */
+.auth-container {
+    width: 100%;
+    display: flex; flex-direction: column; align-items: center;
+    position: relative; z-index: 10;
 }
-
-/* ============================================
-   GLASS CARD
-   ============================================ */
 
 .auth-glass-card {
-    position: relative;
-    width: 100%;
-    max-width: 440px;
-    background: var(--auth-surface);
-    backdrop-filter: blur(40px) saturate(180%);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    width: 100%; max-width: 440px;
+    background: var(--auth-card-bg);
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
     border: 1px solid var(--auth-border);
     border-radius: 24px;
-    padding: 48px 40px;
-    box-shadow: 
-        0 20px 60px rgba(0, 0, 0, 0.4),
-        inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    animation: cardSlideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    z-index: 10;
+    padding: 40px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+    animation: fadeUp 0.6s ease-out;
 }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-@keyframes cardSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(30px) scale(0.96);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-/* ============================================
-   LOGO SECTION
-   ============================================ */
-
-.auth-logo-section {
-    text-align: center;
-    margin-bottom: 40px;
-}
-
-.auth-logo-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    text-decoration: none;
-    transition: transform 0.2s ease;
-}
-
-.auth-logo-link:hover {
-    transform: translateY(-2px);
-}
-
+/* Логотип */
+.auth-logo-section { text-align: center; margin-bottom: 30px; }
+.auth-logo-link { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; }
 .logo-icon {
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, var(--auth-primary), #a855f7);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    color: white;
-    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+    width: 40px; height: 40px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary), #db2777);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 1.2rem; box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
 }
+.logo-text { font-size: 1.4rem; font-weight: 700; color: white; letter-spacing: -0.5px; }
 
-.logo-text {
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--auth-text);
-    letter-spacing: -0.5px;
-}
+/* 4. ТИПОГРАФИКА ЗАГОЛОВКОВ */
+.auth-header { text-align: center; margin-bottom: 30px; }
+.auth-title { font-size: 1.8rem; font-weight: 700; color: white; margin: 0 0 10px 0; }
+.auth-subtitle { color: var(--text-muted); font-size: 0.95rem; margin: 0; }
 
-/* ============================================
-   FORM WRAPPER
-   ============================================ */
-
-.auth-form-wrapper {
-    width: 100%;
-}
-
-/* ============================================
-   HEADER
-   ============================================ */
-
-.auth-header {
-    text-align: center;
-    margin-bottom: 32px;
-}
-
-.auth-icon-badge {
-    width: 56px;
-    height: 56px;
-    background: rgba(99, 102, 241, 0.1);
-    border: 1px solid rgba(99, 102, 241, 0.2);
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 20px;
-    font-size: 24px;
-    color: var(--auth-primary);
-}
-
-.auth-title {
-    font-size: 28px;
-    font-weight: 700;
-    margin: 0 0 8px 0;
-    letter-spacing: -0.5px;
-    color: var(--auth-text);
-}
-
-.auth-subtitle {
-    font-size: 15px;
-    color: var(--auth-text-muted);
-    margin: 0;
-    line-height: 1.5;
-}
-
-/* ============================================
-   ALERTS
-   ============================================ */
-
-.auth-alert {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 14px 16px;
-    border-radius: 12px;
-    font-size: 14px;
-    margin-bottom: 24px;
-    line-height: 1.5;
-}
-
-.auth-alert i {
-    font-size: 18px;
-    margin-top: 1px;
-    flex-shrink: 0;
-}
-
-.auth-alert-error {
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.2);
-    color: #fca5a5;
-}
-
-.auth-alert-success {
-    background: rgba(34, 197, 94, 0.1);
-    border: 1px solid rgba(34, 197, 94, 0.2);
-    color: #86efac;
-}
-
-/* ============================================
-   FORM
-   ============================================ */
-
-.auth-form {
-    width: 100%;
-}
-
-.auth-input-group {
-    margin-bottom: 20px;
-}
-
-.auth-label {
-    display: block;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--auth-text);
-    margin-bottom: 8px;
-}
-
-.auth-label-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-}
+/* 5. ПОЛЯ ВВОДА (INPUTS) */
+.auth-form { width: 100%; }
+.auth-input-group { margin-bottom: 20px; }
+.auth-label { display: block; font-size: 0.9rem; color: #cbd5e1; margin-bottom: 8px; font-weight: 500; }
+.auth-label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 
 .auth-input-wrapper {
     position: relative;
     width: 100%;
+    box-sizing: border-box; /* Страховка */
 }
-
 .auth-input-icon {
-    position: absolute;
-    left: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--auth-text-muted);
-    font-size: 16px;
-    pointer-events: none;
-    transition: color 0.2s ease;
+    position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+    color: #64748b; font-size: 1rem; transition: 0.3s; pointer-events: none;
 }
-
 .auth-input {
     width: 100%;
-    height: 48px;
-    padding: 0 16px 0 46px;
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid var(--auth-border);
+    height: 50px;
+    padding: 0 16px 0 44px; /* Отступы для текста и иконки */
+    
+    /* ВАЖНОЕ ИСПРАВЛЕНИЕ: */
+    box-sizing: border-box; 
+    
+    background: rgba(2, 6, 23, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
-    color: var(--auth-text);
-    font-size: 15px;
-    font-family: inherit;
-    transition: all 0.2s ease;
-}
-
-.auth-input::placeholder {
-    color: var(--auth-text-muted);
-}
-
-.auth-input:focus {
-    outline: none;
-    border-color: var(--auth-primary);
-    background: rgba(15, 23, 42, 0.8);
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
-}
-
-.auth-input:focus + .auth-input-icon {
-    color: var(--auth-primary);
-}
-
-.auth-input-hint {
-    font-size: 13px;
-    color: var(--auth-text-muted);
-    margin-top: 6px;
-    line-height: 1.4;
-}
-
-/* ============================================
-   CHECKBOX
-   ============================================ */
-
-.auth-checkbox-group {
-    margin: 24px 0;
-}
-
-.auth-checkbox-label {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    cursor: pointer;
-    user-select: none;
-}
-
-.auth-checkbox {
-    position: absolute;
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.auth-checkbox-custom {
-    position: relative;
-    width: 20px;
-    height: 20px;
-    background: rgba(15, 23, 42, 0.6);
-    border: 1.5px solid var(--auth-border);
-    border-radius: 6px;
-    flex-shrink: 0;
-    transition: all 0.2s ease;
-}
-
-.auth-checkbox:checked + .auth-checkbox-custom {
-    background: var(--auth-primary);
-    border-color: var(--auth-primary);
-}
-
-.auth-checkbox:checked + .auth-checkbox-custom::after {
-    content: '';
-    position: absolute;
-    left: 6px;
-    top: 2px;
-    width: 5px;
-    height: 10px;
-    border: solid white;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
-}
-
-.auth-checkbox-text {
-    font-size: 14px;
-    color: var(--auth-text-muted);
-    line-height: 1.5;
-}
-
-/* ============================================
-   BUTTONS
-   ============================================ */
-
-.auth-btn {
-    width: 100%;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 0 24px;
-    font-size: 15px;
-    font-weight: 600;
-    font-family: inherit;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-decoration: none;
-}
-
-.auth-btn-primary {
-    background: linear-gradient(135deg, var(--auth-primary), #7c3aed);
     color: white;
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+    font-size: 0.95rem;
+    font-family: inherit;
+    transition: all 0.2s;
 }
+.auth-input::placeholder { color: rgba(255, 255, 255, 0.2); }
+.auth-input:focus {
+    outline: none; border-color: var(--primary);
+    background: rgba(2, 6, 23, 0.9);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+}
+.auth-input:focus + .auth-input-icon { color: var(--primary); }
 
+/* Ссылка "Забыли пароль?" */
+.auth-link-subtle { color: var(--text-muted); font-size: 0.85rem; text-decoration: none; }
+.auth-link-subtle:hover { color: white; text-decoration: underline; }
+
+/* 6. ЧЕКБОКС */
+.auth-checkbox-group { margin-bottom: 25px; }
+.auth-checkbox-label { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.auth-checkbox { display: none; } /* Скрываем стандартный */
+.auth-checkbox-custom {
+    width: 20px; height: 20px; border-radius: 6px;
+    background: rgba(2, 6, 23, 0.6); border: 1px solid rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center; transition: 0.2s;
+}
+.auth-checkbox:checked + .auth-checkbox-custom {
+    background: var(--primary); border-color: var(--primary);
+}
+.auth-checkbox-custom::after {
+    content: '\f00c'; font-family: 'Font Awesome 6 Free'; font-weight: 900;
+    color: white; font-size: 0.7rem; opacity: 0; transform: scale(0.5); transition: 0.2s;
+}
+.auth-checkbox:checked + .auth-checkbox-custom::after { opacity: 1; transform: scale(1); }
+.auth-checkbox-text { font-size: 0.9rem; color: var(--text-muted); }
+
+/* 7. КНОПКИ (BUTTONS) */
+.auth-btn-primary {
+    width: 100%; height: 50px;
+    background: linear-gradient(135deg, var(--primary), #7c3aed);
+    color: white; border: none; border-radius: 12px;
+    font-size: 1rem; font-weight: 600; cursor: pointer;
+    position: relative; overflow: hidden; transition: 0.3s;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+}
 .auth-btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+    box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.5);
 }
-
-.auth-btn-primary:active {
-    transform: translateY(0);
+/* Блик на кнопке */
+.btn-shine {
+    position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transform: skewX(-20deg); animation: shine 3s infinite; pointer-events: none;
 }
+@keyframes shine { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
 
-/* ============================================
-   DIVIDER
-   ============================================ */
-
+/* Разделитель "или через" */
 .auth-divider {
-    position: relative;
-    text-align: center;
-    margin: 32px 0;
+    position: relative; text-align: center; margin: 30px 0;
 }
-
 .auth-divider::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 50%;
-    width: 100%;
-    height: 1px;
-    background: var(--auth-border);
+    content: ''; position: absolute; left: 0; top: 50%; width: 100%; height: 1px; background: rgba(255,255,255,0.1);
 }
-
 .auth-divider-text {
-    position: relative;
-    display: inline-block;
-    padding: 0 16px;
-    background: var(--auth-surface);
-    color: var(--auth-text-muted);
-    font-size: 13px;
-    font-weight: 500;
+    background: #0f172a; /* Цвет фона карточки, чтобы перекрыть линию */
+    padding: 0 15px; color: var(--text-muted); font-size: 0.85rem; position: relative;
+    /* Важно: если фон прозрачный, этот хак не сработает идеально, лучше задать цвет */
+    background: rgb(22, 30, 46); border-radius: 10px;
 }
 
-/* ============================================
-   SOCIAL BUTTONS
-   ============================================ */
-
-.auth-social-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 32px;
-}
-
+/* Соцсети (Google, Apple) */
+.auth-social-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
 .auth-social-btn {
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid var(--auth-border);
-    border-radius: 12px;
-    color: var(--auth-text);
-    font-size: 15px;
-    font-weight: 500;
-    text-decoration: none;
-    transition: all 0.2s ease;
+    height: 46px; display: flex; align-items: center; justify-content: center; gap: 10px;
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px; color: white; text-decoration: none; font-size: 0.9rem; font-weight: 500;
+    transition: 0.2s;
 }
+.auth-social-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
 
-.auth-social-btn:hover {
-    background: rgba(15, 23, 42, 0.8);
-    border-color: rgba(255, 255, 255, 0.15);
-    transform: translateY(-2px);
+/* Футер внизу карты */
+.auth-footer-text { text-align: center; font-size: 0.9rem; color: var(--text-muted); margin-top: 20px; }
+.auth-link-primary { color: var(--primary); text-decoration: none; font-weight: 600; }
+.auth-link-primary:hover { text-decoration: underline; }
+
+/* 8. ССЫЛКИ ПОД КАРТОЧКОЙ (Privacy, Terms) */
+.auth-footer-links {
+    margin-top: 30px; text-align: center; color: var(--text-muted); font-size: 0.85rem;
 }
+.links-row { display: flex; justify-content: center; gap: 10px; margin-top: 5px; }
+.links-row a { color: var(--text-muted); text-decoration: none; transition: 0.2s; }
+.links-row a:hover { color: white; }
 
-.auth-social-btn i {
-    font-size: 18px;
-}
-
-/* ============================================
-   LINKS
-   ============================================ */
-
-.auth-link-subtle {
-    color: var(--auth-text-muted);
-    font-size: 14px;
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
-
-.auth-link-subtle:hover {
-    color: var(--auth-text);
-}
-
-.auth-link-primary {
-    color: var(--auth-primary);
-    text-decoration: none;
-    font-weight: 600;
-    transition: color 0.2s ease;
-}
-
-.auth-link-primary:hover {
-    color: var(--auth-primary-hover);
-}
-
-.auth-link-inline {
-    color: var(--auth-primary);
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
-
-.auth-link-inline:hover {
-    text-decoration: underline;
-}
-
-/* ============================================
-   FOOTER TEXT
-   ============================================ */
-
-.auth-footer-text {
-    text-align: center;
-    font-size: 14px;
-    color: var(--auth-text-muted);
-    margin-top: 32px;
-}
-
-/* ============================================
-   RESPONSIVE
-   ============================================ */
-
+/* АДАПТИВНОСТЬ */
 @media (max-width: 480px) {
-    .auth-glass-card {
-        padding: 32px 24px;
-    }
-
-    .auth-title {
-        font-size: 24px;
-    }
-
-    .auth-social-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-height: 700px) {
-    .auth-container {
-        padding: 20px;
-    }
-
-    .auth-glass-card {
-        padding: 32px;
-    }
-
-    .auth-logo-section {
-        margin-bottom: 24px;
-    }
+    .auth-glass-card { padding: 30px 20px; }
+    .auth-title { font-size: 1.5rem; }
+    .auth-social-grid { grid-template-columns: 1fr; }
 }

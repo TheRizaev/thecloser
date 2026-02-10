@@ -5,118 +5,151 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}The Closer{% endblock %}</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     
     {% block extra_css %}{% endblock %}
 </head>
 <body>
 
-    <nav id="mainNav">
-        <a href="{% url 'home' %}" class="logo"><i class="fa-solid fa-robot"></i>The Closer</a>
-        <div class="nav-desktop">
-            <div class="nav-links">
-                <a href="{% url 'home' %}" data-page="home">Главная</a>
-                <a href="{% url 'templates' %}" data-page="templates">Шаблоны</a>
-                <a href="{% url 'pricing' %}" data-page="pricing">Цены</a>
-                <a href="{% url 'docs' %}" data-page="docs">Docs</a>
+    <nav id="navbar" class="floating-nav">
+        <div class="nav-content">
+            
+            <a href="{% url 'home' %}" class="logo">
+                <div class="logo-orb">
+                    <i class="fa-solid fa-bolt"></i> <div class="orb-shine"></div>
+                </div>
+                <span class="logo-text">The Closer</span>
+            </a>
+
+            <div class="nav-center desktop-only">
+                <a href="{% url 'home' %}" class="nav-link">Главная</a>
+                <a href="{% url 'templates' %}" class="nav-link">Шаблоны</a>
+                <a href="{% url 'pricing' %}" class="nav-link">Цены</a>
+                {% comment %} <a href="{% url 'docs' %}" class="nav-link">Docs</a> {% endcomment %}
             </div>
-            <div class="auth-buttons">
+
+            <div class="nav-right desktop-only">
                 {% if user.is_authenticated %}
-                    <a href="{% url 'dashboard' %}" class="btn-primary" style="padding: 8px 20px; font-size: 0.9rem;">
+                    <a href="{% url 'dashboard' %}" class="btn-dashboard-green">
                         Кабинет
                     </a>
                 {% else %}
-                    <a href="{% url 'account_login' %}" class="btn-small btn-login">Войти</a>
-                    <a href="{% url 'account_signup' %}" class="btn-small btn-register">Регистрация</a>
+                    <a href="{% url 'account_login' %}" class="link-login">Войти</a>
+                    <a href="{% url 'account_signup' %}" class="btn-neon-small">Регистрация</a>
                 {% endif %}
             </div>
+
+            <button class="hamburger-btn" id="menuToggle">
+                <span></span><span></span>
+            </button>
         </div>
-        <button class="hamburger" id="menuToggle"><i class="fa-solid fa-bars"></i></button>
     </nav>
     
-    <div class="mobile-menu" id="mobileMenu">
-        <a href="{% url 'home' %}">Главная</a>
-        <a href="{% url 'templates' %}">Шаблоны</a>
-        <a href="{% url 'pricing' %}">Цены</a>
-        <a href="{% url 'docs' %}">Docs</a>
+    <div class="mobile-overlay" id="mobileMenu">
+        <div class="mobile-ambient">
+            <div class="m-orb m-orb-1"></div>
+            <div class="m-orb m-orb-2"></div>
+        </div>
         
-        <div class="mobile-auth">
-            {% if user.is_authenticated %}
-                <a href="{% url 'dashboard' %}" class="btn-primary" style="text-align: center;">
-                    <i class="fa-solid fa-gauge-high"></i> Кабинет
+        <div class="mobile-content-wrapper">
+            <div class="mobile-links">
+                <a href="{% url 'home' %}" class="m-link" style="--d: 0.1s">
+                    <span class="m-icon"><i class="fa-solid fa-house"></i></span>
+                    <span class="m-text">Главная</span>
+                    <i class="fa-solid fa-chevron-right m-arrow"></i>
                 </a>
-            {% else %}
-                <a href="{% url 'account_login' %}" class="btn-small btn-login" style="text-align: center;">Войти</a>
-                <a href="{% url 'account_signup' %}" class="btn-small btn-register" style="text-align: center;">Регистрация</a>
-            {% endif %}
+                
+                <a href="{% url 'templates' %}" class="m-link" style="--d: 0.2s">
+                    <span class="m-icon"><i class="fa-solid fa-layer-group"></i></span>
+                    <span class="m-text">Шаблоны</span>
+                    <i class="fa-solid fa-chevron-right m-arrow"></i>
+                </a>
+                
+                <a href="{% url 'pricing' %}" class="m-link" style="--d: 0.3s">
+                    <span class="m-icon"><i class="fa-solid fa-tags"></i></span>
+                    <span class="m-text">Цены</span>
+                    <i class="fa-solid fa-chevron-right m-arrow"></i>
+                </a>
+                
+                </div>
+
+            <div class="mobile-footer" style="--d: 0.5s">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}" class="btn-m-primary">
+                        <i class="fa-solid fa-gauge"></i> Кабинет
+                    </a>
+                {% else %}
+                    <a href="{% url 'account_login' %}" class="btn-m-glass">Войти</a>
+                    <a href="{% url 'account_signup' %}" class="btn-m-primary">
+                        Регистрация <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                {% endif %}
+                
+                <div class="mobile-copyright">
+                    © 2026 The Closer Inc.
+                </div>
+            </div>
         </div>
     </div>
 
-    {% block content %}
-    {% endblock %}
-
+    {% block content %}{% endblock %}
     {% block footer %}
-    <footer class="modern-footer">
-        <div class="footer-glow-top"></div>
+    <footer class="cyber-footer">
+        <div class="footer-grid-bg"></div> <div class="footer-glow"></div>
 
         <div class="footer-container">
-            <div class="footer-top">
-                <div class="footer-brand">
-                    <a href="{% url 'home' %}" class="footer-logo">
-                        <i class="fa-solid fa-robot"></i>The Closer
-                    </a>
-                    <p class="brand-desc">
-                        Превращаем диалоги в продажи. Умный конструктор чат-ботов с поддержкой RAG и интеграцией CRM.
-                    </p>
-                    <div class="social-links">
-                        <a href="#" class="social-btn"><i class="fa-brands fa-telegram"></i></a>
-                        <a href="#" class="social-btn"><i class="fa-brands fa-github"></i></a>
-                        <a href="#" class="social-btn"><i class="fa-brands fa-twitter"></i></a>
-                        <a href="#" class="social-btn"><i class="fa-brands fa-youtube"></i></a>
+            <div class="footer-main">
+                <div class="footer-col brand-col">
+                    <a href="#" class="footer-logo">The Closer</a>
+                    <p>AI-движок для автоматизации продаж в Telegram и Instagram. RAG, CRM, Analytics.</p>
+                    <div class="social-row">
+                        <a href="#" class="social-card tg">
+                            <div class="icon-circle"><i class="fa-brands fa-telegram"></i></div>
+                            <div class="card-fill"></div>
+                        </a>
+                        
+                        <a href="#" class="social-card gh">
+                            <div class="icon-circle"><i class="fa-brands fa-github"></i></div>
+                            <div class="card-fill"></div>
+                        </a>
+                        
+                        <a href="#" class="social-card yt">
+                            <div class="icon-circle"><i class="fa-brands fa-youtube"></i></div>
+                            <div class="card-fill"></div>
+                        </a>
                     </div>
                 </div>
 
-                <div class="footer-nav">
+                <div class="footer-col">
                     <h4>Продукт</h4>
-                    <ul>
-                        <li><a href="{% url 'templates' %}">Возможности</a></li>
-                        <li><a href="{% url 'pricing' %}">Тарифы</a></li>
-                        <li><a href="{% url 'templates' %}">Шаблоны</a></li>
-                        <li><a href="{% url 'docs' %}">API</a></li>
-                    </ul>
+                    <a href="{% url 'pricing' %}">Тарифы</a>
+                    <a href="{% url 'templates' %}">Шаблоны</a>
+                    <a href="#">Интеграции</a>
+                    <a href="#">Roadmap</a>
                 </div>
 
-                <div class="footer-nav">
+                <div class="footer-col">
                     <h4>Ресурсы</h4>
-                    <ul>
-                        <li><a href="{% url 'docs' %}">Документация</a></li>
-                        <li><a href="#">Блог</a></li>
-                        <li><a href="#">Сообщество</a></li>
-                        <li><a href="#">Help Center</a></li>
-                    </ul>
+                    <a href="{% url 'docs' %}">Документация</a>
+                    <a href="#">API Reference</a>
+                    <a href="#">Community</a>
+                    <a href="#">Блог</a>
                 </div>
 
-                <div class="footer-nav">
-                    <h4>Компания</h4>
-                    <ul>
-                        <li><a href="#">О нас</a></li>
-                        <li><a href="#">Контакты</a></li>
-                        <li><a href="#">Privacy Policy</a></li>
-                        <li><a href="#">Terms of Service</a></li>
-                    </ul>
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                    <a href="#">Privacy</a>
+                    <a href="#">Terms</a>
+                    <a href="#">Cookie Policy</a>
                 </div>
             </div>
 
-            <div class="footer-bottom">
-                <div class="copyright">
-                    &copy; 2026 The Closer Inc. Made in Tashkent.
-                </div>
-                <div class="system-status">
-                    <span class="status-dot"></span>
-                    Systems Normal
+            <div class="footer-bar">
+                <div class="copyright">© 2026 The Closer Inc. Tashkent.</div>
+                <div class="status-indicator">
+                    <span class="dot"></span> All systems operational
                 </div>
             </div>
         </div>
@@ -124,7 +157,6 @@
     {% endblock %}
 
     <script src="{% static 'js/main.js' %}"></script>
-    
     {% block extra_js %}{% endblock %}
 </body>
 </html>

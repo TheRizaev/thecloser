@@ -1,7 +1,7 @@
 /* === pricing.js === */
 document.addEventListener('DOMContentLoaded', () => {
 
-    // 1. BILLING TOGGLE LOGIC
+    // 1. BILLING TOGGLE (Свитчер с анимацией)
     const btnMonth = document.getElementById('btn-month');
     const btnYear = document.getElementById('btn-year');
     const toggleBg = document.getElementById('toggleBg');
@@ -9,46 +9,62 @@ document.addEventListener('DOMContentLoaded', () => {
     const priceEnt = document.getElementById('price-ent');
 
     if (btnMonth && btnYear) {
-        // Функция переключения
+        
+        // Функция для плавной анимации чисел
+        function animateValue(obj, start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                obj.innerHTML = Math.floor(progress * (end - start) + start);
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
         function setBilling(period) {
             if (period === 'year') {
-                toggleBg.style.left = '50%';
+                // Включаем ГОД
+                toggleBg.style.left = '50%'; // двигаем фон вправо (на 50% ширины)
+                toggleBg.style.width = 'calc(50% - 5px)'; // корректируем ширину
+                
                 btnMonth.classList.remove('active');
                 btnYear.classList.add('active');
                 
-                // Анимация смены цены (скидка 20%)
-                pricePro.innerText = '24';
-                priceEnt.innerText = '79';
+                // Анимируем цены вниз (со скидкой)
+                animateValue(pricePro, 29, 24, 300);
+                animateValue(priceEnt, 99, 79, 300);
             } else {
-                toggleBg.style.left = '5px';
+                // Включаем МЕСЯЦ
+                toggleBg.style.left = '5px'; // двигаем фон влево
+                
                 btnMonth.classList.add('active');
                 btnYear.classList.remove('active');
                 
-                pricePro.innerText = '29';
-                priceEnt.innerText = '99';
+                // Анимируем цены вверх
+                animateValue(pricePro, 24, 29, 300);
+                animateValue(priceEnt, 79, 99, 300);
             }
         }
 
-        // Слушатели событий на клик
         btnMonth.addEventListener('click', () => setBilling('month'));
         btnYear.addEventListener('click', () => setBilling('year'));
     }
 
-    // 2. FAQ ACCORDION LOGIC
-    const faqQuestions = document.querySelectorAll('.faq-question');
+    // 2. FAQ ACCORDION
+    const faqItems = document.querySelectorAll('.faq-item');
     
-    faqQuestions.forEach(item => {
-        item.addEventListener('click', () => {
-            const parent = item.parentElement;
-            
-            // Если хотим закрывать другие при открытии одного, раскомментируй код ниже:
-            /*
-            document.querySelectorAll('.faq-item').forEach(other => {
-                if (other !== parent) other.classList.remove('active');
+    faqItems.forEach(item => {
+        const head = item.querySelector('.faq-head');
+        head.addEventListener('click', () => {
+            // Закрываем другие (аккордеон) - опционально
+            faqItems.forEach(other => {
+                if (other !== item) other.classList.remove('active');
             });
-            */
 
-            parent.classList.toggle('active');
+            item.classList.toggle('active');
         });
     });
 

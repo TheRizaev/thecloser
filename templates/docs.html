@@ -8,39 +8,138 @@
 {% endblock %}
 
 {% block content %}
-    <div class="docs-container">
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-group">
-                <div class="sidebar-title">Начало работы</div>
-                <a href="#" class="sidebar-link active"><i class="fa-solid fa-rocket"></i> Быстрый старт</a>
-                <a href="#" class="sidebar-link"><i class="fa-solid fa-key"></i> Получение API ключа</a>
-            </div>
-            <div class="sidebar-group">
-                <div class="sidebar-title">Каналы</div>
-                <a href="#" class="sidebar-link"><i class="fa-brands fa-telegram"></i> Telegram</a>
-                <a href="#" class="sidebar-link"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
+    <div class="docs-ambient">
+        <div class="doc-orb orb-1"></div>
+        <div class="doc-orb orb-2"></div>
+        <div class="doc-grid"></div>
+    </div>
+
+    <div class="docs-layout">
+        <aside class="docs-sidebar" id="sidebar">
+            <div class="sidebar-inner">
+                <div class="sidebar-group">
+                    <h4 class="group-title">Начало работы</h4>
+                    <a href="#" class="doc-link active">
+                        <i class="fa-solid fa-rocket"></i> Быстрый старт
+                    </a>
+                    <a href="#" class="doc-link">
+                        <i class="fa-solid fa-key"></i> API Ключи
+                    </a>
+                    <a href="#" class="doc-link">
+                        <i class="fa-solid fa-layer-group"></i> Архитектура
+                    </a>
+                </div>
+
+                <div class="sidebar-group">
+                    <h4 class="group-title">Каналы</h4>
+                    <a href="#" class="doc-link">
+                        <i class="fa-brands fa-telegram"></i> Telegram Bot
+                    </a>
+                    <a href="#" class="doc-link">
+                        <i class="fa-brands fa-whatsapp"></i> WhatsApp Business
+                    </a>
+                    <a href="#" class="doc-link">
+                        <i class="fa-brands fa-instagram"></i> Instagram Direct
+                    </a>
+                </div>
+
+                <div class="sidebar-group">
+                    <h4 class="group-title">База Знаний (RAG)</h4>
+                    <a href="#" class="doc-link">
+                        <i class="fa-solid fa-file-pdf"></i> Загрузка файлов
+                    </a>
+                    <a href="#" class="doc-link">
+                        <i class="fa-solid fa-sliders"></i> Настройка промптов
+                    </a>
+                </div>
             </div>
         </aside>
 
-        <main class="content">
-            <button class="menu-toggle" onclick="toggleSidebar()" style="margin-bottom: 20px; display: none;">
-                <i class="fa-solid fa-bars"></i> Меню
+        <main class="docs-content">
+            <button class="mobile-menu-btn" onclick="toggleSidebar()">
+                <i class="fa-solid fa-bars-staggered"></i> Оглавление
             </button>
 
-            <div class="breadcrumb">Docs <i class="fa-solid fa-chevron-right"></i> Начало работы <i class="fa-solid fa-chevron-right"></i> Быстрый старт</div>
-
-            <h1>Быстрый старт с The Closer</h1>
-            <p>Руководство по запуску бота.</p>
-
-            <div class="callout">
-                <span class="callout-title"><i class="fa-solid fa-info-circle"></i> Перед началом</span>
-                Убедитесь, что у вас есть токен от @BotFather.
+            <div class="breadcrumb">
+                <span>Docs</span>
+                <i class="fa-solid fa-chevron-right"></i>
+                <span>Начало работы</span>
+                <i class="fa-solid fa-chevron-right"></i>
+                <span class="current">Быстрый старт</span>
             </div>
 
-            <h2 id="step1">Шаг 1: Установка</h2>
-            <div class="code-block">
-                <div class="code-header"><span>Terminal</span><button class="copy-btn" onclick="copyCode(this)"><i class="fa-regular fa-copy"></i> Copy</button></div>
-                <pre><code>pip install thecloser-bot</code></pre>
+            <article>
+                <h1>Быстрый старт</h1>
+                <p class="lead">Разверните своего первого AI-агента за 5 минут. Это руководство проведет вас через установку и первичную настройку.</p>
+
+                <hr class="divider">
+
+                <div class="callout info">
+                    <div class="callout-icon"><i class="fa-solid fa-circle-info"></i></div>
+                    <div class="callout-text">
+                        <strong>Перед началом:</strong> Убедитесь, что у вас есть токен от <code>@BotFather</code> в Telegram. Если нет, создайте его <a href="#">здесь</a>.
+                    </div>
+                </div>
+
+                <h2 id="install">1. Установка библиотеки</h2>
+                <p>Мы подготовили официальный Python-пакет для быстрой интеграции. Установите его через pip:</p>
+                
+                <div class="code-window">
+                    <div class="window-bar">
+                        <div class="win-dots"><span></span><span></span><span></span></div>
+                        <div class="win-title">Terminal</div>
+                        <button class="copy-btn" onclick="copyCode(this)">
+                            <i class="fa-regular fa-copy"></i>
+                        </button>
+                    </div>
+                    <pre><code>pip install thecloser-sdk</code></pre>
+                </div>
+
+                <h2 id="config">2. Инициализация</h2>
+                <p>Создайте файл <code>main.py</code> и добавьте следующий код для запуска базового эхо-бота с подключенным AI.</p>
+
+                <div class="code-window">
+                    <div class="window-bar">
+                        <div class="win-dots"><span></span><span></span><span></span></div>
+                        <div class="win-title">main.py</div>
+                        <button class="copy-btn" onclick="copyCode(this)">
+                            <i class="fa-regular fa-copy"></i>
+                        </button>
+                    </div>
+                    <pre><code class="language-python">from thecloser import Bot, AI
+
+# Инициализация
+bot = Bot(token="YOUR_TELEGRAM_TOKEN")
+ai = AI(api_key="YOUR_CLOSER_API_KEY")
+
+@bot.on_message
+def handle_message(msg):
+    # AI генерирует ответ на основе базы знаний
+    response = ai.generate_answer(msg.text)
+    bot.send(msg.chat_id, response)
+
+bot.run()</code></pre>
+                </div>
+
+                <div class="callout warning">
+                    <div class="callout-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <div class="callout-text">
+                        <strong>Важно:</strong> Не храните API ключи в открытом коде. Используйте переменные окружения <code>.env</code>.
+                    </div>
+                </div>
+
+                <h2 id="next">Что дальше?</h2>
+                <p>Теперь, когда бот запущен, попробуйте <a href="#">загрузить базу знаний</a> в формате PDF, чтобы он начал отвечать на вопросы о вашей компании.</p>
+
+            </article>
+
+            <div class="docs-footer">
+                <div class="was-helpful">
+                    <span>Было полезно?</span>
+                    <button class="vote-btn"><i class="fa-regular fa-thumbs-up"></i></button>
+                    <button class="vote-btn"><i class="fa-regular fa-thumbs-down"></i></button>
+                </div>
+                <div class="last-updated">Обновлено: 2 часа назад</div>
             </div>
         </main>
     </div>
@@ -48,9 +147,4 @@
 
 {% block extra_js %}
     <script src="{% static 'js/docs.js' %}"></script>
-    <script>
-        if (window.innerWidth <= 900) {
-            document.querySelector('.menu-toggle').style.display = 'block';
-        }
-    </script>
 {% endblock %}

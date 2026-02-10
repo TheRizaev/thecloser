@@ -2,13 +2,13 @@
 {% load static %}
 {% load socialaccount %}
 
-{% block head_title %}Вход в систему — The Closer{% endblock %}
+{% block head_title %}Вход — The Closer{% endblock %}
 
-{% block content %}
+{% block auth_content %}
 <div class="auth-form-wrapper">
     <div class="auth-header">
         <h1 class="auth-title">С возвращением</h1>
-        <p class="auth-subtitle">Войдите, чтобы продолжить работу</p>
+        <p class="auth-subtitle">Войдите, чтобы управлять ботами</p>
     </div>
 
     {% if form.errors %}
@@ -22,14 +22,14 @@
         {% csrf_token %}
         
         <div class="auth-input-group">
-            <label class="auth-label">Email адрес</label>
+            <label class="auth-label">Email</label>
             <div class="auth-input-wrapper">
                 <i class="fa-regular fa-envelope auth-input-icon"></i>
                 <input 
                     type="email" 
                     name="login" 
                     class="auth-input" 
-                    placeholder="you@company.com"
+                    placeholder="name@company.com"
                     value="{{ form.login.value|default:'' }}" 
                     required
                     autocomplete="email"
@@ -40,9 +40,7 @@
         <div class="auth-input-group">
             <div class="auth-label-row">
                 <label class="auth-label">Пароль</label>
-                <a href="{% url 'account_reset_password' %}" class="auth-link-subtle">
-                    Забыли пароль?
-                </a>
+                <a href="{% url 'account_reset_password' %}" class="auth-link-subtle">Забыли?</a>
             </div>
             <div class="auth-input-wrapper">
                 <i class="fa-solid fa-lock auth-input-icon"></i>
@@ -61,36 +59,31 @@
             <label class="auth-checkbox-label">
                 <input type="checkbox" name="remember" class="auth-checkbox">
                 <span class="auth-checkbox-custom"></span>
-                <span class="auth-checkbox-text">Запомнить меня на 30 дней</span>
+                <span class="auth-checkbox-text">Запомнить меня</span>
             </label>
         </div>
 
         <button type="submit" class="auth-btn auth-btn-primary">
-            <span>Войти в систему</span>
-            <i class="fa-solid fa-arrow-right"></i>
-        </button>
+            <span>Войти</span>
+            <div class="btn-shine"></div> </button>
     </form>
 
     <div class="auth-divider">
-        <span class="auth-divider-text">или продолжить с</span>
+        <span class="auth-divider-text">или через</span>
     </div>
 
     <div class="auth-social-grid">
         <a href="{% provider_login_url 'google' %}" class="auth-social-btn">
-            <i class="fa-brands fa-google"></i>
-            <span>Google</span>
+            <i class="fa-brands fa-google"></i> Google
         </a>
         <a href="{% provider_login_url 'apple' %}" class="auth-social-btn">
-            <i class="fa-brands fa-apple"></i>
-            <span>Apple</span>
+            <i class="fa-brands fa-apple"></i> Apple
         </a>
     </div>
 
     <div class="auth-footer-text">
         Нет аккаунта? 
-        <a href="{% url 'account_signup' %}" class="auth-link-primary">
-            Создать бесплатно
-        </a>
+        <a href="{% url 'account_signup' %}" class="auth-link-primary">Регистрация</a>
     </div>
 </div>
 {% endblock %}

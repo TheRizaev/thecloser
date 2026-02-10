@@ -1,81 +1,95 @@
 /* === index.js - Скрипты Главной Страницы === */
 
 document.addEventListener('DOMContentLoaded', () => {
-    
-    // 1. 3D TILT EFFECT (Только на десктопе)
-    const card = document.getElementById('tiltCard');
-    const container = document.getElementById('tiltContainer');
 
-    if (window.matchMedia("(min-width: 1025px)").matches && container && card) {
-        container.addEventListener('mousemove', (e) => {
-            const rect = container.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            
-            // Наклон карты
-            const xRotation = -((y - rect.height / 2) / 25);
-            const yRotation = (x - rect.width / 2) / 25;
-            card.style.transform = `perspective(1000px) rotateX(${xRotation}deg) rotateY(${yRotation}deg)`;
-        });
-
-        container.addEventListener('mouseleave', () => {
-            card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0)';
-        });
-    }
-
-    // 2. CHAT SIMULATION (Бесконечный диалог)
+    // 3. CHAT SIMULATION (С АВТОСКРОЛЛОМ)
     const chatArea = document.getElementById('chatArea');
-    const typingIndicator = document.getElementById('typingIndicator');
     
-    if (chatArea && typingIndicator) {
-        const scenarios = [
-            { user: "Сколько стоит внедрение?", bot: "У нас есть бесплатный тариф! PRO версия от $19/мес." },
-            { user: "Можно загрузить PDF?", bot: "Да, перетащите файл в базу знаний. Я изучу его за 10 секунд." },
-            { user: "А интеграция с CRM?", bot: "Конечно! Передаем заявки в AmoCRM и Bitrix24." }
+    // Создаем индикатор печати программно, если его нет в HTML внутри chatArea
+    // (или используем существующий, если вы его верстали отдельно)
+    let typingIndicator = document.getElementById('typingIndicator');
+    
+    if (chatArea) {
+        const conversation = [
+            { type: 'user', text: "Как это увеличит мои продажи?" },
+            { type: 'ai', text: "Я отвечаю клиентам мгновенно, 24/7. Пока конкуренты спят, я закрываю сделку." },
+            { type: 'user', text: "А это сложно настроить?" },
+            { type: 'ai', text: "Нет. Вы просто загружаете PDF с прайсом, и я готов к работе через 5 минут." },
+            { type: 'user', text: "Сколько стоит?" },
+            { type: 'ai', text: "От $49/мес. Обычно окупается с первого же удержанного клиента." }
         ];
 
-        let currentScenarioIndex = 0;
+        const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-        async function typeText(element, text, speed = 30) {
-            element.innerHTML = "";
-            for (let i = 0; i < text.length; i++) {
-                element.innerHTML += text.charAt(i);
-                await new Promise(r => setTimeout(r, speed));
+        // Функция скролла в самый низ
+        const scrollToBottom = () => {
+            if (chatArea) {
+                chatArea.scrollTo({
+                    top: chatArea.scrollHeight,
+                    behavior: 'smooth'
+                });
             }
-        }
+        };
 
-        async function runChatSimulation() {
-            while (true) {
-                const scenario = scenarios[currentScenarioIndex];
-                
-                // Очистка
+        async function runChat() {
+            while(true) {
                 chatArea.innerHTML = '';
-                await new Promise(r => setTimeout(r, 500));
+                await wait(1000);
 
-                // User
-                const userMsg = document.createElement('div');
-                userMsg.className = 'message user';
-                userMsg.innerText = scenario.user;
-                chatArea.appendChild(userMsg);
-                await new Promise(r => setTimeout(r, 800));
+                for (const msg of conversation) {
+                    // 1. Сообщение пользователя
+                    if (msg.type === 'user') {
+                        await wait(1000); // Пауза перед вопросом
+                        appendMessage(msg);
+                    } 
+                    // 2. Ответ AI
+                    else {
+                        // Показываем индикатор печати
+                        showTyping();
+                        
+                        // Имитируем время на "подумать" (зависит от длины текста)
+                        await wait(1000 + msg.text.length * 30);
+                        
+                        // Удаляем индикатор и показываем сообщение
+                        hideTyping();
+                        appendMessage(msg);
+                    }
+                }
 
-                // Typing
-                typingIndicator.style.display = 'flex';
-                await new Promise(r => setTimeout(r, 1500));
-                typingIndicator.style.display = 'none';
-
-                // Bot
-                const botMsg = document.createElement('div');
-                botMsg.className = 'message bot';
-                chatArea.appendChild(botMsg);
-                await typeText(botMsg, scenario.bot);
-
-                await new Promise(r => setTimeout(r, 4000));
-                currentScenarioIndex = (currentScenarioIndex + 1) % scenarios.length;
+                // Пауза перед перезапуском
+                await wait(5000);
             }
         }
 
-        runChatSimulation();
+        function appendMessage(msg) {
+            const el = document.createElement('div');
+            el.className = `msg-bubble ${msg.type === 'user' ? 'msg-user' : 'msg-ai'}`;
+            el.innerText = msg.text;
+            chatArea.appendChild(el);
+            scrollToBottom(); // <-- ВАЖНО: Скроллим сразу после добавления
+        }
+
+        function showTyping() {
+            // Если индикатор уже есть в HTML (внизу чата), просто показываем его
+            // Если мы его создаем динамически:
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'temp-typing';
+            typingDiv.className = 'typing-bar'; // Используем ваши стили
+            typingDiv.innerHTML = `
+                <div class="ai-icon"><i class="fa-solid fa-robot"></i></div>
+                <div class="dots"><span></span><span></span><span></span></div>
+            `;
+            chatArea.appendChild(typingDiv);
+            scrollToBottom(); // <-- ВАЖНО: Скроллим, чтобы показать индикатор
+        }
+
+        function hideTyping() {
+            const tempTyping = document.getElementById('temp-typing');
+            if (tempTyping) tempTyping.remove();
+        }
+
+        // Запуск
+        runChat();
     }
 
     // 3. PROCESS TABS LOGIC
@@ -98,21 +112,52 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // 4. BENTO SPOTLIGHT EFFECT
-    const bentoCards = document.querySelectorAll('.bento-card');
-    bentoCards.forEach(card => {
-        card.addEventListener('mousemove', (e) => {
-            const rect = card.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            card.style.background = `radial-gradient(circle at ${x}px ${y}px, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02))`;
-            card.style.borderColor = "rgba(255,255,255,0.2)";
-        });
+    // === AUTO ROTATE PROCESS TABS ===
+    let currentStep = 0;
+    const totalSteps = 3;
+    let autoPlayInterval;
 
-        card.addEventListener('mouseleave', () => {
-            card.style.background = "rgba(255, 255, 255, 0.02)";
-            card.style.borderColor = "rgba(255, 255, 255, 0.08)";
-        });
-    });
+    // Функция переключения
+    window.switchTab = function(index) {
+        const buttons = document.querySelectorAll('.tab-btn');
+        const contents = document.querySelectorAll('.tab-content');
+        
+        // Убираем активный класс у всех
+        buttons.forEach(btn => btn.classList.remove('active'));
+        contents.forEach(content => content.classList.remove('active'));
+
+        // Добавляем активный класс нужному
+        if(buttons[index] && contents[index]) {
+            buttons[index].classList.add('active');
+            contents[index].classList.add('active');
+            
+            // Перезапуск анимации (трюк с клонированием)
+            const activeContent = contents[index];
+            const clone = activeContent.cloneNode(true);
+            activeContent.parentNode.replaceChild(clone, activeContent);
+        }
+        currentStep = index; // Синхронизируем счетчик
+    };
+
+    // Функция для ручного клика (сбрасывает таймер)
+    window.manualSwitch = function(index) {
+        switchTab(index);
+        resetAutoPlay();
+    }
+
+    function startAutoPlay() {
+        autoPlayInterval = setInterval(() => {
+            let nextStep = (currentStep + 1) % totalSteps;
+            switchTab(nextStep);
+        }, 3000); // 3 секунды
+    }
+
+    function resetAutoPlay() {
+        clearInterval(autoPlayInterval);
+        startAutoPlay(); // Запускаем заново
+    }
+
+    // Запуск при загрузке
+    startAutoPlay();
 
 });

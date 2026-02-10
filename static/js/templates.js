@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. FILTER BY CATEGORY
     filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            // Style active button
+            // Active styling
             filterBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
@@ -32,26 +32,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
         cards.forEach(card => {
             const cardCategory = card.getAttribute('data-category');
-            const title = card.querySelector('.card-title').innerText.toLowerCase();
-            const desc = card.querySelector('.card-desc').innerText.toLowerCase();
-
-            // Check Category
-            const categoryMatch = (category === 'all') || (cardCategory === category);
             
-            // Check Search Text
-            const textMatch = title.includes(searchText) || desc.includes(searchText);
+            // Получаем текст из заголовка и тегов для поиска
+            const title = card.querySelector('h3').innerText.toLowerCase();
+            const tags = Array.from(card.querySelectorAll('.tags span')).map(t => t.innerText.toLowerCase()).join(' ');
+            
+            // Логика фильтрации
+            const categoryMatch = (category === 'all') || (cardCategory === category);
+            const textMatch = title.includes(searchText) || tags.includes(searchText);
 
             if (categoryMatch && textMatch) {
                 card.style.display = 'flex';
+                // Анимация появления
+                card.style.animation = 'fadeIn 0.4s ease forwards';
                 visibleCount++;
             } else {
                 card.style.display = 'none';
             }
         });
 
-        // Show/Hide "No Results"
+        // Toggle "No Results"
         if (visibleCount === 0) {
             noResults.style.display = 'block';
+            noResults.style.animation = 'fadeIn 0.4s ease forwards';
         } else {
             noResults.style.display = 'none';
         }

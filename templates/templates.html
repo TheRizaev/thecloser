@@ -8,41 +8,206 @@
 {% endblock %}
 
 {% block content %}
+    <div class="templates-ambient">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="grid-overlay"></div>
+    </div>
+
     <header class="templates-header">
-        <h1>Библиотека Шаблонов</h1>
-        <p class="subtitle">Выберите готовое решение и запустите бота за 2 минуты.</p>
-        
-        <div class="search-container">
-            <i class="fa-solid fa-magnifying-glass search-icon"></i>
-            <input type="text" class="search-input" id="searchInput" placeholder="Найти шаблон...">
+        <div class="header-content">
+            <div class="badge-pill">Marketplace</div>
+            <h1>Библиотека <span class="gradient-text">Шаблонов</span></h1>
+            <p class="subtitle">Не начинайте с нуля. Выберите готового бота и запустите его за 2 минуты.</p>
+            
+            <div class="search-wrapper">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" class="search-input" id="searchInput" placeholder="Поиск шаблона (например: Салон, HR, Крипта)...">
+                <div class="search-glow"></div>
+            </div>
         </div>
     </header>
 
-    <div class="filters-bar" id="filters">
-        <button class="filter-btn active" data-filter="all">Все</button>
-        <button class="filter-btn" data-filter="sales">Продажи</button>
-        <button class="filter-btn" data-filter="support">Поддержка</button>
-        <button class="filter-btn" data-filter="services">Услуги</button>
-        <button class="filter-btn" data-filter="hr">HR</button>
+    <div class="filters-container">
+        <div class="filters-bar" id="filters">
+            <button class="filter-btn active" data-filter="all">Все</button>
+            <button class="filter-btn" data-filter="sales">Продажи</button>
+            <button class="filter-btn" data-filter="support">Поддержка</button>
+            <button class="filter-btn" data-filter="services">Услуги</button>
+            <button class="filter-btn" data-filter="hr">HR & Team</button>
+        </div>
     </div>
 
     <div class="templates-grid" id="grid">
-        <div class="template-card" data-category="services">
-            <div class="card-preview">
-                <div class="level-badge level-easy">Easy</div>
-                <div class="card-icon-wrapper"><i class="fa-solid fa-scissors"></i></div>
+        
+        <div class="template-card" data-category="sales">
+            <div class="card-bg-glow"></div>
+            <div class="card-top">
+                <div class="icon-box icon-blue"><i class="fa-solid fa-city"></i></div>
+                <div class="level-badge level-pro">PRO</div>
             </div>
-            <div class="card-content">
-                <div class="card-tags"><span class="tag">Услуги</span><span class="tag">Запись</span></div>
-                <h3 class="card-title">Салон красоты</h3>
-                <p class="card-desc">Автоматическая запись клиентов и сбор отзывов.</p>
-                <div class="card-actions">
-                    <a href="{% url 'account_login' %}" class="btn-use">Выбрать</a>
-                    <button class="btn-preview"><i class="fa-solid fa-eye"></i></button>
+            <div class="card-body">
+                <h3>Недвижимость</h3>
+                <p>Квалификация покупателя, подбор квартир по параметрам, запись на просмотр.</p>
+                <div class="tags">
+                    <span>Риелторы</span>
+                    <span>Застройщики</span>
                 </div>
             </div>
+            <div class="card-footer">
+                <a href="{% url 'account_login' %}" class="btn-use">Использовать</a>
+                <button class="btn-preview"><i class="fa-regular fa-eye"></i></button>
+            </div>
         </div>
-        <div class="no-results"><h3>Ничего не найдено 😔</h3></div>
+
+        <div class="template-card" data-category="services">
+            <div class="card-bg-glow"></div>
+            <div class="card-top">
+                <div class="icon-box icon-pink"><i class="fa-solid fa-scissors"></i></div>
+                <div class="level-badge level-easy">Easy</div>
+            </div>
+            <div class="card-body">
+                <h3>Салон Красоты</h3>
+                <p>Автоматическая запись, напоминания о визите, сбор отзывов после процедуры.</p>
+                <div class="tags">
+                    <span>Beauty</span>
+                    <span>Spa</span>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'account_login' %}" class="btn-use">Использовать</a>
+                <button class="btn-preview"><i class="fa-regular fa-eye"></i></button>
+            </div>
+        </div>
+
+        <div class="template-card" data-category="support">
+            <div class="card-bg-glow"></div>
+            <div class="card-top">
+                <div class="icon-box icon-purple"><i class="fa-solid fa-headset"></i></div>
+                <div class="level-badge level-pro">PRO</div>
+            </div>
+            <div class="card-body">
+                <h3>IT Support / SaaS</h3>
+                <p>База знаний (RAG) по документации. Ответы на технические вопросы 24/7.</p>
+                <div class="tags">
+                    <span>Helpdesk</span>
+                    <span>Startups</span>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'account_login' %}" class="btn-use">Использовать</a>
+                <button class="btn-preview"><i class="fa-regular fa-eye"></i></button>
+            </div>
+        </div>
+
+        <div class="template-card" data-category="hr">
+            <div class="card-bg-glow"></div>
+            <div class="card-top">
+                <div class="icon-box icon-green"><i class="fa-solid fa-user-tie"></i></div>
+                <div class="level-badge level-easy">Easy</div>
+            </div>
+            <div class="card-body">
+                <h3>HR Рекрутер</h3>
+                <p>Первичное интервью, сбор резюме, ответы на вопросы о вакансии и компании.</p>
+                <div class="tags">
+                    <span>Найм</span>
+                    <span>Собеседование</span>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'account_login' %}" class="btn-use">Использовать</a>
+                <button class="btn-preview"><i class="fa-regular fa-eye"></i></button>
+            </div>
+        </div>
+
+        <div class="template-card" data-category="sales">
+            <div class="card-bg-glow"></div>
+            <div class="card-top">
+                <div class="icon-box icon-red"><i class="fa-solid fa-car"></i></div>
+                <div class="level-badge level-pro">PRO</div>
+            </div>
+            <div class="card-body">
+                <h3>Автосалон</h3>
+                <p>Запись на тест-драйв, калькулятор кредита, каталог авто в наличии.</p>
+                <div class="tags">
+                    <span>Авто</span>
+                    <span>Лизинг</span>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'account_login' %}" class="btn-use">Использовать</a>
+                <button class="btn-preview"><i class="fa-regular fa-eye"></i></button>
+            </div>
+        </div>
+
+        <div class="template-card" data-category="services">
+            <div class="card-bg-glow"></div>
+            <div class="card-top">
+                <div class="icon-box icon-orange"><i class="fa-solid fa-dumbbell"></i></div>
+                <div class="level-badge level-easy">Easy</div>
+            </div>
+            <div class="card-body">
+                <h3>Фитнес Тренер</h3>
+                <p>Продажа программ тренировок, запись на занятия, консультации по питанию.</p>
+                <div class="tags">
+                    <span>Спорт</span>
+                    <span>Здоровье</span>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'account_login' %}" class="btn-use">Использовать</a>
+                <button class="btn-preview"><i class="fa-regular fa-eye"></i></button>
+            </div>
+        </div>
+
+        <div class="template-card" data-category="sales">
+            <div class="card-bg-glow"></div>
+            <div class="card-top">
+                <div class="icon-box icon-gold"><i class="fa-brands fa-bitcoin"></i></div>
+                <div class="level-badge level-pro">PRO</div>
+            </div>
+            <div class="card-body">
+                <h3>Crypto & Invest</h3>
+                <p>Консультации по инвестициям, доступ в закрытый клуб, оплата подписки.</p>
+                <div class="tags">
+                    <span>Финансы</span>
+                    <span>Крипта</span>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'account_login' %}" class="btn-use">Использовать</a>
+                <button class="btn-preview"><i class="fa-regular fa-eye"></i></button>
+            </div>
+        </div>
+
+        <div class="template-card" data-category="sales">
+            <div class="card-bg-glow"></div>
+            <div class="card-top">
+                <div class="icon-box icon-cyan"><i class="fa-solid fa-basket-shopping"></i></div>
+                <div class="level-badge level-easy">Easy</div>
+            </div>
+            <div class="card-body">
+                <h3>Интернет-магазин</h3>
+                <p>Оформление заказа внутри чата, статус доставки, работа с возвратами.</p>
+                <div class="tags">
+                    <span>Retail</span>
+                    <span>Магазин</span>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'account_login' %}" class="btn-use">Использовать</a>
+                <button class="btn-preview"><i class="fa-regular fa-eye"></i></button>
+            </div>
+        </div>
+
+        <div class="no-results">
+            <div class="no-results-content">
+                <i class="fa-solid fa-robot"></i>
+                <h3>Ничего не найдено</h3>
+                <p>Попробуйте изменить запрос или категорию</p>
+            </div>
+        </div>
+
     </div>
 {% endblock %}
 

@@ -209,10 +209,9 @@ async def get_chatgpt_response(message_text, system_prompt, bot_id=None, use_rag
         response = await loop.run_in_executor(
             None,
             lambda: ai_client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-5.2",
                 messages=messages_payload,
                 temperature=0.7,
-                max_tokens=1000
             )
         )
         

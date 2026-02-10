@@ -8,74 +8,202 @@
 {% endblock %}
 
 {% block content %}
-    <section class="pricing-header">
-        <div class="bg-glow"></div>
-        <h1>Простые и честные тарифы</h1>
-        <p class="subtitle">Начните бесплатно. Переходите на PRO, когда вырастут продажи.</p>
+    <div class="pricing-ambient">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="grid-overlay"></div>
+    </div>
 
-        <div class="pricing-toggle">
-            <div class="toggle-bg" id="toggleBg"></div>
-            <div class="toggle-option active" id="btn-month">Ежемесячно</div>
-            <div class="toggle-option" id="btn-year">Ежегодно</div>
-            <div class="discount-badge">-20%</div>
+    <section class="pricing-header">
+        <div class="header-content">
+            <div class="badge-pill">Pricing 2.0</div>
+            <h1>Инвестируйте в <span class="gradient-text">Рост</span></h1>
+            <p class="subtitle">Начните бесплатно. Платите только когда AI начнет приносить прибыль.</p>
+
+            <div class="pricing-toggle-wrapper">
+                <div class="pricing-toggle">
+                    <div class="toggle-bg" id="toggleBg"></div>
+                    <div class="toggle-option active" id="btn-month">Ежемесячно</div>
+                    <div class="toggle-option" id="btn-year">Ежегодно</div>
+                </div>
+                <div class="discount-tag">
+                    <i class="fa-solid fa-fire"></i> -20%
+                </div>
+            </div>
         </div>
     </section>
 
     <div class="pricing-grid">
         <div class="price-card">
-            <div class="plan-name">Start</div>
-            <div class="price-area"><span class="currency">$</span><span class="amount">0</span><span class="period">/мес</span></div>
+            <div class="card-header">
+                <div class="icon-box icon-blue"><i class="fa-solid fa-paper-plane"></i></div>
+                <h3>Start</h3>
+                <p>Для знакомства с AI</p>
+            </div>
+            
+            <div class="price-area">
+                <span class="currency">$</span>
+                <span class="amount">0</span>
+                <span class="period">/мес</span>
+            </div>
+
             <ul class="features-list">
                 <li><i class="fa-solid fa-check"></i> 1 Чат-бот</li>
-                <li><i class="fa-solid fa-check"></i> 100 сообщений/мес</li>
-                <li class="disabled"><i class="fa-solid fa-ban"></i> AI база знаний</li>
+                <li><i class="fa-solid fa-check"></i> 50 диалогов/мес</li>
+                <li><i class="fa-solid fa-check"></i> Базовые шаблоны</li>
+                <li class="disabled"><i class="fa-solid fa-xmark"></i> Загрузка PDF базы</li>
             </ul>
-            <a href="{% url 'account_login' %}" class="btn-plan btn-outline">Начать бесплатно</a>
+
+            <a href="{% url 'account_signup' %}" class="btn-price btn-glass">
+                Начать бесплатно
+            </a>
         </div>
 
         <div class="price-card featured">
-            <div class="best-value">Выбор клиентов</div>
-            <div class="plan-name">Pro Business</div>
-            <div class="price-area"><span class="currency">$</span><span class="amount" id="price-pro">29</span><span class="period">/мес</span></div>
+            <div class="glow-effect"></div>
+            <div class="popular-badge">Выбор бизнеса</div>
+            
+            <div class="card-header">
+                <div class="icon-box icon-purple"><i class="fa-solid fa-rocket"></i></div>
+                <h3>Pro Business</h3>
+                <p>Для активных продаж</p>
+            </div>
+            
+            <div class="price-area">
+                <span class="currency">$</span>
+                <span class="amount" id="price-pro">29</span>
+                <span class="period">/мес</span>
+            </div>
+
             <ul class="features-list">
-                <li><i class="fa-solid fa-check"></i> 5 Чат-ботов</li>
-                <li><i class="fa-solid fa-check"></i> <strong>Безлимит</strong></li>
+                <li><i class="fa-solid fa-check"></i> <strong>5 Чат-ботов</strong></li>
+                <li><i class="fa-solid fa-check"></i> <strong>Безлимит диалогов</strong></li>
                 <li><i class="fa-solid fa-check"></i> AI RAG (Загрузка PDF)</li>
                 <li><i class="fa-solid fa-check"></i> CRM Интеграция</li>
+                <li><i class="fa-solid fa-check"></i> Удаление копирайта</li>
             </ul>
-            <a href="{% url 'account_login' %}" class="btn-plan btn-filled">Попробовать PRO</a>
+
+            <a href="{% url 'account_signup' %}" class="btn-price btn-neon">
+                Попробовать PRO
+                <div class="btn-shine"></div>
+            </a>
         </div>
 
         <div class="price-card">
-            <div class="plan-name">Enterprise</div>
-            <div class="price-area"><span class="currency">$</span><span class="amount" id="price-ent">99</span><span class="period">/мес</span></div>
+            <div class="card-header">
+                <div class="icon-box icon-gold"><i class="fa-solid fa-building"></i></div>
+                <h3>Enterprise</h3>
+                <p>Для крупных компаний</p>
+            </div>
+            
+            <div class="price-area">
+                <span class="currency">$</span>
+                <span class="amount" id="price-ent">99</span>
+                <span class="period">/мес</span>
+            </div>
+
             <ul class="features-list">
-                <li><i class="fa-solid fa-check"></i> Безлимит ботов</li>
-                <li><i class="fa-solid fa-check"></i> Доступ к API</li>
+                <li><i class="fa-solid fa-check"></i> Безлимит всего</li>
+                <li><i class="fa-solid fa-check"></i> API Доступ</li>
                 <li><i class="fa-solid fa-check"></i> Приоритетная поддержка</li>
+                <li><i class="fa-solid fa-check"></i> Обучение команды</li>
             </ul>
-            <a href="#" class="btn-plan btn-outline">Связаться с нами</a>
+
+            <a href="#" class="btn-price btn-glass">
+                Связаться с нами
+            </a>
         </div>
     </div>
 
     <section class="comparison-section">
-        <h2 class="table-title">Сравнение возможностей</h2>
-        <div class="table-wrapper">
+        <div class="section-title">
+            <h2>Детальное сравнение</h2>
+        </div>
+        
+        <div class="table-container">
             <table class="compare-table">
-                <thead><tr><th>Функция</th><th>Start</th><th style="color:var(--accent-primary)">Pro</th><th>Enterprise</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th class="feature-col">Возможности</th>
+                        <th>Start</th>
+                        <th class="highlight">Pro</th>
+                        <th>Enterprise</th>
+                    </tr>
+                </thead>
                 <tbody>
-                    <tr><td>Визуальный конструктор</td><td><i class="fa-solid fa-check"></i></td><td><i class="fa-solid fa-check"></i></td><td><i class="fa-solid fa-check"></i></td></tr>
-                    <tr><td>Умные AI ответы (GPT-4)</td><td><i class="fa-solid fa-minus"></i></td><td><i class="fa-solid fa-check"></i></td><td><i class="fa-solid fa-check"></i></td></tr>
+                    <tr class="section-row"><td colspan="4">Основные функции</td></tr>
+                    <tr>
+                        <td>Визуальный конструктор</td>
+                        <td><i class="fa-solid fa-check check-yes"></i></td>
+                        <td><i class="fa-solid fa-check check-yes"></i></td>
+                        <td><i class="fa-solid fa-check check-yes"></i></td>
+                    </tr>
+                    <tr>
+                        <td>AI Ответы (GPT-4o)</td>
+                        <td><span class="text-dim">GPT-3.5</span></td>
+                        <td><i class="fa-solid fa-check check-yes"></i></td>
+                        <td><i class="fa-solid fa-check check-yes"></i></td>
+                    </tr>
+                    <tr>
+                        <td>База знаний (PDF/Docs)</td>
+                        <td><i class="fa-solid fa-minus check-no"></i></td>
+                        <td><i class="fa-solid fa-check check-yes"></i></td>
+                        <td><i class="fa-solid fa-check check-yes"></i></td>
+                    </tr>
+                    
+                    <tr class="section-row"><td colspan="4">Интеграции</td></tr>
+                    <tr>
+                        <td>Telegram & Instagram</td>
+                        <td><i class="fa-solid fa-check check-yes"></i></td>
+                        <td><i class="fa-solid fa-check check-yes"></i></td>
+                        <td><i class="fa-solid fa-check check-yes"></i></td>
+                    </tr>
+                    <tr>
+                        <td>CRM (Amo/Bitrix)</td>
+                        <td><i class="fa-solid fa-minus check-no"></i></td>
+                        <td><i class="fa-solid fa-check check-yes"></i></td>
+                        <td><i class="fa-solid fa-check check-yes"></i></td>
+                    </tr>
                 </tbody>
             </table>
         </div>
     </section>
 
     <section class="faq-section">
-        <h2 class="table-title" style="font-size: 1.8rem;">Частые вопросы</h2>
-        <div class="faq-item">
-            <div class="faq-question">Есть ли пробный период? <i class="fa-solid fa-chevron-down"></i></div>
-            <div class="faq-answer"><p>Да, на тарифе PRO доступен бесплатный период 14 дней.</p></div>
+        <div class="section-title">
+            <h2>Частые вопросы</h2>
+        </div>
+
+        <div class="faq-grid">
+            <div class="faq-item">
+                <div class="faq-head">
+                    <span>Есть ли бесплатный пробный период?</span>
+                    <i class="fa-solid fa-plus"></i>
+                </div>
+                <div class="faq-body">
+                    <p>Да, на тарифе PRO у вас есть 14 дней полного доступа. Карта не требуется.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-head">
+                    <span>Можно ли сменить тариф позже?</span>
+                    <i class="fa-solid fa-plus"></i>
+                </div>
+                <div class="faq-body">
+                    <p>Конечно. Вы можете повысить или понизить тариф в любой момент в личном кабинете.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-head">
+                    <span>Что если я превышу лимит сообщений?</span>
+                    <i class="fa-solid fa-plus"></i>
+                </div>
+                <div class="faq-body">
+                    <p>Бот продолжит работать, но мы попросим вас обновить тариф. Мы никогда не отключаем ботов без предупреждения.</p>
+                </div>
+            </div>
         </div>
     </section>
 {% endblock %}

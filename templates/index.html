@@ -8,152 +8,377 @@
 {% endblock %}
 
 {% block content %}
-    <header class="hero">
-        <div class="ambient-glow"></div>
-        <div class="grid-pattern"></div>
+    <header class="hero-section">
+        <div class="ambient-background">
+            <div class="fog-layer fog-1"></div>
+            <div class="fog-layer fog-2"></div>
+            <div class="fog-layer fog-3"></div>
+            <div class="grid-overlay"></div> </div>
 
-        <div class="hero-content">
-            <div class="badge"><span></span> AI Engine v2.0</div>
-            <h1>Автоматизируй <br> <span class="gradient-text">Общение</span> и Продажи</h1>
-            <p class="subtitle">
-                Создавай умных ботов для Telegram и WhatsApp за 5 минут. Загрузи базу знаний, и AI сам ответит клиентам.
-            </p>
-            <div class="cta-group">
-                {% if user.is_authenticated %}
-                    <a href="{% url 'dashboard' %}" class="btn-primary">
-                        <i class="fa-solid fa-gauge-high"></i> 
-                        Перейти в кабинет
-                    </a>
-                {% else %}
-                    <a href="{% url 'account_signup' %}" class="btn-primary">Попробовать бесплатно</a>
-                    <a href="#" class="btn-secondary"><i class="fa-solid fa-play"></i> Демо</a>
-                {% endif %}
-            </div>
-        </div>
+        <div class="container">
+            <div class="hero-wrapper">
+                
+                <div class="hero-text">
+                    
+                    <div class="reveal-item" style="--delay: 0.2s">
+                        <div class="neon-badge">
+                            <span class="dot-pulse"></span>
+                            AI Engine 2.0 Live
+                        </div>
+                    </div>
 
-        <div class="hero-visual" id="tiltContainer">
-            <div class="interface-card" id="tiltCard">
-                <div class="floating-badge fb-1"><i class="fa-solid fa-check-circle"></i> Lead Captured</div>
-                <div class="card-header">
-                    <div class="dots"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
-                    <div style="font-size: 0.8rem; color: #64748b;">Live Chat Preview</div>
+                    <h1 class="reveal-item" style="--delay: 0.4s">
+                        Автоматизируй <br>
+                        <span class="gradient-title">Общение и Продажи</span>
+                    </h1>
+
+                    <p class="subtitle reveal-item" style="--delay: 0.6s">
+                        Создавай умных ботов для Telegram и WhatsApp. Загрузи базу знаний, и AI начнет продавать клиентам через 5 минут.
+                    </p>
+
+                    <div class="cta-buttons reveal-item" style="--delay: 0.8s">
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'dashboard' %}" class="btn-glow">
+                                Перейти в кабинет <i class="fa-solid fa-arrow-right"></i>
+                            </a>
+                        {% else %}
+                            <a href="{% url 'account_signup' %}" class="btn-glow">
+                                Начать бесплатно
+                                <div class="btn-shine"></div>
+                            </a>
+                            <a href="#" class="btn-ghost">
+                                <i class="fa-solid fa-play"></i> Демо
+                            </a>
+                        {% endif %}
+                    </div>
+
+                    <div class="trust-block reveal-item" style="--delay: 1.0s">
+
+                        <span>Уже используют 500+ компаний</span>
+                    </div>
                 </div>
-                <div class="chat-area" id="chatArea"></div>
-                <div class="typing-indicator" id="typingIndicator">
-                    AI печатает <div class="typing-dots"><span></span><span></span><span></span></div>
+
+                <div class="hero-visual reveal-item" style="--delay: 1.2s">
+                    <div class="glow-spot"></div>
+
+                    <div class="app-window">
+                        <div class="window-header">
+                            <div class="controls">
+                                <span class="c-red"></span><span class="c-yellow"></span><span class="c-green"></span>
+                            </div>
+                            <div class="win-title">AI Assistant • Online</div>
+                        </div>
+                        
+                        <div class="chat-container" id="chatArea">
+                            </div>
+
+                        <div class="typing-bar" id="typingIndicator">
+                            <div class="ai-icon"><i class="fa-solid fa-robot"></i></div>
+                            <div class="dots"><span></span><span></span><span></span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="float-icon icon-tg"><i class="fa-brands fa-telegram"></i></div>
+                    <div class="float-icon icon-wa"><i class="fa-brands fa-whatsapp"></i></div>
                 </div>
+
             </div>
         </div>
     </header>
 
     <section class="features-section">
         <div class="section-header">
-            <h2>Больше, чем просто <span class="gradient-text">Чат-бот</span></h2>
-            <p>Мы решили главные проблемы старых конструкторов.</p>
+            <div class="badge">Преимущества</div>
+            <h2>Технологии, которые <br><span class="gradient-text">увеличивают доход</span></h2>
+            <p>Забудьте о сложных настройках. Мы объединили мощь LLM моделей и простоту интерфейса.</p>
         </div>
+
         <div class="bento-grid">
-            <div class="bento-card card-large">
+            <div class="bento-card glow-purple">
+                <div class="card-bg"></div>
                 <div class="card-content">
-                    <h3>Контекстный AI (RAG)</h3>
-                    <p>Бот читает ваши PDF и отвечает строго по ним.</p>
+                    <div class="icon-box"><i class="fa-solid fa-brain"></i></div>
+                    <h3>Нейросеть (RAG)</h3>
+                    <p>Бот изучает ваши PDF, прайсы и Google Docs, чтобы отвечать клиентам с точностью менеджера.</p>
                 </div>
                 <div class="card-visual visual-rag">
-                    <div class="file-icon"><i class="fa-solid fa-file-pdf"></i></div>
-                    <div class="scan-line"></div>
-                    <div class="brain-icon"><i class="fa-solid fa-brain"></i></div>
-                </div>
-            </div>
-            <div class="bento-card card-tall">
-                <div class="card-content"><h3>Омниканальность</h3><p>Telegram, WhatsApp, VK - в одном окне.</p></div>
-                <div class="card-visual visual-omni">
-                    <div class="icon-orbit">
-                        <div class="planet telegram"><i class="fa-brands fa-telegram"></i></div>
-                        <div class="planet whatsapp"><i class="fa-brands fa-whatsapp"></i></div>
-                        <div class="planet insta"><i class="fa-brands fa-instagram"></i></div>
-                        <div class="planet vk"><i class="fa-brands fa-vk"></i></div>
-                        <div class="core-logo"><i class="fa-solid fa-robot"></i></div>
+                    <div class="rag-scanner">
+                        <div class="doc-file"><i class="fa-solid fa-file-invoice"></i></div>
+                        <div class="scan-beam"></div>
+                    </div>
+                    <div class="rag-chips">
+                        <span>Price.pdf</span>
+                        <span>FAQ.docx</span>
                     </div>
                 </div>
             </div>
-            <div class="bento-card">
-                <div class="card-content"><h3>Analytics</h3><p>Воронка продаж в реальном времени.</p></div>
+
+            <div class="bento-card glow-green">
+                <div class="card-bg"></div>
+                <div class="card-content">
+                    <div class="icon-box"><i class="fa-solid fa-chart-line"></i></div>
+                    <h3>Рост конверсии</h3>
+                    <p>Воронка продаж и аналитика диалогов в реальном времени.</p>
+                </div>
                 <div class="card-visual visual-chart">
-                    <div class="chart-bar" style="height: 40%"></div>
-                    <div class="chart-bar active" style="height: 85%"><span>+140%</span></div>
-                    <div class="chart-bar" style="height: 60%"></div>
+                    <div class="chart-container">
+                        <div class="bar b1"></div>
+                        <div class="bar b2"></div>
+                        <div class="bar b3"></div>
+                        <div class="chart-line"></div>
+                    </div>
                 </div>
             </div>
-            <div class="bento-card">
-                <div class="card-content"><h3>No-Code</h3><p>Drag & Drop редактор сценариев.</p></div>
+
+            <div class="bento-card glow-pink">
+                <div class="card-bg"></div>
+                <div class="card-content">
+                    <div class="icon-box"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                    <h3>No-Code Редактор</h3>
+                    <p>Создавайте сценарии любой сложности простой мышкой.</p>
+                </div>
                 <div class="card-visual visual-nodes">
-                    <div class="node n1"><i class="fa-solid fa-play"></i></div>
-                    <div class="node-line"></div>
-                    <div class="node n2"><i class="fa-solid fa-envelope"></i></div>
+                    <div class="node-connect">
+                        <div class="node n-start"><i class="fa-solid fa-play"></i></div>
+                        <div class="connection"><div class="signal"></div></div>
+                        <div class="node n-end"><i class="fa-solid fa-check"></i></div>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
     <section class="process-section">
+        <div class="cyber-grid-bg"></div>
+        
         <div class="section-header">
             <div class="badge">Простой старт</div>
             <h2>Запуск за <span class="gradient-text">3 шага</span></h2>
         </div>
+
         <div class="process-container">
             <div class="process-tabs">
-                <div class="tab-btn active" onclick="switchTab(0)">
-                    <div class="tab-number">01</div>
-                    <div class="tab-info"><h3>Подключите каналы</h3><p>Telegram и WhatsApp в пару кликов.</p></div>
-                </div>
-                <div class="tab-btn" onclick="switchTab(1)">
-                    <div class="tab-number">02</div>
-                    <div class="tab-info"><h3>Загрузите знания</h3><p>Перетащите PDF файлы в базу.</p></div>
-                </div>
-                <div class="tab-btn" onclick="switchTab(2)">
-                    <div class="tab-number">03</div>
-                    <div class="tab-info"><h3>Продажи</h3><p>Следите за заявками в CRM.</p></div>
-                </div>
-            </div>
-            <div class="process-visual-window">
-                <div class="window-header"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
-                <div class="tab-content active" id="content-0">
-                    <div class="connect-visual">
-                        <div class="platform-card"><i class="fa-brands fa-telegram" style="color:#229ED9"></i><span>Telegram</span><div class="toggle-switch active"></div></div>
-                        <div class="platform-card"><i class="fa-brands fa-whatsapp" style="color:#25D366"></i><span>WhatsApp</span><div class="toggle-switch"></div></div>
+                <div class="tab-btn step-blue active" onclick="manualSwitch(0)">
+                    <div class="tab-indicator">
+                        <div class="tab-line"></div>
+                        <div class="tab-circle"><i class="fa-solid fa-plug"></i></div>
+                    </div>
+                    <div class="tab-info">
+                        <h3>Подключение</h3>
+                        <p>Telegram и Instagram в 2 клика. Без программистов.</p>
                     </div>
                 </div>
-                <div class="tab-content" id="content-1">
-                    <div class="upload-zone"><i class="fa-solid fa-cloud-arrow-up"></i><span>Price.pdf</span><div class="progress-bar"><div class="fill"></div></div></div>
+
+                <div class="tab-btn step-purple" onclick="manualSwitch(1)">
+                    <div class="tab-indicator">
+                        <div class="tab-line"></div>
+                        <div class="tab-circle"><i class="fa-solid fa-brain"></i></div>
+                    </div>
+                    <div class="tab-info">
+                        <h3>Обучение AI</h3>
+                        <p>Просто загрузите PDF файлы или ссылку на сайт.</p>
+                    </div>
                 </div>
+
+                <div class="tab-btn step-green" onclick="manualSwitch(2)">
+                    <div class="tab-indicator">
+                        <div class="tab-line"></div>
+                        <div class="tab-circle"><i class="fa-solid fa-rocket"></i></div>
+                    </div>
+                    <div class="tab-info">
+                        <h3>Запуск продаж</h3>
+                        <p>Бот сам квалифицирует лидов и продает 24/7.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="process-visual-window">
+                <div class="scan-line"></div>
+                <div class="window-grid-bg"></div>
+
+                <div class="window-header">
+                    <div class="win-controls">
+                        <div class="dot red"></div>
+                        <div class="dot yellow"></div>
+                        <div class="dot green"></div>
+                    </div>
+                    <div class="win-title">
+                        <i class="fa-solid fa-terminal"></i> System_Config_v2.4
+                    </div>
+                    <div class="win-status">
+                        <span class="status-dot"></span> Online
+                    </div>
+                </div>
+
+                <div class="tab-content active" id="content-0">
+                    <div class="modules-container">
+                        <div class="module-card active">
+                            <div class="module-head">
+                                <div class="mod-icon tg"><i class="fa-brands fa-telegram"></i></div>
+                                <div class="mod-info">
+                                    <h4>Telegram Bot</h4>
+                                    <span class="mod-status">Connected (Webhook)</span>
+                                </div>
+                                <div class="toggle-switch checked"></div>
+                            </div>
+                            <div class="terminal-log">
+                                <div class="log-line"><span class="cmd">></span> Init handshake... <span class="ok">OK</span></div>
+                                <div class="log-line"><span class="cmd">></span> Fetching updates... <span class="val">24ms</span></div>
+                            </div>
+                        </div>
+
+                        <div class="module-card">
+                            <div class="module-head">
+                                <div class="mod-icon insta"><i class="fa-brands fa-instagram"></i></div>
+                                <div class="mod-info">
+                                    <h4>Instagram DM</h4>
+                                    <span class="mod-status">Syncing...</span>
+                                </div>
+                                <div class="toggle-switch checked"></div>
+                            </div>
+                            <div class="terminal-log">
+                                <div class="log-line"><span class="cmd">></span> Auth token valid</div>
+                                <div class="log-line blink"><span class="cmd">></span> Loading threads...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="content-1">
+                    <div class="ai-processing-view">
+                        <div class="file-processor">
+                            <div class="file-icon-wrapper">
+                                <i class="fa-solid fa-file-pdf"></i>
+                                <div class="scan-beam"></div>
+                            </div>
+                            <div class="file-meta">
+                                <span class="filename">Price_List_2026.pdf</span>
+                                <div class="process-bar-container">
+                                    <div class="process-bar-fill"></div>
+                                </div>
+                                <span class="process-status">Vectorizing... 84%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="neural-steps">
+                            <div class="n-step done">
+                                <div class="step-icon"><i class="fa-solid fa-check"></i></div>
+                                <span>Text Extraction</span>
+                            </div>
+                            <div class="n-step done">
+                                <div class="step-icon"><i class="fa-solid fa-check"></i></div>
+                                <span>Embedding Gen</span>
+                            </div>
+                            <div class="n-step active">
+                                <div class="step-icon spinner"></div>
+                                <span>Knowledge Indexing</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="tab-content" id="content-2">
-                    <div class="stats-visual"><div class="stat-box highlight"><span>Лиды</span><strong>85</strong></div></div>
+                    <div class="live-dashboard">
+                        <div class="dash-header">
+                            <div class="live-badge"><span class="pulse"></span> LIVE FEED</div>
+                            <div class="time-filter">Last 24h</div>
+                        </div>
+                        
+                        <div class="kpi-row">
+                            <div class="kpi-card">
+                                <span class="kpi-label">Leads</span>
+                                <div class="kpi-val">142 <span class="trend up">▲ 12%</span></div>
+                            </div>
+                            <div class="kpi-card">
+                                <span class="kpi-label">Revenue</span>
+                                <div class="kpi-val">$4.2k <span class="trend up">▲ 8%</span></div>
+                            </div>
+                        </div>
+
+                        <div class="graph-visual">
+                            <div class="graph-bars">
+                                <div class="dash-bar" style="--h: 40%"></div>
+                                <div class="dash-bar" style="--h: 70%"></div>
+                                <div class="dash-bar" style="--h: 50%"></div>
+                                <div class="dash-bar active" style="--h: 90%">
+                                    <div class="tooltip">$920</div>
+                                </div>
+                                <div class="dash-bar" style="--h: 65%"></div>
+                                <div class="dash-bar" style="--h: 80%"></div>
+                                <div class="dash-bar" style="--h: 60%"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
     <section class="use-cases-section">
-        <div class="section-header"><h2>Решения для <span class="gradient-text">бизнеса</span></h2></div>
+        <div class="cases-ambient-glow"></div>
+
+        <div class="section-header">
+            <div class="badge">Кейсы</div>
+            <h2>Решения для <span class="gradient-text">вашего бизнеса</span></h2>
+            <p>Неважно, что вы продаете. Важно, как быстро вы отвечаете.</p>
+        </div>
+
         <div class="cases-grid">
-            <div class="case-card">
-                <div class="case-icon"><i class="fa-solid fa-headset"></i></div>
-                <h3>Техподдержка</h3>
-                <p>Автоответы на FAQ 24/7. Экономия ФОТ.</p>
-                <div class="case-metric"><div class="metric-value">-70%</div><div class="metric-label">Нагрузка</div></div>
+            
+            <div class="case-card case-gold">
+                <div class="card-glow-bg"></div>
+                <div class="case-header">
+                    <div class="case-icon"><i class="fa-solid fa-sack-dollar"></i></div>
+                    <div class="case-tags">
+                        <span>E-commerce</span>
+                        <span>Услуги</span>
+                    </div>
+                </div>
+                <h3>Отдел Продаж</h3>
+                <p>Бот квалифицирует лида, выявляет потребность и записывает на встречу в CRM. Без участия менеджера.</p>
+                
+                <div class="case-result">
+                    <div class="result-value">+350%</div>
+                    <div class="result-label">Конверсия в заявку</div>
+                </div>
             </div>
-            <div class="case-card featured">
-                <div class="featured-badge">Популярное</div>
-                <div class="case-icon"><i class="fa-solid fa-sack-dollar"></i></div>
-                <h3>Продажи</h3>
-                <p>Квалификация лидов и запись в CRM.</p>
-                <div class="case-metric"><div class="metric-value">x3.5</div><div class="metric-label">Конверсия</div></div>
+
+            <div class="case-card case-blue featured">
+                <div class="card-glow-bg"></div>
+                <div class="case-header">
+                    <div class="case-icon"><i class="fa-solid fa-headset"></i></div>
+                    <div class="case-tags">
+                        <span>SaaS</span>
+                        <span>Банкинг</span>
+                    </div>
+                </div>
+                <h3>Техподдержка 24/7</h3>
+                <p>Мгновенные ответы на 80% типовых вопросов (FAQ). Операторы подключаются только к сложным случаям.</p>
+                
+                <div class="case-result">
+                    <div class="result-value">-70%</div>
+                    <div class="result-label">Фонд оплаты труда</div>
+                </div>
             </div>
-            <div class="case-card">
-                <div class="case-icon"><i class="fa-solid fa-users-gear"></i></div>
-                <h3>HR</h3>
-                <p>Онбординг и обучение сотрудников.</p>
-                <div class="case-metric"><div class="metric-value">100%</div><div class="metric-label">Вовлеченность</div></div>
+
+            <div class="case-card case-purple">
+                <div class="card-glow-bg"></div>
+                <div class="case-header">
+                    <div class="case-icon"><i class="fa-solid fa-users-gear"></i></div>
+                    <div class="case-tags">
+                        <span>Onboarding</span>
+                        <span>HR</span>
+                    </div>
+                </div>
+                <h3>HR и Обучение</h3>
+                <p>Автоматический онбординг новичков, базы знаний для сотрудников и проведение аттестаций внутри мессенджера.</p>
+                
+                <div class="case-result">
+                    <div class="result-value">120ч</div>
+                    <div class="result-label">Экономия в месяц</div>
+                </div>
             </div>
+
         </div>
     </section>
 
@@ -214,12 +439,27 @@
         </div>
     </section>
 
-    <section class="final-cta" style="padding: 100px 5%; display: flex; justify-content: center;">
-        <div style="width: 100%; max-width: 1000px; background: linear-gradient(180deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 1)); border: 1px solid var(--glass-border); border-radius: 30px; padding: 80px 20px; text-align: center; position: relative; overflow: hidden;">
-            <div style="position: absolute; top: -50%; left: 50%; transform: translateX(-50%); width: 600px; height: 600px; background: radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, transparent 70%); filter: blur(80px); pointer-events: none;"></div>
-            <h2 style="font-size: 2.5rem; margin-bottom: 15px; position: relative; z-index: 2;">Готовы запустить бота?</h2>
-            <p style="color: var(--text-secondary); margin-bottom: 40px; font-size: 1.1rem; position: relative; z-index: 2;">14 дней бесплатно. Карта не требуется.</p>
-            <a href="{% url 'account_login' %}" class="btn-primary" style="font-size: 1.1rem; padding: 16px 32px;">Начать бесплатно <i class="fa-solid fa-rocket" style="margin-left:8px"></i></a>
+    <section class="final-cta-section">
+        <div class="cta-card">
+            <div class="cta-aurora">
+                <div class="aurora-beam beam-1"></div>
+                <div class="aurora-beam beam-2"></div>
+                <div class="aurora-beam beam-3"></div>
+            </div>
+            
+            <div class="cta-grid-overlay"></div>
+            <div class="cta-particles"></div>
+
+            <div class="cta-content-layer">
+                <h2>Готовы к <span class="gradient-text">трансформации?</span></h2>
+                <p>Запустите свой AI-двигатель продаж прямо сейчас.</p>
+                
+                <a href="{% url 'account_login' %}" class="btn-mega">
+                    <span class="btn-text">Начать работу</span>
+                    <span class="btn-icon"><i class="fa-solid fa-rocket"></i></span>
+                    <div class="btn-shine"></div>
+                </a>
+            </div>
         </div>
     </section>
 {% endblock %}

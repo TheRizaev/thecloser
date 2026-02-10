@@ -1,86 +1,64 @@
-/* === main.js — Global Logic === */
+/* === main.js === */
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    // --- 1. АВТОМАТИЧЕСКАЯ ПОДСВЕТКА АКТИВНОЙ СТРАНИЦЫ ---
-    // Работает с Django URLs (например, /pricing/, /docs/)
-    
-    const currentPath = window.location.pathname; // Получаем текущий путь (напр. "/pricing/")
-    
-    // Выбираем все ссылки в десктопном и мобильном меню
-    const navLinks = document.querySelectorAll('.nav-links a, .mobile-menu a');
+    // 1. ПОДСВЕТКА АКТИВНЫХ ССЫЛОК (Умная логика)
+    const currentPath = window.location.pathname;
+    const navLinks = document.querySelectorAll('.nav-link, .mobile-links a');
 
     navLinks.forEach(link => {
-        const linkPath = link.getAttribute('href'); // Получаем ссылку (напр. "/pricing/")
-
-        // Пропускаем пустые ссылки или якоря
-        if (!linkPath || linkPath === '#' || linkPath.startsWith('http')) return;
-
-        // ЛОГИКА СРАВНЕНИЯ:
-        // 1. Если это Главная ('/') -> Активна только если мы точно на главной
-        if (linkPath === '/') {
-            if (currentPath === '/') {
-                link.classList.add('active');
-            }
-        } 
-        // 2. Для остальных страниц -> Активна, если путь начинается с этой ссылки
-        // (например, "/docs/api" подсветит "/docs/")
-        else {
-            if (currentPath.startsWith(linkPath)) {
-                link.classList.add('active');
-            }
+        const href = link.getAttribute('href');
+        if (!href || href === '#') return;
+        
+        if (href === '/' && currentPath === '/') {
+            link.classList.add('active');
+        } else if (href !== '/' && currentPath.startsWith(href)) {
+            link.classList.add('active');
         }
     });
 
-    // --- 2. МОБИЛЬНОЕ МЕНЮ (Гамбургер) ---
+    // 2. МОБИЛЬНОЕ МЕНЮ
     const menuToggle = document.getElementById('menuToggle');
     const mobileMenu = document.getElementById('mobileMenu');
-    
+    let isMenuOpen = false;
+
     if (menuToggle && mobileMenu) {
-        const icon = menuToggle.querySelector('i');
-        let isMenuOpen = false;
-
-        function toggleMenu() {
+        menuToggle.addEventListener('click', () => {
             isMenuOpen = !isMenuOpen;
+            
+            // Анимация кнопки (превращение в крестик)
+            const spans = menuToggle.querySelectorAll('span');
             if (isMenuOpen) {
-                // Открыть
                 mobileMenu.classList.add('active');
-                icon.classList.remove('fa-bars');
-                icon.classList.add('fa-xmark'); // Иконка крестика
-                document.body.style.overflow = 'hidden'; // Блокируем скролл сайта
+                spans[0].style.transform = 'rotate(45deg) translate(5px, 6px)';
+                spans[1].style.transform = 'rotate(-45deg) translate(5px, -6px)';
+                document.body.style.overflow = 'hidden'; // Блок скролла
             } else {
-                // Закрыть
                 mobileMenu.classList.remove('active');
-                icon.classList.remove('fa-xmark');
-                icon.classList.add('fa-bars'); // Иконка бургер
-                document.body.style.overflow = ''; // Возвращаем скролл
+                spans[0].style.transform = 'none';
+                spans[1].style.transform = 'none';
+                document.body.style.overflow = '';
             }
+        });
+    }
+
+    // 3. СКРОЛЛ ЭФФЕКТ ДЛЯ ПАРЯЩЕГО НАВБАРА
+    const navbar = document.getElementById('navbar');
+    const navContent = navbar.querySelector('.nav-content');
+
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 50) {
+            // При скролле навбар становится чуть шире и прозрачнее/темнее
+            navbar.style.width = '95%'; 
+            navbar.style.maxWidth = '1400px';
+            navContent.style.background = 'rgba(2, 6, 23, 0.8)'; // Более темный фон
+            navContent.style.boxShadow = '0 15px 40px -10px rgba(0,0,0,0.8)';
+        } else {
+            // Вверху страницы - компактный вид
+            navbar.style.width = '90%';
+            navbar.style.maxWidth = '1200px';
+            navContent.style.background = 'rgba(15, 23, 42, 0.6)';
+            navContent.style.boxShadow = '0 10px 30px -10px rgba(0,0,0,0.5)';
         }
-
-        menuToggle.addEventListener('click', toggleMenu);
-
-        // Закрывать меню при клике на любую ссылку внутри
-        mobileMenu.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', () => {
-                if (isMenuOpen) toggleMenu();
-            });
-        });
-    }
-
-    // --- 3. ЭФФЕКТ СКРОЛЛА НАВИГАЦИИ ---
-    // Делает фон темнее при прокрутке вниз
-    const navbar = document.getElementById('mainNav');
-    if (navbar) {
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 50) {
-                navbar.style.background = 'rgba(3, 7, 18, 0.95)';
-                navbar.style.boxShadow = '0 4px 30px rgba(0, 0, 0, 0.3)';
-                navbar.style.padding = '15px 5%'; // Чуть уменьшаем высоту
-            } else {
-                navbar.style.background = 'rgba(3, 7, 18, 0.7)';
-                navbar.style.boxShadow = 'none';
-                navbar.style.padding = '20px 5%'; // Возвращаем высоту
-            }
-        });
-    }
+    });
 });
