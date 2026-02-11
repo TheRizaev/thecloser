@@ -1,8 +1,7 @@
-# run_bots.py - С ПОДДЕРЖКОЙ НОВОГО API
-
+# run_bots.py
 #!/usr/bin/env python
 """
-The Closer Worker - С ПОДДЕРЖКОЙ НОВОГО API для o1/o3/GPT-5+
+The Closer Worker - С ПОДДЕРЖКОЙ НОВОГО API и передачей активного клиента
 """
 import asyncio
 import os
@@ -15,6 +14,7 @@ import json
 import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
+# --- DUMMY SERVER для Health Checks (Render/Railway) ---
 class SimpleHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
@@ -29,6 +29,7 @@ def start_dummy_server():
 
 threading.Thread(target=start_dummy_server, daemon=True).start()
 
+# --- DJANGO SETUP ---
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
@@ -46,6 +47,7 @@ except ImportError:
     OPENAI_AVAILABLE = False
     print("⚠️ Библиотека openai не установлена")
 
+# --- LOGGING ---
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
@@ -53,6 +55,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("BotWorker")
 
+# --- OPENAI SETUP ---
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 ai_client = None
 
@@ -66,18 +69,22 @@ elif not OPENAI_API_KEY:
     logger.warning("⚠️ OPENAI_API_KEY не найден в .env")
 
 active_clients = {}
+
+# --- PROMPT TEMPLATES ---
 HUMANIZER_INSTRUCTIONS_TEMPLATE = """
 Роль: Ты — {bot_name}, сотрудник {company_name}. Пишешь с телефона в Telegram.
 Задача: Решить вопрос или продать.
 
 СТИЛЬ (СТРОГО):
-1. **Формат:** Пиши предельно кратко, но не сильно, не по одному-два слова. Избегай списков. Короткие фразы — без точки в конце, можно с маленькой буквы.
+1. **Формат:** Пиши предельно кратко. Избегай списков. Короткие фразы — без точки в конце, можно с маленькой буквы.
 2. **Табу:** ЗАПРЕЩЕНО писать "Я ИИ", "Языковая модель", "Чем могу помочь?".
-3. **Реакция:** На "Привет" отвечай "Здравствуйте, чем могу помочь?" . Не задавай вопросов, пока не поймешь суть.
+3. **Реакция:** На "Привет" отвечай "Привет" или "На связи". Не задавай вопросов, пока не поймешь суть.
 4. **Конкретика:** Не зеркаль вопрос (User: "Цена?" -> Bot: "5000", а не "Цена составляет...").
 
 Веди себя как занятой человек, а не как услужливый робот.
 """
+
+# --- DATABASE HELPERS ---
 
 @sync_to_async
 def get_active_bots_from_db():
@@ -144,11 +151,12 @@ def get_rag_response(bot_id, query):
             'confidence': 0.0
         }
 
+# --- AI CORE LOGIC ---
 
-async def get_chatgpt_response(message_text, bot_record, history=None, conversation_id=None):
+async def get_chatgpt_response(message_text, bot_record, history=None, conversation_id=None, telegram_client=None):
     """
     Генерация ответа с поддержкой Function Calling и Humanizer.
-    Аргумент conversation_id обязателен для работы функций!
+    telegram_client: Активное соединение для отправки уведомлений без конфликтов.
     """
     if not ai_client:
         return "⚠️ Ошибка: AI клиент не инициализирован."
@@ -238,12 +246,13 @@ async def get_chatgpt_response(message_text, bot_record, history=None, conversat
                 
                 logger.info(f"⚙️ Calling: {function_name} with {function_args}")
                 
-                # ВЫПОЛНЯЕМ ФУНКЦИЮ (Передаем conversation_id!)
+                # ВЫПОЛНЯЕМ ФУНКЦИЮ (Передаем активного клиента!)
                 result = await functions_service.execute_function(
                     bot_record.id,
-                    conversation_id,  # <--- КРИТИЧЕСКИ ВАЖНОЕ ИСПРАВЛЕНИЕ
+                    conversation_id,
                     function_name,
-                    function_args
+                    function_args,
+                    client=telegram_client  # <--- ПЕРЕДАЕМ ТРУБКУ
                 )
                 
                 # Добавляем результат в историю
@@ -255,7 +264,6 @@ async def get_chatgpt_response(message_text, bot_record, history=None, conversat
                 })
             
             # 7. ВТОРОЙ ЗАПРОС К OPENAI (Финальный ответ)
-            # Убираем tools из второго запроса, чтобы он не вызывал их снова, а просто ответил
             final_api_params = {
                 "model": bot_record.openai_model,
                 "messages": messages_payload
@@ -277,6 +285,8 @@ async def get_chatgpt_response(message_text, bot_record, history=None, conversat
         logger.error(f"OpenAI Error: {e}")
         return "Извините, я сейчас не могу ответить. Попробуйте позже."
 
+
+# --- TELETHON HANDLERS ---
 
 async def keep_online_loop(client, bot_name):
     while True:
@@ -309,7 +319,7 @@ async def handle_message(event, bot_id):
     
     history = await get_conversation_history(conversation.id, limit=11)
 
-    read_delay = 5 + random.randint(0, 5)
+    read_delay = 2 + random.randint(0, 3)
     await asyncio.sleep(read_delay)
 
     try:
@@ -317,12 +327,13 @@ async def handle_message(event, bot_id):
     except:
         pass
     
-    # ПЕРЕДАЕМ conversation.id В ФУНКЦИЮ ГЕНЕРАЦИИ
+    # ПЕРЕДАЕМ conversation.id и active client В ФУНКЦИЮ ГЕНЕРАЦИИ
     response_text = await get_chatgpt_response(
         text, 
         bot_record,
         history=history,
-        conversation_id=conversation.id  # <--- ВОТ ЗДЕСЬ ПЕРЕДАЕМ ID
+        conversation_id=conversation.id,
+        telegram_client=event.client  # <--- БЕРЕМ КЛИЕНТА ИЗ СОБЫТИЯ
     )
 
     typing_speed = random.randint(5, 8)
@@ -339,7 +350,7 @@ async def handle_message(event, bot_id):
     
     await save_message_to_db(conversation, 'bot', response_text)
     
-    logger.info(f"✅ [{bot_record.name}] Replied to {user_name} (RAG: {bot_record.use_rag})")
+    logger.info(f"✅ [{bot_record.name}] Replied to {user_name}")
 
 
 async def start_single_bot(bot_record):

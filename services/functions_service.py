@@ -1,223 +1,140 @@
 # services/functions_service.py
-"""
-Сервис для исполнения Function Calling с защитой от гонки диалогов
-"""
-
 import logging
-import json
 import asyncio
-from typing import Dict, Any
-from django.utils import timezone
 from asgiref.sync import sync_to_async
 
 logger = logging.getLogger(__name__)
 
-
 class FunctionsService:
     """
-    Исполнение функций, вызванных AI
+    Сервис для выполнения функций.
+    Умеет использовать активный Telethon Client для отправки уведомлений.
     """
     
     @sync_to_async
-    def execute_function(self, bot_id: int, conversation_id: int, function_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Главный диспетчер функций.
-        Теперь принимает conversation_id для точной идентификации диалога.
-        """
+    def execute_function(self, bot_id: int, conversation_id: int, function_name: str, arguments: dict, client=None):
         try:
             from core.models import BotFunction
             
-            # Находим функцию
-            func = BotFunction.objects.get(
-                bot_id=bot_id,
-                name=function_name,
-                is_active=True
-            )
+            # Получаем функцию из БД
+            try:
+                func = BotFunction.objects.get(bot_id=bot_id, name=function_name, is_active=True)
+            except BotFunction.DoesNotExist:
+                return {'success': False, 'error': f'Function {function_name} not found'}
             
-            logger.info(f"🔧 [Bot {bot_id}] Executing function: {function_name} for Conversation {conversation_id}")
-            logger.info(f"📦 Arguments: {arguments}")
+            logger.info(f"🔧 [Bot {bot_id}] Executing: {function_name} | Args: {arguments}")
             
-            # Маршрутизация по типу
             if func.function_type == 'save_lead':
-                return self._save_lead(bot_id, conversation_id, arguments)
+                return self._save_lead(bot_id, conversation_id, arguments, client)
             
             elif func.function_type == 'call_manager':
-                return self._call_manager(bot_id, conversation_id, arguments)
+                return self._call_manager(bot_id, conversation_id, arguments, client)
             
-            else:
-                return {
-                    'success': False,
-                    'error': f'Unknown function type: {func.function_type}'
-                }
+            return {'success': False, 'error': f'Unknown function type: {func.function_type}'}
                 
-        except BotFunction.DoesNotExist:
-            logger.error(f"❌ Function '{function_name}' not found for bot {bot_id}")
-            return {
-                'success': False,
-                'error': f'Function {function_name} not found'
-            }
         except Exception as e:
-            logger.error(f"❌ Error executing {function_name}: {e}")
-            return {
-                'success': False,
-                'error': str(e)
-            }
-    
-    def _save_lead(self, bot_id: int, conversation_id: int, arguments: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Сохранение лида в конкретный диалог (по ID)
-        """
+            logger.error(f"❌ Function Execution Error: {e}")
+            return {'success': False, 'error': str(e)}
+
+    def _save_lead(self, bot_id, conversation_id, arguments, client):
         from core.models import BotAgent, Conversation
-        
         try:
             bot = BotAgent.objects.get(id=bot_id)
+            conv = Conversation.objects.get(id=conversation_id)
             
-            # 1. ПОЛУЧАЕМ КОНКРЕТНЫЙ ДИАЛОГ ПО ID (ЗАЩИТА ОТ ОШИБОК)
-            try:
-                conv = Conversation.objects.get(id=conversation_id)
-            except Conversation.DoesNotExist:
-                logger.error(f"❌ Conversation {conversation_id} not found for save_lead")
-                return {'success': False, 'error': 'Conversation not found'}
-            
-            # 2. ДИНАМИЧЕСКОЕ ИЗВЛЕЧЕНИЕ ПОЛЕЙ
-            lead_data = {}
-            for key, value in arguments.items():
-                lead_data[key] = value
-            
-            logger.info(f"📦 Collected lead data: {lead_data}")
-            
-            # 3. ОБНОВЛЯЕМ ДАННЫЕ В БД
+            # Сохранение данных лида
             conv.is_lead = True
-            # Пытаемся найти телефон и email в любых полях
-            conv.lead_phone = lead_data.get('phone', lead_data.get('телефон', lead_data.get('номер', '')))
-            conv.lead_email = lead_data.get('email', lead_data.get('почта', lead_data.get('email', '')))
-            
-            # Сохраняем полный JSON
-            conv.lead_data = lead_data
+            conv.lead_phone = arguments.get('phone', arguments.get('телефон', ''))
+            conv.lead_data = arguments
             conv.save()
             
-            logger.info(f"✅ Lead saved for Conversation {conversation_id}")
+            # Текст уведомления
+            text = f"🔔 **НОВЫЙ ЛИД!**\n\n"
+            text += f"👤 **Клиент:** {conv.user_name or 'Без имени'}\n"
+            text += f"🆔 **ID:** `{conv.user_id}`\n"
+            for k, v in arguments.items():
+                text += f"🔹 {k}: {v}\n"
+            text += f"\n🔗 https://thecloser.uz/dashboard/conversations/{conv.id}"
             
-            # 4. ФОРМИРУЕМ УВЕДОМЛЕНИЕ
-            notification_lines = ["🔔 **НОВЫЙ ЛИД!**\n"]
+            # Отправка
+            self._send_notification(bot, text, client)
             
-            # Маппинг emoji
-            emoji_map = {
-                'name': '👤', 'имя': '👤', 'фио': '👤',
-                'phone': '📞', 'телефон': '📞', 'номер': '📞',
-                'email': '📧', 'почта': '📧',
-                'comment': '💬', 'комментарий': '💬',
-                'date': '📅', 'дата': '📅',
-                'time': '🕐', 'время': '🕐',
-                'budget': '💰', 'бюджет': '💰',
-            }
-            
-            for field_name, field_value in lead_data.items():
-                emoji = emoji_map.get(field_name.lower(), '📌')
-                field_label = field_name.replace('_', ' ').capitalize()
-                notification_lines.append(f"{emoji} **{field_label}:** {field_value}")
-            
-            notification_lines.append(f"\n🤖 **Бот:** {bot.name}")
-            notification_lines.append(f"🔗 **Диалог:** https://yoursite.com/dashboard/conversations/{conv.id}")
-            
-            notification_text = "\n".join(notification_lines)
-            
-            # Отправляем уведомление владельцу
-            self._send_telegram_notification(bot, notification_text)
-            
-            return {
-                'success': True,
-                'message': 'Данные успешно сохранены.',
-                'lead_data': lead_data
-            }
-            
+            return {'success': True, 'message': 'Лид успешно сохранен.'}
         except Exception as e:
-            logger.error(f"❌ Error saving lead: {e}")
-            return {
-                'success': False,
-                'error': 'Не удалось сохранить данные'
-            }
-    
-    def _call_manager(self, bot_id: int, conversation_id: int, arguments: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Вызов менеджера для конкретного диалога
-        """
+            logger.error(f"Save Lead Error: {e}")
+            return {'success': False, 'error': 'Ошибка сохранения данных'}
+
+    def _call_manager(self, bot_id, conversation_id, arguments, client):
         from core.models import BotAgent, Conversation
-        
         try:
             bot = BotAgent.objects.get(id=bot_id)
+            conv = Conversation.objects.get(id=conversation_id)
             
-            # Получаем диалог
-            try:
-                conv = Conversation.objects.get(id=conversation_id)
-            except Conversation.DoesNotExist:
-                return {'success': False, 'error': 'Conversation not found'}
+            reason = arguments.get('reason', 'Клиент запросил человека')
             
-            reason = arguments.get('reason', 'Клиент требует человека')
+            text = f"🆘 **ТРЕБУЕТСЯ МЕНЕДЖЕР**\n\n"
+            text += f"👤 **Клиент:** {conv.user_name} (@{conv.user_id})\n"
+            text += f"❓ **Причина:** {reason}\n"
+            text += f"\n🔗 https://thecloser.uz/dashboard/conversations/{conv.id}"
             
-            # 🆘 ФОРМИРУЕМ УВЕДОМЛЕНИЕ
-            notification_text = f"""
-🆘 **ТРЕБУЕТСЯ ЧЕЛОВЕК!**
-
-👤 **Юзер:** @{conv.user_id} ({conv.user_name})
-
-📋 **Ситуация:**
-{reason}
-
-🤖 **Бот:** {bot.name}
-🔗 **Диалог:** https://yoursite.com/dashboard/conversations/{conv.id}
-
-⏰ {timezone.now().strftime('%d.%m.%Y %H:%M')}
-            """.strip()
+            self._send_notification(bot, text, client)
             
-            self._send_telegram_notification(bot, notification_text)
-            
-            logger.info(f"🆘 Manager called for Conversation {conversation_id}")
-            
-            return {
-                'success': True,
-                'message': 'Менеджер уведомлен.'
-            }
-            
+            return {'success': True, 'message': 'Менеджер уведомлен.'}
         except Exception as e:
-            logger.error(f"❌ Error calling manager: {e}")
-            return {'success': False, 'error': 'Ошибка вызова менеджера'}
-    
-    def _send_telegram_notification(self, bot, text: str):
+            return {'success': False, 'error': str(e)}
+
+    def _send_notification(self, bot, text, client):
         """
-        Отправка уведомления владельцу через Telegram (в Saved Messages)
+        Отправляет уведомление.
+        1. Если задан notification_recipient -> шлет туда.
+        2. Если нет -> шлет в 'me' (Избранное).
+        3. Использует client из run_bots.py, чтобы не было конфликта сессий.
         """
-        from telethon import TelegramClient
-        from telethon.sessions import StringSession
+        target = 'me'
+        if bot.notification_recipient:
+            target = bot.notification_recipient.strip()
+            # Telethon нормально ест юзернеймы и с @ и без, но можно почистить
+            if target.startswith('@'): target = target
         
-        try:
-            if not bot.session_string:
-                return
-            
-            async def send_to_saved():
+        logger.info(f"📨 Отправка уведомления получателю: {target}")
+
+        # Сценарий 1: У нас есть активный клиент (от бота)
+        if client and client.is_connected():
+            async def send_now():
                 try:
-                    client = TelegramClient(
-                        StringSession(bot.session_string),
-                        int(bot.api_id),
-                        bot.api_hash
-                    )
-                    await client.connect()
-                    await client.send_message('me', text)
-                    await client.disconnect()
-                except Exception as inner_e:
-                    logger.error(f"Send error: {inner_e}")
+                    await client.send_message(target, text)
+                    logger.info(f"✅ Уведомление отправлено ({target}) через активную сессию")
+                except Exception as e:
+                    logger.error(f"❌ Ошибка отправки (активная сессия): {e}")
+            
+            # Добавляем задачу в текущий цикл событий
+            try:
+                loop = asyncio.get_running_loop()
+                loop.create_task(send_now())
+            except RuntimeError:
+                # Если цикла нет (странно, но бывает), запускаем
+                asyncio.run(send_now())
+            return
+
+        # Сценарий 2: Клиента нет (fallback, опасно, может конфликтовать)
+        if bot.session_string:
+            from telethon import TelegramClient
+            from telethon.sessions import StringSession
+            
+            async def send_new():
+                try:
+                    c = TelegramClient(StringSession(bot.session_string), int(bot.api_id), bot.api_hash)
+                    await c.connect()
+                    await c.send_message(target, text)
+                    await c.disconnect()
+                    logger.info(f"✅ Уведомление отправлено ({target}) через новую сессию")
+                except Exception as e:
+                    logger.error(f"❌ Ошибка отправки (новая сессия): {e}")
             
             try:
                 loop = asyncio.get_event_loop()
-            except RuntimeError:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-            
-            loop.create_task(send_to_saved())
-            
-        except Exception as e:
-            logger.error(f"❌ Failed to send Telegram notification: {e}")
+                loop.create_task(send_new())
+            except:
+                pass
 
-
-# Глобальный экземпляр
 functions_service = FunctionsService()

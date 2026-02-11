@@ -219,35 +219,23 @@ def bot_detail(request, bot_id):
     """Детали бота и сохранение настроек"""
     bot = get_object_or_404(BotAgent, id=bot_id, user=request.user)
 
-    # ЛОГИКА СОХРАНЕНИЯ
     if request.method == 'POST':
-        bot.name = request.POST.get('name', bot.name)
-        bot.description = request.POST.get('description', bot.description)
-        bot.system_prompt = request.POST.get('system_prompt', bot.system_prompt)
-        bot.openai_model = request.POST.get('model', bot.openai_model)
+        bot.name = request.POST.get('name')
+        bot.description = request.POST.get('description')
+        bot.system_prompt = request.POST.get('system_prompt')
+        bot.company_name = request.POST.get('company_name')
         
-        try:
-            bot.temperature = float(request.POST.get('temperature', bot.temperature))
-        except (ValueError, TypeError):
-            bot.temperature = 0.7
-            
-        try:
-            bot.max_tokens = int(request.POST.get('max_tokens', bot.max_tokens))
-        except (ValueError, TypeError):
-            bot.max_tokens = 500
+        bot.notification_recipient = request.POST.get('notification_recipient')
         
-        bot.company_name = request.POST.get('company_name', bot.company_name or 'TheCloser')
+        bot.openai_model = request.POST.get('model')
+        bot.temperature = float(request.POST.get('temperature', 0.7))
+        bot.max_tokens = int(request.POST.get('max_tokens', 500))
         
-        bot.status = 'active' if request.POST.get('is_active') else 'paused'
-        bot.use_rag = bool(request.POST.get('use_rag'))
-        
-        try:
-            bot.rag_top_k = int(request.POST.get('rag_k', bot.rag_top_k))
-        except (ValueError, TypeError):
-            bot.rag_top_k = 5
+        bot.use_rag = request.POST.get('use_rag') == 'on'
+        bot.rag_top_k = int(request.POST.get('rag_k', 5))
         
         bot.save()
-        messages.success(request, 'Настройки бота сохранены')
+        messages.success(request, 'Настройки агента обновлены')
         return redirect('agent_detail', bot_id=bot.id)
     
     conversations = Conversation.objects.filter(bot=bot)

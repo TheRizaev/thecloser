@@ -100,6 +100,14 @@ class BotAgent(models.Model):
         help_text='Название компании, от лица которой выступает бот'
     )
     
+    notification_recipient = models.CharField(
+        max_length=100, 
+        blank=True, 
+        null=True, 
+        verbose_name="Куда слать уведомления",
+        help_text="Юзернейм в Telegram (например: @TheRizaev). Если пусто — шлет в Избранное."
+    )
+    
     platform = models.CharField(
         max_length=20,
         choices=PLATFORM_CHOICES,
