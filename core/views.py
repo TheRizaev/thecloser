@@ -1374,3 +1374,127 @@ def bot_test_chat(request, bot_id):
     }
     
     return render(request, 'dashboard/bot_test_chat.html', context)
+
+@login_required
+@require_http_methods(['POST'])
+def create_function(request, bot_id):
+    """API: Создание функции"""
+    bot = get_object_or_404(BotAgent, id=bot_id, user=request.user)
+    
+    try:
+        from core.models import BotFunction
+        data = json.loads(request.body)
+        
+        func = BotFunction.objects.create(
+            bot=bot,
+            name=data['name'],
+            description=data['description'],
+            parameters_schema=data['parameters_schema'],
+            function_type=data['function_type'],
+            is_active=True
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'function_id': func.id,
+            'message': f'Функция "{func.name}" создана'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error creating function: {e}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+
+@login_required
+@require_http_methods(['GET'])
+def get_function(request, bot_id, function_id):
+    """API: Получение данных функции"""
+    from core.models import BotFunction
+    
+    func = get_object_or_404(
+        BotFunction,
+        id=function_id,
+        bot_id=bot_id,
+        bot__user=request.user
+    )
+    
+    return JsonResponse({
+        'success': True,
+        'function': {
+            'id': func.id,
+            'name': func.name,
+            'description': func.description,
+            'parameters_schema': func.parameters_schema,
+            'function_type': func.function_type,
+            'is_active': func.is_active
+        }
+    })
+
+
+@login_required
+@require_http_methods(['POST'])
+def update_function(request, bot_id, function_id):
+    """API: Обновление функции"""
+    from core.models import BotFunction
+    
+    func = get_object_or_404(
+        BotFunction,
+        id=function_id,
+        bot_id=bot_id,
+        bot__user=request.user
+    )
+    
+    try:
+        data = json.loads(request.body)
+        
+        func.name = data.get('name', func.name)
+        func.description = data.get('description', func.description)
+        func.parameters_schema = data.get('parameters_schema', func.parameters_schema)
+        func.function_type = data.get('function_type', func.function_type)
+        func.save()
+        
+        return JsonResponse({'success': True, 'message': 'Функция обновлена'})
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+
+@login_required
+@require_http_methods(['POST'])
+def toggle_function(request, bot_id, function_id):
+    """API: Вкл/Выкл функции"""
+    from core.models import BotFunction
+    
+    func = get_object_or_404(
+        BotFunction,
+        id=function_id,
+        bot_id=bot_id,
+        bot__user=request.user
+    )
+    
+    try:
+        data = json.loads(request.body)
+        func.is_active = data.get('is_active', not func.is_active)
+        func.save()
+        
+        return JsonResponse({'success': True, 'is_active': func.is_active})
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+
+@login_required
+@require_http_methods(['DELETE'])
+def delete_function(request, bot_id, function_id):
+    """API: Удаление функции"""
+    from core.models import BotFunction
+    
+    func = get_object_or_404(
+        BotFunction,
+        id=function_id,
+        bot_id=bot_id,
+        bot__user=request.user
+    )
+    
+    func.delete()
+    return JsonResponse({'success': True, 'message': 'Функция удалена'})

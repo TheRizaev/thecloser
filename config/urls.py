@@ -52,6 +52,13 @@ urlpatterns = [
     path('api/agents/<int:bot_id>/delete/', views.delete_bot_api, name='delete_bot_api'),
     path('api/agents/<int:bot_id>/update-prompt/', views.update_bot_prompt, name='update_bot_prompt'),
     path('api/agents/<int:bot_id>/update/', views.update_bot_api, name='update_bot_api'),
+    
+    
+    path('api/agents/<int:bot_id>/functions/create/', views.create_function, name='create_function'),
+    path('api/agents/<int:bot_id>/functions/<int:function_id>/', views.get_function, name='get_function'),
+    path('api/agents/<int:bot_id>/functions/<int:function_id>/update/', views.update_function, name='update_function'),
+    path('api/agents/<int:bot_id>/functions/<int:function_id>/toggle/', views.toggle_function, name='toggle_function'),
+    path('api/agents/<int:bot_id>/functions/<int:function_id>/delete/', views.delete_function, name='delete_function'),
 
     # ============================================
     # TELEGRAM CONNECT

@@ -204,6 +204,14 @@ class Conversation(models.Model):
     lead_email = models.EmailField(blank=True, verbose_name='Email лида')
     lead_phone = models.CharField(max_length=20, blank=True, verbose_name='Телефон лида')
     
+    # ========== НОВОЕ ПОЛЕ: Динамические данные лида ==========
+    lead_data = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name='Данные лида',
+        help_text='Все собранные данные от клиента (имя, телефон, дата, бюджет и т.д.)'
+    )
+    
     started_at = models.DateTimeField(default=timezone.now, verbose_name='Начало диалога')
     last_message_at = models.DateTimeField(default=timezone.now, verbose_name='Последнее сообщение')
     
@@ -487,3 +495,80 @@ class CRMSyncLog(models.Model):
     
     def __str__(self):
         return f"{self.integration} - {self.get_action_display()} - {self.created_at}"
+    
+class BotFunction(models.Model):
+    """
+    Гибкая модель для Function Calling
+    Администратор создает функции, AI их вызывает
+    """
+    
+    FUNCTION_TYPE_CHOICES = [
+        ('save_lead', 'Сохранить лид'),
+        ('call_manager', 'Позвать менеджера'),
+    ]
+    
+    bot = models.ForeignKey(
+        BotAgent,
+        on_delete=models.CASCADE,
+        related_name='functions',
+        verbose_name='Бот'
+    )
+    
+    # Техническое имя для AI (англ)
+    name = models.CharField(
+        max_length=100,
+        verbose_name='Техническое имя',
+        help_text='Например: save_client_info, request_human_help'
+    )
+    
+    # Описание для AI (когда вызывать)
+    description = models.TextField(
+        verbose_name='Описание для AI',
+        help_text='Инструкция: когда AI должен вызвать эту функцию'
+    )
+    
+    # JSON Schema параметров
+    parameters_schema = models.JSONField(
+        default=dict,
+        verbose_name='Схема параметров',
+        help_text='JSON: какие данные должен собрать AI (имя, телефон, дата и т.д.)'
+    )
+    
+    # Тип логики
+    function_type = models.CharField(
+        max_length=50,
+        choices=FUNCTION_TYPE_CHOICES,
+        verbose_name='Тип функции'
+    )
+    
+    # Включена ли функция
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name='Активна'
+    )
+    
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создана')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Обновлена')
+    
+    class Meta:
+        db_table = 'bot_functions'
+        verbose_name = 'Функция бота'
+        verbose_name_plural = 'Функции ботов'
+        ordering = ['bot', 'name']
+        unique_together = ['bot', 'name']
+    
+    def __str__(self):
+        return f"{self.bot.name} — {self.name}"
+    
+    def to_openai_tool(self):
+        """
+        Конвертирует функцию в формат OpenAI Tools API
+        """
+        return {
+            "type": "function",
+            "function": {
+                "name": self.name,
+                "description": self.description,
+                "parameters": self.parameters_schema
+            }
+        }

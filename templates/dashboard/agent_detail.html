@@ -15,7 +15,6 @@
         --surface-dark: #1e293b;
         --surface-darker: #0f172a;
 
-
         --price-cheap: #3b82f6;           /* Синий */
         --price-moderate: #10b981;        /* Зеленый */
         --price-expensive: #f59e0b;       /* Оранжевый/Золотой */
@@ -76,7 +75,7 @@
         display: flex;
         flex-direction: column;
         justify-content: center;
-        min-width: 0; /* Fix flex overflow */
+        min-width: 0;
     }
 
     .bot-title-row {
@@ -131,8 +130,8 @@
     /* --- Tabs Styling --- */
     .tabs-container {
         margin-bottom: 32px;
-        overflow-x: auto; /* Scroll on mobile */
-        padding-bottom: 4px; /* Space for scrollbar */
+        overflow-x: auto;
+        padding-bottom: 4px;
         -webkit-overflow-scrolling: touch;
     }
 
@@ -144,7 +143,7 @@
         border: 1px solid var(--dash-border);
         border-radius: 16px;
         width: fit-content;
-        min-width: min-content; /* Ensure tabs don't shrink too much */
+        min-width: min-content;
     }
 
     .tab-button {
@@ -483,7 +482,234 @@
         border: 1px solid rgba(59, 130, 246, 0.3);
     }
 
-    /* --- RESPONSIVE MEDIA QUERIES --- */
+    /* --- FUNCTIONS TAB STYLES (ОБНОВЛЕННЫЕ) --- */
+    
+    /* Контейнер списка со скроллом */
+    .functions-list-wrapper {
+        max-height: 600px; /* Фиксируем высоту */
+        overflow-y: auto;  /* Включаем скролл */
+        padding-right: 10px;
+        margin-right: -10px; /* Компенсация отступа для скролла */
+        
+        /* Стилизация скроллбара */
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    }
+    
+    .functions-list-wrapper::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .functions-list-wrapper::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    .functions-list-wrapper::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+    }
+    
+    .functions-list-wrapper::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(255, 255, 255, 0.4);
+    }
+
+    .functions-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    /* Карточка функции (Glassmorphism) */
+    .function-card {
+        background: rgba(30, 41, 59, 0.4); /* Полупрозрачный фон */
+        backdrop-filter: blur(12px);       /* Эффект матового стекла */
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        padding: 20px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .function-card:hover {
+        background: rgba(30, 41, 59, 0.6);
+        border-color: rgba(99, 102, 241, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Цветная полоска слева для типов */
+    .function-card.type-save_lead {
+        border-left: 3px solid #22c55e;
+    }
+    
+    .function-card.type-call_manager {
+        border-left: 3px solid #ef4444;
+    }
+
+    .function-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 12px;
+    }
+
+    .function-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+    .function-icon.save_lead {
+        background: rgba(34, 197, 94, 0.1);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+
+    .function-icon.call_manager {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .function-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .function-name {
+        font-size: 16px;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 4px;
+        font-family: 'JetBrains Mono', monospace; /* Моноширинный шрифт для имени */
+        letter-spacing: -0.5px;
+    }
+
+    .function-type-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        background: rgba(99, 102, 241, 0.1);
+        color: var(--dash-primary);
+        border: 1px solid rgba(99, 102, 241, 0.2);
+    }
+
+    .function-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .function-description {
+        color: var(--dash-text-muted);
+        font-size: 14px;
+        line-height: 1.5;
+        margin-bottom: 12px;
+        padding-left: 64px; /* Отступ под иконкой */
+    }
+
+    .function-params {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        font-size: 13px;
+        color: var(--dash-text-muted);
+        padding-left: 64px; /* Отступ под иконкой */
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .param-badge {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--dash-border);
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-family: 'JetBrains Mono', monospace;
+        color: #e2e8f0;
+    }
+
+    /* Empty State */
+    .empty-state-functions {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .empty-state-functions .empty-icon {
+        width: 80px;
+        height: 80px;
+        background: rgba(99, 102, 241, 0.05);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 36px;
+        color: var(--dash-primary);
+        border: 1px solid rgba(99, 102, 241, 0.2);
+    }
+
+    .empty-state-functions h4 {
+        margin: 0 0 8px 0;
+        color: white;
+        font-size: 18px;
+    }
+
+    .empty-state-functions p {
+        color: var(--dash-text-muted);
+        margin: 0 0 24px 0;
+    }
+
+    /* Parameter Builder */
+    .parameter-item {
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid var(--dash-border);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 12px;
+        position: relative;
+    }
+
+    .parameter-item:hover {
+        background: rgba(15, 23, 42, 0.8);
+    }
+
+    .parameter-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 12px;
+        align-items: end;
+    }
+
+    .param-remove-btn {
+        width: 40px;
+        height: 40px;
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        border-radius: 8px;
+        color: #ef4444;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .param-remove-btn:hover {
+        background: rgba(239, 68, 68, 0.2);
+        transform: scale(1.05);
+    }
+
+    /* Responsive */
     @media (max-width: 1024px) {
         .config-grid { grid-template-columns: 1fr; }
         .analytics-grid-top { grid-template-columns: repeat(2, 1fr); }
@@ -582,50 +808,69 @@
         .conv-cell:first-child { border: none; padding-bottom: 0; }
         .conv-cell:last-child { border: none; text-align: center; background: rgba(0,0,0,0.2); }
         
-        /* Скрываем пустые ячейки если нужно или меняем их вид */
+        .function-header {
+            flex-wrap: wrap;
+        }
+        
+        .function-actions {
+            width: 100%;
+            justify-content: flex-end;
+        }
+        
+        .parameter-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .param-remove-btn {
+            justify-self: end;
+        }
+        
+        .function-description, .function-params {
+            padding-left: 0; /* Убираем отступ на мобильных */
+        }
     }
 
     #temperatureGroup, #maxTokensGroup, #reasoningWarning {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    opacity: 1;
-    max-height: 200px;
-    overflow: hidden;
-    margin-bottom: 24px;
-}
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        opacity: 1;
+        max-height: 200px;
+        overflow: hidden;
+        margin-bottom: 24px;
+    }
 
-#temperatureGroup[style*="display: none"],
-#maxTokensGroup[style*="display: none"] {
-    opacity: 0;
-    max-height: 0;
-    margin-bottom: 0;
-    padding: 0;
-}
-
-#reasoningWarning[style*="display: block"] {
-    animation: fadeInUp 0.4s ease-out;
-}
-
-@keyframes fadeInUp {
-    from {
+    #temperatureGroup[style*="display: none"],
+    #maxTokensGroup[style*="display: none"] {
         opacity: 0;
-        transform: translateY(-10px);
+        max-height: 0;
+        margin-bottom: 0;
+        padding: 0;
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
 
-@keyframes pulse {
-    0%, 100% {
-        opacity: 1;
-        transform: scale(1);
+    #reasoningWarning[style*="display: block"] {
+        animation: fadeInUp 0.4s ease-out;
     }
-    50% {
-        opacity: 0.6;
-        transform: scale(1.15);
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
-}
+
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+        50% {
+            opacity: 0.6;
+            transform: scale(1.15);
+        }
+    }
 </style>
 {% endblock %}
 
@@ -666,7 +911,7 @@
                 </div>
                 
                 <div class="header-actions">
-                     {% if bot.platform == 'telegram' %}
+                      {% if bot.platform == 'telegram' %}
                         {% if bot.session_string %}
                         <a href="https://t.me/{{ bot.telegram_username }}" target="_blank" class="btn btn-primary" style="background: #229ED9; border-color: #229ED9;">
                             <i class="fa-brands fa-telegram"></i> Telegram
@@ -704,6 +949,9 @@
             </button>
             <button class="tab-button" onclick="switchTab('knowledge')">
                 <i class="fa-solid fa-database"></i> База знаний
+            </button>
+            <button class="tab-button" onclick="switchTab('functions')">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Функции
             </button>
             <button class="tab-button" onclick="switchTab('conversations')">
                 <i class="fa-solid fa-comments"></i> Диалоги
@@ -824,7 +1072,6 @@
                             <div class="model-price-hint" id="modelHint"></div>
                         </div>
 
-                        <!-- ========== Temperature (СКРЫВАЕТСЯ для reasoning) ========== -->
                         <div class="form-group" id="temperatureGroup">
                             <label class="form-label">
                                 Температура (Креативность)
@@ -847,7 +1094,6 @@
                             </div>
                         </div>
 
-                        <!-- ========== Max Tokens (СКРЫВАЕТСЯ для reasoning) ========== -->
                         <div class="form-group" id="maxTokensGroup">
                             <label class="form-label">
                                 Лимит токенов
@@ -867,7 +1113,6 @@
                             </div>
                         </div>
 
-                        <!-- ========== ПРЕДУПРЕЖДЕНИЕ для reasoning моделей ========== -->
                         <div class="form-group" id="reasoningWarning" style="display: none;">
                             <div style="
                                 background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(139, 92, 246, 0.15) 100%);
@@ -1002,6 +1247,150 @@
                     <a href="{% url 'upload_knowledge' %}?bot_id={{ bot.id }}" class="btn btn-primary">Загрузить первый файл</a>
                 </div>
             {% endif %}
+        </div>
+    </div>
+
+    <div id="tab-functions" class="tab-content">
+        <div class="config-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <div>
+                    <h3 style="margin: 0; font-size: 20px; font-weight: 700;">
+                        <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--dash-primary); margin-right: 10px;"></i>
+                        Function Calling
+                    </h3>
+                    <p style="color: var(--dash-text-muted); font-size: 14px; margin: 8px 0 0 0;">
+                        Научите бота выполнять действия: сохранять лиды, звать менеджера и многое другое
+                    </p>
+                </div>
+                <button class="btn btn-primary" onclick="openFunctionModal()">
+                    <i class="fa-solid fa-plus"></i> Добавить функцию
+                </button>
+            </div>
+
+            <div class="functions-list-wrapper">
+                <div class="functions-list" id="functionsList">
+                    {% if bot.functions.all %}
+                        {% for func in bot.functions.all %}
+                        <div class="function-card type-{{ func.function_type }}" data-function-id="{{ func.id }}">
+                            <div class="function-header">
+                                <div class="function-icon {{ func.function_type }}">
+                                    {% if func.function_type == 'save_lead' %}
+                                        <i class="fa-solid fa-user-plus"></i>
+                                    {% elif func.function_type == 'call_manager' %}
+                                        <i class="fa-solid fa-phone"></i>
+                                    {% else %}
+                                        <i class="fa-solid fa-bolt"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="function-info">
+                                    <div class="function-name">{{ func.name }}</div>
+                                    <div class="function-type-badge">{{ func.get_function_type_display }}</div>
+                                </div>
+                                <div class="function-actions">
+                                    <label class="toggle-switch" style="margin: 0;">
+                                        <input type="checkbox" {% if func.is_active %}checked{% endif %} onchange="toggleFunction({{ func.id }}, this.checked)">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                    <button class="btn-icon" onclick="editFunction({{ func.id }})" title="Редактировать">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </button>
+                                    <button class="btn-icon btn-danger" onclick="deleteFunction({{ func.id }}, '{{ func.name|escapejs }}')" title="Удалить">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="function-description">
+                                {{ func.description|truncatewords:30 }}
+                            </div>
+                            {% if func.parameters_schema.properties %}
+                            <div class="function-params">
+                                <strong>Параметры:</strong>
+                                {% for param, details in func.parameters_schema.properties.items %}
+                                    <span class="param-badge">{{ param }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state-functions" id="emptyStateFunctions">
+                            <div class="empty-icon">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            </div>
+                            <h4>У бота пока нет функций</h4>
+                            <p>Добавьте первую функцию, чтобы бот мог выполнять действия</p>
+                            <button class="btn btn-primary" onclick="openFunctionModal()">
+                                <i class="fa-solid fa-plus"></i> Создать функцию
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="functionModal">
+        <div class="modal-content" style="max-width: 800px; height: auto; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h3 style="margin: 0; color: #fff; font-size: 18px;">
+                    <i class="fa-solid fa-wand-magic-sparkles" style="margin-right: 8px;"></i> 
+                    <span id="functionModalTitle">Новая функция</span>
+                </h3>
+                <button type="button" class="btn btn-secondary" onclick="closeFunctionModal()" style="padding: 8px 16px;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 32px; background: #1e293b; overflow-y: auto;">
+                <form id="functionForm">
+                    <input type="hidden" id="functionId" name="function_id">
+                    
+                    <div class="form-group">
+                        <label class="form-label">Тип функции</label>
+                        <select class="form-select" id="functionType" name="function_type" required onchange="updateFunctionTypeHint()">
+                            <option value="">Выберите тип</option>
+                            <option value="save_lead">💾 Сохранить лид</option>
+                            <option value="call_manager">📞 Позвать менеджера</option>
+                        </select>
+                        <div id="functionTypeHint" style="margin-top: 8px; font-size: 13px; color: var(--dash-text-muted);"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Техническое имя (английскими буквами)</label>
+                        <input type="text" class="form-input" id="functionName" name="name" placeholder="save_client_info" required>
+                        <div style="margin-top: 6px; font-size: 12px; color: var(--dash-text-muted);">
+                            Используйте snake_case (например: save_appointment, request_callback)
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Описание для AI (когда вызывать)</label>
+                        <textarea class="form-textarea" id="functionDescription" name="description" rows="3" required placeholder="Вызови эту функцию когда клиент готов записаться и предоставил имя и телефон"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            Параметры функции
+                            <span style="font-weight: 400; color: var(--dash-text-muted);">(какие данные собирать)</span>
+                        </label>
+                        
+                        <div id="parametersContainer">
+                            </div>
+                        
+                        <button type="button" class="btn btn-secondary" onclick="addParameter()" style="margin-top: 12px; width: 100%;">
+                            <i class="fa-solid fa-plus"></i> Добавить параметр
+                        </button>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; margin-top: 32px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeFunctionModal()" style="flex: 1;">
+                            Отмена
+                        </button>
+                        <button type="submit" class="btn btn-primary" style="flex: 2;">
+                            <i class="fa-solid fa-check"></i> Сохранить функцию
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -1151,7 +1540,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function updateModelColor() {
     updateModelSettings();
 }
-</script>   
+</script>    
 
 <script>
     const csrfToken = '{{ csrf_token }}';
@@ -1300,6 +1689,249 @@ function updateModelColor() {
                 }
             }
         });
+    }
+    
+    // ============================================
+    // FUNCTIONS JS
+    // ============================================
+    let editingFunctionId = null;
+
+    function openFunctionModal(functionId = null) {
+        const modal = document.getElementById('functionModal');
+        const form = document.getElementById('functionForm');
+        const title = document.getElementById('functionModalTitle');
+        
+        // Сброс формы
+        form.reset();
+        document.getElementById('parametersContainer').innerHTML = '';
+        document.getElementById('functionId').value = ''; // Очищаем ID
+        editingFunctionId = functionId;
+        
+        if (functionId) {
+            title.textContent = 'Редактировать функцию';
+            loadFunctionData(functionId);
+        } else {
+            title.textContent = 'Новая функция';
+            // Добавляем 2 параметра по умолчанию
+            addParameter('name', 'string', 'Имя клиента', true);
+            addParameter('phone', 'string', 'Номер телефона', true);
+        }
+        
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeFunctionModal() {
+        document.getElementById('functionModal').classList.remove('open');
+        document.body.style.overflow = '';
+        editingFunctionId = null;
+    }
+
+    function updateFunctionTypeHint() {
+        const type = document.getElementById('functionType').value;
+        const hint = document.getElementById('functionTypeHint');
+        
+        const hints = {
+            'save_lead': '💾 Бот соберет данные клиента и отправит вам уведомление',
+            'call_manager': '📞 Бот позовет живого человека, если не справляется'
+        };
+        
+        hint.textContent = hints[type] || '';
+    }
+
+    function addParameter(name = '', type = 'string', description = '', required = false) {
+        const container = document.getElementById('parametersContainer');
+        const index = container.children.length;
+        
+        const paramDiv = document.createElement('div');
+        paramDiv.className = 'parameter-item';
+        paramDiv.innerHTML = `
+            <div class="parameter-grid">
+                <div>
+                    <label class="form-label" style="font-size: 12px; margin-bottom: 6px;">Название параметра</label>
+                    <input type="text" class="form-input" name="param_name_${index}" value="${name}" placeholder="phone" required>
+                </div>
+                <div>
+                    <label class="form-label" style="font-size: 12px; margin-bottom: 6px;">Описание для AI</label>
+                    <input type="text" class="form-input" name="param_desc_${index}" value="${description}" placeholder="Номер телефона клиента" required>
+                </div>
+                <button type="button" class="param-remove-btn" onclick="this.parentElement.parentElement.remove()" title="Удалить">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div style="margin-top: 12px; display: flex; gap: 12px; align-items: center;">
+                <select class="form-select" name="param_type_${index}" style="max-width: 150px;">
+                    <option value="string" ${type === 'string' ? 'selected' : ''}>Текст</option>
+                    <option value="number" ${type === 'number' ? 'selected' : ''}>Число</option>
+                </select>
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--dash-text-muted); font-size: 13px;">
+                    <input type="checkbox" name="param_required_${index}" ${required ? 'checked' : ''} style="width: 18px; height: 18px;">
+                    Обязательный параметр
+                </label>
+            </div>
+        `;
+        
+        container.appendChild(paramDiv);
+    }
+
+    // Сохранение функции
+    document.getElementById('functionForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const container = document.getElementById('parametersContainer');
+        const paramItems = container.getElementsByClassName('parameter-item');
+        
+        // Собираем параметры
+        const parameters = {
+            type: "object",
+            properties: {},
+            required: []
+        };
+        
+        // Проходим по всем элементам параметров
+        for (let i = 0; i < paramItems.length; i++) {
+            const item = paramItems[i];
+            // Находим инпуты внутри item, так как индексы могут быть сбиты после удаления
+            const nameInput = item.querySelector('input[name^="param_name_"]');
+            const descInput = item.querySelector('input[name^="param_desc_"]');
+            const typeSelect = item.querySelector('select[name^="param_type_"]');
+            const requiredCheck = item.querySelector('input[name^="param_required_"]');
+            
+            const name = nameInput.value;
+            const desc = descInput.value;
+            const type = typeSelect.value;
+            const required = requiredCheck.checked;
+            
+            if (name) {
+                parameters.properties[name] = {
+                    type: type,
+                    description: desc
+                };
+                
+                if (required) {
+                    parameters.required.push(name);
+                }
+            }
+        }
+        
+        const data = {
+            function_type: formData.get('function_type'),
+            name: formData.get('name'),
+            description: formData.get('description'),
+            parameters_schema: parameters
+        };
+        
+        try {
+            const url = editingFunctionId 
+                ? `/api/agents/${botId}/functions/${editingFunctionId}/update/`
+                : `/api/agents/${botId}/functions/create/`;
+            
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify(data)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                closeFunctionModal();
+                location.reload();
+            } else {
+                alert('Ошибка: ' + (result.error || 'Не удалось сохранить'));
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Ошибка соединения');
+        }
+    });
+
+    async function toggleFunction(functionId, isActive) {
+        try {
+            const response = await fetch(`/api/agents/${botId}/functions/${functionId}/toggle/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ is_active: isActive })
+            });
+            
+            const result = await response.json();
+            if (!result.success) {
+                alert('Ошибка: ' + result.error);
+                location.reload();
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Ошибка соединения');
+        }
+    }
+
+    async function deleteFunction(functionId, functionName) {
+        if (!confirm(`Удалить функцию "${functionName}"?`)) return;
+        
+        try {
+            const response = await fetch(`/api/agents/${botId}/functions/${functionId}/delete/`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                }
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                location.reload();
+            } else {
+                alert('Ошибка: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Ошибка соединения');
+        }
+    }
+
+    function editFunction(functionId) {
+        openFunctionModal(functionId);
+    }
+
+    async function loadFunctionData(functionId) {
+        try {
+            // Исправленный URL (проверьте, что в urls.py он такой же)
+            const response = await fetch(`/api/agents/${botId}/functions/${functionId}/`);
+            const data = await response.json();
+            
+            if (data.success) {
+                const func = data.function;
+                document.getElementById('functionId').value = func.id;
+                document.getElementById('functionType').value = func.function_type;
+                document.getElementById('functionName').value = func.name;
+                document.getElementById('functionDescription').value = func.description;
+                updateFunctionTypeHint();
+                
+                // Загружаем параметры
+                const params = func.parameters_schema.properties || {};
+                const required = func.parameters_schema.required || [];
+                
+                document.getElementById('parametersContainer').innerHTML = '';
+                
+                for (const [name, details] of Object.entries(params)) {
+                    addParameter(
+                        name,
+                        details.type,
+                        details.description,
+                        required.includes(name)
+                    );
+                }
+            }
+        } catch (error) {
+            console.error('Error loading function:', error);
+            alert('Ошибка загрузки данных');
+        }
     }
 </script>
 {% endblock %}

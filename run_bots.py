@@ -11,7 +11,7 @@ import django
 import logging
 import random
 from asgiref.sync import sync_to_async
-
+import json
 import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
@@ -66,31 +66,17 @@ elif not OPENAI_API_KEY:
     logger.warning("⚠️ OPENAI_API_KEY не найден в .env")
 
 active_clients = {}
-
 HUMANIZER_INSTRUCTIONS_TEMPLATE = """
-Ты — {bot_name}.
-ТВОЯ РОЛЬ: Опытный сотрудник компании {company_name}. Ты общаешься в Telegram.
-ТВОЯ ЦЕЛЬ: Быстро и четко решить вопрос клиента или закрыть сделку.
+Роль: Ты — {bot_name}, сотрудник {company_name}. Пишешь с телефона в Telegram.
+Задача: Решить вопрос или продать.
 
-ПРАВИЛА "АНТИ-РОБОТ" (СТРОГОЕ СОБЛЮДЕНИЕ):
-1. **ФОРМАТ СООБЩЕНИЙ:**
-   - Пиши короткими предложениями. Люди в чатах не пишут абзацами.
-   - Избегай маркированных списков с жирными заголовками, если это не длинная инструкция.
-   - Иногда пиши с маленькой буквы (особенно короткие ответы: "ок", "хорошо", "сейчас гляну").
-   - Не ставь точку в конце одиночных предложений или коротких фраз.
+СТИЛЬ (СТРОГО):
+1. **Формат:** Пиши предельно кратко, но не сильно, не по одному-два слова. Избегай списков. Короткие фразы — без точки в конце, можно с маленькой буквы.
+2. **Табу:** ЗАПРЕЩЕНО писать "Я ИИ", "Языковая модель", "Чем могу помочь?".
+3. **Реакция:** На "Привет" отвечай "Здравствуйте, чем могу помочь?" . Не задавай вопросов, пока не поймешь суть.
+4. **Конкретика:** Не зеркаль вопрос (User: "Цена?" -> Bot: "5000", а не "Цена составляет...").
 
-2. **СТИЛЬ ОБЩЕНИЯ:**
-   - **Запрещенные фразы:** "Я языковая модель", "Как искусственный интеллект", "Чем могу быть полезен?", "Обращайтесь, если будут вопросы". За использование — штраф.
-   - Не используй сложные вводные конструкции ("Стоит отметить, что..."). Пиши проще: "Кстати...", "Еще момент...".
-   - Если не знаешь ответа — не извиняйся расплывчато. Скажи честно: "Так, секунду, уточню этот момент" или "Не уверен, сейчас проверю".
-   - Не зеркаль вопрос пользователя (User: "Цена?" -> Bot: "Цена составляет..."). Отвечай сразу сутью ("5000").
-
-3. **ЭМОЦИОНАЛЬНЫЙ ИНТЕЛЛЕКТ:**
-   - Не будь "лакеем". Будь профессиональным, но на равных.
-   - Если пользователь пишет "Привет", отвечай "Привет" или "Добрый день". Не спрашивай сразу "Чем помочь?". Жди суть.
-   - Эмодзи используй редко и к месту.
-
-ТВОЙ ВНУТРЕННИЙ ГОЛОС: Ты занятой человек, который пишет с телефона. Ты вежлив, но краток.
+Веди себя как занятой человек, а не как услужливый робот.
 """
 
 @sync_to_async
@@ -159,14 +145,19 @@ def get_rag_response(bot_id, query):
         }
 
 
-async def get_chatgpt_response(message_text, bot_record, history=None):
+async def get_chatgpt_response(message_text, bot_record, history=None, conversation_id=None):
     """
-    ОБНОВЛЕНО: Поддержка НОВОГО API для o1/o3/GPT-5+
+    Генерация ответа с поддержкой Function Calling и Humanizer.
+    Аргумент conversation_id обязателен для работы функций!
     """
     if not ai_client:
         return "⚠️ Ошибка: AI клиент не инициализирован."
 
     try:
+        from core.models import BotFunction
+        from services.functions_service import functions_service
+        
+        # 1. Humanizer (Личность бота)
         humanizer = HUMANIZER_INSTRUCTIONS_TEMPLATE.format(
             bot_name=bot_record.name,
             company_name=bot_record.company_name or "TheCloser"
@@ -174,8 +165,8 @@ async def get_chatgpt_response(message_text, bot_record, history=None):
         
         user_prompt = bot_record.system_prompt or ""
         
+        # 2. RAG (База знаний)
         rag_context = ""
-        
         if bot_record.use_rag:
             logger.info(f"🔍 [Bot {bot_record.id}] Searching knowledge base...")
             rag_result = await get_rag_response(bot_record.id, message_text)
@@ -184,61 +175,103 @@ async def get_chatgpt_response(message_text, bot_record, history=None):
                 rag_context = f"\n\n📚 ИНФОРМАЦИЯ ИЗ БАЗЫ ЗНАНИЙ:\n{rag_result['answer']}\n"
                 logger.info(f"✅ [Bot {bot_record.id}] RAG found info")
         
+        # 3. Сборка финального промпта
         final_system_prompt = humanizer + "\n\n" + user_prompt
-        
         if rag_context:
-            final_system_prompt += """
-
-ВАЖНО: Используй информацию из базы знаний для ответа.
-"""
+            final_system_prompt += "\n\nВАЖНО: Используй информацию из базы знаний для ответа."
             final_system_prompt += rag_context
         
+        # Формируем историю сообщений
         messages_payload = [{"role": "system", "content": final_system_prompt}]
         
         if history:
             msgs_to_add = history
+            # Исключаем дублирование последнего сообщения, если оно уже там
             if history and history[-1]['role'] == 'user' and history[-1]['content'] == message_text:
                 msgs_to_add = history[:-1]
-                
             messages_payload.extend(msgs_to_add)
-            
+        
         messages_payload.append({"role": "user", "content": message_text})
         
-        loop = asyncio.get_event_loop()
+        # 4. Загрузка инструментов (Functions)
+        bot_functions = await sync_to_async(list)(
+            BotFunction.objects.filter(bot=bot_record, is_active=True)
+        )
+        tools = [func.to_openai_tool() for func in bot_functions]
         
-        # ========== ОПРЕДЕЛЯЕМ ТИП API ==========
+        logger.info(f"[Bot {bot_record.name}] Model: {bot_record.openai_model} | Tools: {len(tools)}")
+        
+        loop = asyncio.get_event_loop()
         uses_new_api = bot_record.uses_new_api()
         
-        logger.info(f"🤖 [Bot {bot_record.name}] Model: {bot_record.openai_model} | New API: {uses_new_api} | Temp: {bot_record.temperature} | Max: {bot_record.max_tokens}")
+        # Параметры API запроса
+        api_params = {
+            "model": bot_record.openai_model,
+            "messages": messages_payload,
+        }
+        if tools:
+            api_params["tools"] = tools
+            api_params["tool_choice"] = "auto"
+            
+        if not uses_new_api:
+             api_params["temperature"] = bot_record.temperature
+             api_params["max_tokens"] = bot_record.max_tokens
+
+        # 5. ПЕРВЫЙ ЗАПРОС К OPENAI
+        response = await loop.run_in_executor(
+            None,
+            lambda: ai_client.chat.completions.create(**api_params)
+        )
         
-        if uses_new_api:
-            # ========== НОВЫЙ API ==========
-            logger.info("Using NEW API with max_completion_tokens")
-            response = await loop.run_in_executor(
-                None,
-                lambda: ai_client.chat.completions.create(
-                    model=bot_record.openai_model,
-                    messages=messages_payload,
-                    response={
-                        "max_output_tokens": bot_record.max_tokens
-                    }
-                )
-            )
-        else:
-            # ========== СТАРЫЙ API ==========
-            logger.info("🔧 Using LEGACY API with temperature + max_tokens")
-            response = await loop.run_in_executor(
-                None,
-                lambda: ai_client.chat.completions.create(
-                    model=bot_record.openai_model,
-                    messages=messages_payload,
-                    temperature=bot_record.temperature,
-                    max_tokens=bot_record.max_tokens
-                )
-            )
+        message = response.choices[0].message
         
-        answer = response.choices[0].message.content.strip()
-        return answer
+        # 6. ОБРАБОТКА FUNCTION CALLING
+        if message.tool_calls:
+            logger.info(f"🔧 [Bot {bot_record.id}] AI wants to call {len(message.tool_calls)} function(s)")
+            
+            # Добавляем намерение AI в историю (обязательно для API)
+            messages_payload.append(message)
+            
+            for tool_call in message.tool_calls:
+                function_name = tool_call.function.name
+                function_args = json.loads(tool_call.function.arguments)
+                
+                logger.info(f"⚙️ Calling: {function_name} with {function_args}")
+                
+                # ВЫПОЛНЯЕМ ФУНКЦИЮ (Передаем conversation_id!)
+                result = await functions_service.execute_function(
+                    bot_record.id,
+                    conversation_id,  # <--- КРИТИЧЕСКИ ВАЖНОЕ ИСПРАВЛЕНИЕ
+                    function_name,
+                    function_args
+                )
+                
+                # Добавляем результат в историю
+                messages_payload.append({
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "name": function_name,
+                    "content": json.dumps(result, ensure_ascii=False)
+                })
+            
+            # 7. ВТОРОЙ ЗАПРОС К OPENAI (Финальный ответ)
+            # Убираем tools из второго запроса, чтобы он не вызывал их снова, а просто ответил
+            final_api_params = {
+                "model": bot_record.openai_model,
+                "messages": messages_payload
+            }
+            if not uses_new_api:
+                final_api_params["temperature"] = bot_record.temperature
+                final_api_params["max_tokens"] = bot_record.max_tokens
+                
+            final_response = await loop.run_in_executor(
+                None,
+                lambda: ai_client.chat.completions.create(**final_api_params)
+            )
+            
+            return final_response.choices[0].message.content.strip()
+        
+        return message.content.strip()
         
     except Exception as e:
         logger.error(f"OpenAI Error: {e}")
@@ -270,6 +303,7 @@ async def handle_message(event, bot_id):
 
     logger.info(f"📨 [{bot_record.name}] New msg from {user_name}: {text[:50]}...")
 
+    # Создаем или получаем диалог
     conversation = await get_or_create_conversation(bot_record, user_id, user_name)
     await save_message_to_db(conversation, 'user', text)    
     
@@ -283,10 +317,12 @@ async def handle_message(event, bot_id):
     except:
         pass
     
+    # ПЕРЕДАЕМ conversation.id В ФУНКЦИЮ ГЕНЕРАЦИИ
     response_text = await get_chatgpt_response(
         text, 
         bot_record,
-        history=history
+        history=history,
+        conversation_id=conversation.id  # <--- ВОТ ЗДЕСЬ ПЕРЕДАЕМ ID
     )
 
     typing_speed = random.randint(5, 8)
