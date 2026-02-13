@@ -112,6 +112,7 @@ urlpatterns = [
     
     # AmoCRM
     path('dashboard/integrations/api/amocrm/connect/', views_crm.connect_amocrm, name='connect_amocrm'),
+    path('dashboard/integrations/api/amocrm/callback/', views_crm.amocrm_callback, name='amocrm_callback'),
     path('dashboard/integrations/api/amocrm/connect-simple/', views_crm.connect_amocrm_simple, name='connect_amocrm_simple'),
     path('dashboard/integrations/api/amocrm/disconnect/', views_crm.disconnect_amocrm, name='disconnect_amocrm'),
     

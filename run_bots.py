@@ -2,6 +2,7 @@
 #!/usr/bin/env python
 """
 The Closer Worker - С ПОДДЕРЖКОЙ НОВОГО API и передачей активного клиента
++ ФУНКЦИЯ ПОСЛЕДНЕГО СООБЩЕНИЯ (Debounce)
 """
 import asyncio
 import os
@@ -70,6 +71,11 @@ elif not OPENAI_API_KEY:
 
 active_clients = {}
 
+# Глобальный словарь для накопления сообщений: {(bot_id, user_id): {'messages': [], 'task': Task}}
+accumulators = {}
+# Время ожидания следующего сообщения (в секундах)
+MESSAGE_DEBOUNCE_DELAY = 15 
+
 # --- PROMPT TEMPLATES ---
 HUMANIZER_INSTRUCTIONS_TEMPLATE = """
 Роль: Ты — {bot_name}, сотрудник {company_name}. Пишешь с телефона в Telegram.
@@ -80,6 +86,7 @@ HUMANIZER_INSTRUCTIONS_TEMPLATE = """
 2. **Табу:** ЗАПРЕЩЕНО писать "Я ИИ", "Языковая модель", "Чем могу помочь?".
 3. **Реакция:** На "Привет" отвечай "Привет" или "На связи". Не задавай вопросов, пока не поймешь суть.
 4. **Конкретика:** Не зеркаль вопрос (User: "Цена?" -> Bot: "5000", а не "Цена составляет...").
+5. **Мульти-вопросы:** Если пользователь задал несколько вопросов подряд, отвечай на них по порядку, разделяя ответы пустой строкой (абзацами). Если это одна мысль — отвечай одним блоком.
 
 Веди себя как занятой человек, а не как услужливый робот.
 """
@@ -237,7 +244,6 @@ async def get_chatgpt_response(message_text, bot_record, history=None, conversat
         if message.tool_calls:
             logger.info(f"🔧 [Bot {bot_record.id}] AI wants to call {len(message.tool_calls)} function(s)")
             
-            # Добавляем намерение AI в историю (обязательно для API)
             messages_payload.append(message)
             
             for tool_call in message.tool_calls:
@@ -246,7 +252,6 @@ async def get_chatgpt_response(message_text, bot_record, history=None, conversat
                 
                 logger.info(f"⚙️ Calling: {function_name} with {function_args}")
                 
-                # ВЫПОЛНЯЕМ ФУНКЦИЮ (Передаем активного клиента!)
                 result = await functions_service.execute_function(
                     bot_record.id,
                     conversation_id,
@@ -255,7 +260,6 @@ async def get_chatgpt_response(message_text, bot_record, history=None, conversat
                     client=telegram_client  # <--- ПЕРЕДАЕМ ТРУБКУ
                 )
                 
-                # Добавляем результат в историю
                 messages_payload.append({
                     "role": "tool",
                     "tool_call_id": tool_call.id,
@@ -298,6 +302,70 @@ async def keep_online_loop(client, bot_name):
         await asyncio.sleep(300 + random.randint(0, 10))
 
 
+async def process_accumulated_messages(bot_record, user_id, conversation, client, chat_id):
+    """
+    Асинхронная задача для обработки накопленных сообщений.
+    Ждет DEBOUNCE время, затем отвечает на все сразу.
+    """
+    key = (bot_record.id, user_id)
+    
+    try:
+        await asyncio.sleep(MESSAGE_DEBOUNCE_DELAY)
+    except asyncio.CancelledError:
+        return
+
+    if key not in accumulators:
+        return
+        
+    messages_to_process = accumulators[key]['messages']
+    del accumulators[key]
+    
+    if not messages_to_process:
+        return
+
+    combined_text = "\n\n".join(messages_to_process)
+    logger.info(f"🧩 [{bot_record.name}] Processing group of {len(messages_to_process)} messages. Total length: {len(combined_text)}")
+
+    raw_history = await get_conversation_history(conversation.id, limit=20)
+    
+    history_for_ai = raw_history
+    if len(raw_history) >= len(messages_to_process):
+        match = True
+        for i in range(1, len(messages_to_process) + 1):
+            if raw_history[-i]['content'] != messages_to_process[-i]:
+                match = False
+                break
+        
+        if match:
+            history_for_ai = raw_history[:-len(messages_to_process)]
+
+    response_text = await get_chatgpt_response(
+        combined_text, 
+        bot_record,
+        history=history_for_ai,
+        conversation_id=conversation.id,
+        telegram_client=client
+    )
+
+    # 5. Имитация печати и отправка
+    typing_speed = random.randint(5, 8)
+    typing_duration = len(response_text) / typing_speed
+    typing_duration = max(2.0, min(15.0, typing_duration))
+
+    try:
+        async with client.action(chat_id, 'typing'):
+            await asyncio.sleep(typing_duration)
+    except:
+        await asyncio.sleep(typing_duration)
+
+    try:
+        await client.send_message(chat_id, response_text)
+        await save_message_to_db(conversation, 'bot', response_text)
+        logger.info(f"✅ [{bot_record.name}] Replied to group messages")
+    except Exception as e:
+        logger.error(f"❌ Failed to send reply: {e}")
+
+
 async def handle_message(event, bot_id):
     bot_record = await get_bot_by_id(bot_id)
     if not bot_record or bot_record.status != 'active':
@@ -313,44 +381,37 @@ async def handle_message(event, bot_id):
 
     logger.info(f"📨 [{bot_record.name}] New msg from {user_name}: {text[:50]}...")
 
-    # Создаем или получаем диалог
     conversation = await get_or_create_conversation(bot_record, user_id, user_name)
     await save_message_to_db(conversation, 'user', text)    
     
-    history = await get_conversation_history(conversation.id, limit=11)
-
     read_delay = 2 + random.randint(0, 3)
-    await asyncio.sleep(read_delay)
+    asyncio.create_task(mark_read_delayed(event, read_delay))
 
+    key = (bot_id, user_id)
+    
+    if key in accumulators:
+        accumulators[key]['task'].cancel()
+        accumulators[key]['messages'].append(text)
+    else:
+        accumulators[key] = {
+            'messages': [text],
+            'task': None
+        }
+    
+    # Запускаем новый таймер
+    task = asyncio.create_task(
+        process_accumulated_messages(bot_record, user_id, conversation, event.client, event.chat_id)
+    )
+    accumulators[key]['task'] = task
+
+
+async def mark_read_delayed(event, delay):
+    """Отдельная задача для отметки прочтения"""
+    await asyncio.sleep(delay)
     try:
         await event.message.mark_read()
     except:
         pass
-    
-    # ПЕРЕДАЕМ conversation.id и active client В ФУНКЦИЮ ГЕНЕРАЦИИ
-    response_text = await get_chatgpt_response(
-        text, 
-        bot_record,
-        history=history,
-        conversation_id=conversation.id,
-        telegram_client=event.client  # <--- БЕРЕМ КЛИЕНТА ИЗ СОБЫТИЯ
-    )
-
-    typing_speed = random.randint(5, 8)
-    typing_duration = len(response_text) / typing_speed
-    typing_duration = max(2.0, min(15.0, typing_duration))
-
-    try:
-        async with event.client.action(event.chat_id, 'typing'):
-            await asyncio.sleep(typing_duration)
-    except:
-        await asyncio.sleep(typing_duration)
-
-    await event.reply(response_text)
-    
-    await save_message_to_db(conversation, 'bot', response_text)
-    
-    logger.info(f"✅ [{bot_record.name}] Replied to {user_name}")
 
 
 async def start_single_bot(bot_record):
@@ -405,8 +466,8 @@ async def stop_single_bot(bot_id):
 async def monitor_manager():
     logger.info("👀 Monitor Manager started...")
     logger.info(f"📚 RAG Service: {'✅ Available' if rag_service else '❌ Not available'}")
-    logger.info(f"🤖 HUMANIZER Instructions: ENABLED")
-    logger.info(f"🆕 NEW API Support: o1/o3/GPT-5+")
+    logger.info(f"🤖 HUMANIZER: ENABLED with Group Response")
+    logger.info(f"⏱️ DEBOUNCE DELAY: {MESSAGE_DEBOUNCE_DELAY}s")
     
     while True:
         try:

@@ -8,7 +8,7 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
     
     {% block extra_css %}{% endblock %}
@@ -23,8 +23,8 @@
         
         <aside class="sidebar" id="sidebar">
             <a href="{% url 'dashboard' %}" class="sidebar-logo">
-                <div class="sidebar-logo-icon">
-                    <i class="fa-solid fa-brain"></i>
+                <div class="logo-orb">
+                    <i class="fa-solid fa-bolt"></i> <div class="orb-shine"></div>
                 </div>
                 <span class="sidebar-logo-text">The Closer</span>
             </a>
@@ -131,4 +131,4 @@
 
     {% block extra_js %}{% endblock %}
 </body>
-</html>
+</html> 

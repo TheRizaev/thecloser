@@ -1,12 +1,17 @@
 # core/views_crm.py
 import json
 import logging
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
 from django.utils import timezone
 from .models import CRMIntegration, CRMSyncLog
+import requests
+from django.conf import settings
+
+
+
 
 logger = logging.getLogger(__name__)
 
@@ -69,10 +74,98 @@ def test_bitrix24(request):
 # ================= AMOCRM =================
 
 @login_required
-@require_http_methods(["GET"])
 def connect_amocrm(request):
-    """OAuth редирект для AmoCRM (заглушка)"""
-    return JsonResponse({'success': False, 'error': 'OAuth not configured'})
+    """
+    Шаг 1: Редирект пользователя на AmoCRM для получения прав
+    """
+    client_id = settings.AMOCRM_CLIENT_ID
+    # state нужен для защиты и передачи ID юзера, чтобы проверить его при возврате
+    state = str(request.user.id)
+    
+    # Формируем URL авторизации
+    # AmoCRM требует редиректа на www.amocrm.ru/oauth
+    auth_url = (
+        f"https://www.amocrm.ru/oauth?"
+        f"client_id={client_id}&"
+        f"state={state}&"
+        f"mode=post_message"
+    )
+    
+    return redirect(auth_url)
+
+@login_required
+def amocrm_callback(request):
+    """
+    Шаг 2: Обработка возврата от AmoCRM с кодом авторизации
+    """
+    code = request.GET.get('code')
+    # referer - это домен аккаунта пользователя (например, company.amocrm.ru)
+    # В новых версиях API AmoCRM может передавать это в заголовке или параметре, 
+    # но часто нужно смотреть client_id. 
+    # При mode=post_message AmoCRM обычно передает referer в GET параметрах, если это кнопка на сайте,
+    # но при прямой OAuth ссылке referer - это домен, откуда пришел юзер.
+    # В данном случае, мы получим referer из запроса на token endpoint позже, или из GET параметра 'referer'
+    
+    referer = request.GET.get('referer') 
+    state = request.GET.get('state')
+    error = request.GET.get('error')
+
+    if error:
+        return JsonResponse({'success': False, 'error': f"Ошибка AmoCRM: {error}"})
+
+    # Проверка безопасности
+    if str(request.user.id) != state:
+        return JsonResponse({'success': False, 'error': "Ошибка безопасности (state mismatch)"})
+
+    if not code:
+        return JsonResponse({'success': False, 'error': "Не получен код от AmoCRM"})
+
+    if not referer:
+        # Если referer не пришел в GET, пробуем получить его при обмене токена, 
+        # но для формирования URL запроса нам нужен домен.
+        # Обычно AmoCRM возвращает: ?code=...&referer=subdomain.amocrm.ru&state=...
+        return JsonResponse({'success': False, 'error': "Не удалось определить домен AmoCRM (referer)"})
+
+    # Шаг 3: Меняем код на Access Token
+    url = f"https://{referer}/oauth2/access_token"
+    
+    payload = {
+        "client_id": settings.AMOCRM_CLIENT_ID,
+        "client_secret": settings.AMOCRM_CLIENT_SECRET,
+        "grant_type": "authorization_code",
+        "code": code,
+        "redirect_uri": settings.AMOCRM_REDIRECT_URI,
+    }
+
+    try:
+        response = requests.post(url, json=payload)
+        data = response.json()
+
+        if response.status_code not in [200, 201]:
+            logger.error(f"AmoCRM Token Error: {data}")
+            return JsonResponse({'success': False, 'error': f"Ошибка получения токена: {data.get('hint') or data.get('title')}"})
+
+        # Сохраняем интеграцию
+        integration, _ = CRMIntegration.objects.get_or_create(
+            user=request.user,
+            crm_type='amocrm'
+        )
+
+        integration.domain = referer
+        integration.access_token = data.get('access_token')
+        integration.refresh_token = data.get('refresh_token')
+        
+        expires_in = data.get('expires_in', 86400)
+        integration.token_expires_at = timezone.now() + timezone.timedelta(seconds=expires_in)
+        
+        integration.status = 'connected'
+        integration.save()
+
+        return redirect('integrations')
+
+    except Exception as e:
+        logger.error(f"AmoCRM Callback Exception: {e}")
+        return JsonResponse({'success': False, 'error': str(e)})
 
 @login_required
 @require_http_methods(["POST"])
